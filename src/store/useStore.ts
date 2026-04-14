@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export type ViewTab = 'narrative' | 'characters' | 'world' | 'mindmap' | 'analysis' | 'config';
 
@@ -31,21 +32,34 @@ interface AppState {
   logout: () => void;
 }
 
-export const useStore = create<AppState>((set) => ({
-  user: null,
-  currentProject: null,
-  activeTab: 'narrative',
-  activeSceneId: null,
-  currentSceneContent: '',
-  isLocalMode: false,
-  isLoading: false,
-  
-  setUser: (user) => set({ user }),
-  setCurrentProject: (project) => set({ currentProject: project }),
-  setActiveTab: (tab) => set({ activeTab: tab }),
-  setActiveSceneId: (id) => set({ activeSceneId: id }),
-  setCurrentSceneContent: (content) => set({ currentSceneContent: content }),
-  setLocalMode: (enabled) => set({ isLocalMode: enabled, user: null, currentProject: null }),
-  setLoading: (loading) => set({ isLoading: loading }),
-  logout: () => set({ user: null, currentProject: null, isLocalMode: false }),
-}));
+export const useStore = create<AppState>()(
+  persist(
+    (set) => ({
+      user: null,
+      currentProject: null,
+      activeTab: 'narrative',
+      activeSceneId: null,
+      currentSceneContent: '',
+      isLocalMode: false,
+      isLoading: false,
+      
+      setUser: (user) => set({ user }),
+      setCurrentProject: (project) => set({ currentProject: project }),
+      setActiveTab: (tab) => set({ activeTab: tab }),
+      setActiveSceneId: (id) => set({ activeSceneId: id }),
+      setCurrentSceneContent: (content) => set({ currentSceneContent: content }),
+      setLocalMode: (enabled) => set({ isLocalMode: enabled, user: null, currentProject: null }),
+      setLoading: (loading) => set({ isLoading: loading }),
+      logout: () => set({ user: null, currentProject: null, isLocalMode: false }),
+    }),
+    {
+      name: 'muse-storage',
+      partialize: (state) => ({ 
+        user: state.user, 
+        currentProject: state.currentProject, 
+        isLocalMode: state.isLocalMode,
+        activeTab: state.activeTab
+      }),
+    }
+  )
+);

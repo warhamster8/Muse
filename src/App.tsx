@@ -10,6 +10,7 @@ import { WorldView } from './views/WorldView';
 import { AuthView } from './views/AuthView';
 import { ProjectSelector } from './views/ProjectSelector';
 import { AlertCircle, Settings, Cloud, Zap } from 'lucide-react';
+import { ToastContainer } from './components/Toast';
 
 function App() {
   const { user, currentProject, activeTab, isLocalMode, setUser, setLocalMode } = useStore();
@@ -122,6 +123,7 @@ function App() {
       </main>
 
       {activeTab === 'narrative' && <AISidekick />}
+      {currentProject && <ToastContainer />}
     </div>
   );
 }
