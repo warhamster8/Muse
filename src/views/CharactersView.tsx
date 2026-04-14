@@ -1,15 +1,14 @@
 import React from 'react';
-import { Plus, User, FileText, Brain, TrendingUp, Users as UsersIcon, MessageSquare } from 'lucide-react';
+import { Plus, User, FileText, Brain, TrendingUp, MessageSquare } from 'lucide-react';
 import { useCharacters } from '../hooks/useCharacters';
 import type { Character } from '../hooks/useCharacters';
 import { cn } from '../lib/utils';
 import { groqService } from '../lib/groq';
 
 export const CharactersView: React.FC = () => {
-  const { characters, addCharacter, updateCharacter, addInterview, fetchInterviews } = useCharacters();
+  const { characters, addCharacter, updateCharacter, addInterview } = useCharacters();
   const [selectedChar, setSelectedChar] = React.useState<Character | null>(null);
   const [isInterviewing, setIsInterviewing] = React.useState(false);
-  const [interviewText, setInterviewText] = React.useState('');
 
   const handleAdd = async () => {
     const name = prompt('Character Name:');

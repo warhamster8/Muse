@@ -7,14 +7,13 @@ import {
   Settings, 
   LogOut,
   ChevronRight,
-  Plus,
   Network
 } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import { useStore, type ViewTab } from '../store/useStore';
 import { cn } from '../lib/utils';
 
 type NavItem = {
-  id: string;
+  id: ViewTab;
   label: string;
   icon: React.ElementType;
 };
