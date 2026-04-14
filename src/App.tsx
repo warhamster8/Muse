@@ -9,7 +9,7 @@ import { MindmapView } from './views/MindmapView';
 import { WorldView } from './views/WorldView';
 import { AuthView } from './views/AuthView';
 import { ProjectSelector } from './views/ProjectSelector';
-import { BookOpen, AlertCircle, Settings, Cloud, Zap } from 'lucide-react';
+import { AlertCircle, Settings, Cloud, Zap } from 'lucide-react';
 
 function App() {
   const { user, currentProject, activeTab, isLocalMode, setUser, setLocalMode } = useStore();

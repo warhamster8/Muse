@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { storage } from '../lib/storage';
 import { useStore } from '../store/useStore';
-import { Plus, Book, Clock, ChevronRight, LogOut, Loader2, Sparkles, PlusCircle, Trash2 } from 'lucide-react';
+import { Plus, Clock, ChevronRight, LogOut, Loader2, Sparkles, PlusCircle, Trash2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export const ProjectSelector: React.FC = () => {
