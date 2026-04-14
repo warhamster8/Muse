@@ -67,10 +67,16 @@ export function useNarrative() {
       storage.insert('chapters', { project_id: currentProject.id, title, order_index: chapters.length });
       fetchNarrative();
     } else {
-      await supabase.from('chapters').insert([{ project_id: currentProject.id, title, order_index: chapters.length }]);
-      fetchNarrative();
+      const { error } = await supabase.from('chapters').insert([{ project_id: currentProject.id, title, order_index: chapters.length }]);
+      if (error) {
+        console.error('Error adding chapter:', error);
+        alert('Errore nella creazione del capitolo: ' + error.message);
+      } else {
+        fetchNarrative();
+      }
     }
   };
+
 
   const addScene = async (chapterId: string, title: string) => {
     const chapter = chapters.find(c => c.id === chapterId);
@@ -80,8 +86,13 @@ export function useNarrative() {
       storage.insert('scenes', { chapter_id: chapterId, title, order_index: order, content: '' });
       fetchNarrative();
     } else {
-      await supabase.from('scenes').insert([{ chapter_id: chapterId, title, order_index: order }]);
-      fetchNarrative();
+      const { error } = await supabase.from('scenes').insert([{ chapter_id: chapterId, title, order_index: order }]);
+      if (error) {
+        console.error('Error adding scene:', error);
+        alert('Errore nella creazione della scena: ' + error.message);
+      } else {
+        fetchNarrative();
+      }
     }
   };
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { AISidekick } from './components/AISidekick';
 import { useStore } from './store/useStore';
@@ -7,78 +7,78 @@ import { NarrativeView } from './views/NarrativeView';
 import { CharactersView } from './views/CharactersView';
 import { MindmapView } from './views/MindmapView';
 import { WorldView } from './views/WorldView';
-import { BookOpen, AlertCircle, Settings } from 'lucide-react';
+import { AuthView } from './views/AuthView';
+import { ProjectSelector } from './views/ProjectSelector';
+import { BookOpen, AlertCircle, Settings, Cloud, Zap } from 'lucide-react';
 
 function App() {
-  const { user, currentProject, activeTab, isLocalMode, setUser, setCurrentProject, setLocalMode } = useStore();
+  const { user, currentProject, activeTab, isLocalMode, setUser, setLocalMode } = useStore();
+  const [showAuth, setShowAuth] = useState(false);
 
   React.useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) setUser({ id: session.user.id, email: session.user.email });
+      if (session?.user) {
+        setUser({ id: session.user.id, email: session.user.email });
+        setShowAuth(false);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) setUser({ id: session.user.id, email: session.user.email });
-      else setUser(null);
+      if (session?.user) {
+        setUser({ id: session.user.id, email: session.user.email });
+        setShowAuth(false);
+      } else {
+        setUser(null);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, [setUser]);
 
-  // Auto-fetch or create a project if logged in
-  React.useEffect(() => {
-    if (user && !currentProject) {
-      const initProject = async () => {
-        const { data: projects } = await supabase.from('projects').select('*').limit(1);
-        if (projects && projects.length > 0) {
-          setCurrentProject({ id: projects[0].id, title: projects[0].title });
-        } else {
-          // Create default project
-          const { data: newProj } = await supabase
-            .from('projects')
-            .insert([{ user_id: user.id, title: 'My First Novel' }])
-            .select()
-            .single();
-          if (newProj) setCurrentProject({ id: newProj.id, title: newProj.title });
-        }
-      };
-      initProject();
-    }
-  }, [user, currentProject, setCurrentProject]);
-
   const handleTestLocally = () => {
     setLocalMode(true);
-    setUser({ id: 'local-tester', email: 'test@local.muse' });
-    setCurrentProject({ id: 'local-project', title: 'Local Test Novel' });
   };
 
-  if (!user && !isLocalMode) {
+  // 1. Landing Screen (Not logged in, Not local, Not in Auth view)
+  if (!user && !isLocalMode && !showAuth) {
     return (
       <div className="h-screen flex items-center justify-center bg-slate-950 p-4">
-        <div className="glass p-12 rounded-3xl border border-slate-700 max-w-md w-full text-center space-y-8">
+        <div className="glass p-12 rounded-3xl border border-slate-700 max-w-lg w-full text-center space-y-8 relative overflow-hidden">
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/10 blur-3xl rounded-full" />
+          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-600/10 blur-3xl rounded-full" />
+          
           <BookOpen className="w-16 h-16 text-blue-400 mx-auto" />
           <div>
-            <h1 className="text-3xl font-bold font-serif">Project Muse</h1>
-            <p className="text-slate-400 mt-2">AI-powered novel architect</p>
+            <h1 className="text-4xl font-bold font-serif bg-gradient-to-br from-white to-slate-400 bg-clip-text text-transparent">Project Muse</h1>
+            <p className="text-slate-400 mt-2 text-lg">Il tuo architetto narrativo potenziato dall'IA</p>
           </div>
           
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-4">
+             <button 
+                onClick={() => setShowAuth(true)}
+                className="group relative w-full py-5 bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 rounded-2xl text-lg font-bold transition-all shadow-xl shadow-blue-900/40 flex items-center justify-center gap-3 overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Cloud className="w-6 h-6" />
+                Connetti Cloud (Supabase)
+              </button>
+
              <button 
                 onClick={handleTestLocally}
-                className="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl text-lg font-bold transition-all shadow-lg shadow-blue-900/20"
+                className="w-full py-5 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 rounded-2xl text-lg font-bold transition-all flex items-center justify-center gap-3"
               >
-                Start Local Test
+                <Zap className="w-6 h-6 text-yellow-400" />
+                Inizia Test Locale
               </button>
-              <p className="text-xs text-slate-500">Saves your work in the browser's storage.</p>
           </div>
 
-          <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl text-left space-y-4">
+          <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl text-left space-y-2">
              <div className="flex items-center gap-2 text-slate-400">
                 <AlertCircle className="w-4 h-4" />
-                <span className="text-xs font-bold uppercase tracking-widest">Connect Supabase</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Info Sincronizzazione</span>
              </div>
-             <p className="text-[10px] text-slate-500 leading-relaxed">
-               For cloud sync and version history, ensure your .env variables are set and your database is initialized with the provided SQL script.
+             <p className="text-xs text-slate-400 leading-relaxed">
+               La modalità Cloud ti permette di sincronizzare i tuoi romanzi tra più dispositivi. La modalità Locale salva i dati solo in questo browser.
              </p>
           </div>
         </div>
@@ -86,6 +86,17 @@ function App() {
     );
   }
 
+  // 2. Auth Screen
+  if (showAuth && !user) {
+    return <AuthView onBack={() => setShowAuth(false)} />;
+  }
+
+  // 3. Project Selection Screen (Logged in but no project selected)
+  if ((user || isLocalMode) && !currentProject) {
+    return <ProjectSelector />;
+  }
+
+  // 4. Main App Dashboard
   return (
     <div className="flex bg-slate-950 text-slate-100 h-screen overflow-hidden font-sans">
       <Sidebar />
@@ -116,3 +127,4 @@ function App() {
 }
 
 export default App;
+

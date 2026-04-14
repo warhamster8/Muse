@@ -28,6 +28,7 @@ interface AppState {
   setCurrentSceneContent: (content: string) => void;
   setLocalMode: (enabled: boolean) => void;
   setLoading: (loading: boolean) => void;
+  logout: () => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -44,6 +45,7 @@ export const useStore = create<AppState>((set) => ({
   setActiveTab: (tab) => set({ activeTab: tab }),
   setActiveSceneId: (id) => set({ activeSceneId: id }),
   setCurrentSceneContent: (content) => set({ currentSceneContent: content }),
-  setLocalMode: (enabled) => set({ isLocalMode: enabled }),
+  setLocalMode: (enabled) => set({ isLocalMode: enabled, user: null, currentProject: null }),
   setLoading: (loading) => set({ isLoading: loading }),
+  logout: () => set({ user: null, currentProject: null, isLocalMode: false }),
 }));
