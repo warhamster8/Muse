@@ -38,11 +38,9 @@ export const Sidebar: React.FC = () => {
 
   return (
     <div className="w-64 h-screen glass border-r border-slate-700 flex flex-col">
-      <div className="p-6">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-          Project Muse
-        </h1>
-        <p className="text-xs text-slate-500 mt-1 uppercase tracking-widest font-bold">Novel Architect</p>
+      <div className="p-6 flex flex-col items-center">
+        <img src="/logo.png" alt="Muse Logo" className="w-32 h-32 mb-2 object-contain hover:scale-105 transition-transform" />
+        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Novel Architect</p>
       </div>
 
       <div className="px-4 mb-4">

@@ -47,7 +47,7 @@ function App() {
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/10 blur-3xl rounded-full" />
           <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-600/10 blur-3xl rounded-full" />
           
-          <BookOpen className="w-16 h-16 text-blue-400 mx-auto" />
+          <img src="/logo.png" alt="Project Muse Logo" className="w-48 h-48 mx-auto object-contain" />
           <div>
             <h1 className="text-4xl font-bold font-serif bg-gradient-to-br from-white to-slate-400 bg-clip-text text-transparent">Project Muse</h1>
             <p className="text-slate-400 mt-2 text-lg">Il tuo architetto narrativo potenziato dall'IA</p>

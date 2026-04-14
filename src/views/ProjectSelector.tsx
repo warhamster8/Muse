@@ -76,9 +76,7 @@ export const ProjectSelector: React.FC = () => {
       <div className="max-w-4xl w-full space-y-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-500/20">
-              <Book className="w-8 h-8 text-white" />
-            </div>
+            <img src="/logo.png" alt="Muse Logo" className="w-16 h-16 object-contain shadow-2xl shadow-blue-500/20 rounded-xl" />
             <div>
               <h1 className="text-3xl font-bold font-serif">I Miei Romanzi</h1>
               <p className="text-slate-500 text-sm">

@@ -58,7 +58,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onBack }) => {
         </button>
 
         <div className="text-center mb-8 pt-4">
-          <BookOpen className="w-12 h-12 text-blue-400 mx-auto mb-4" />
+          <img src="/logo.png" alt="Muse Logo" className="w-32 h-32 mx-auto mb-4 object-contain" />
           <h2 className="text-2xl font-bold font-serif">
             {isSignUp ? 'Crea un account' : 'Bentornato su Muse'}
           </h2>
