@@ -23,6 +23,13 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
     },
   });
 
+  // Sync content if it changes externally
+  React.useEffect(() => {
+    if (editor && initialContent !== editor.getHTML()) {
+      editor.commands.setContent(initialContent);
+    }
+  }, [initialContent, editor]);
+
   if (!editor) return null;
 
   return (

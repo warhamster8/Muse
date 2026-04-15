@@ -97,6 +97,16 @@ export function useNarrative() {
   };
 
   const updateSceneContent = async (sceneId: string, content: string) => {
+    // Update local state first for immediate UI feedback
+    setChapters(prevChapters => 
+      prevChapters.map(chapter => ({
+        ...chapter,
+        scenes: chapter.scenes?.map(scene => 
+          scene.id === sceneId ? { ...scene, content } : scene
+        )
+      }))
+    );
+
     if (isLocalMode) {
       storage.update('scenes', sceneId, { content });
     } else {

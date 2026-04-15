@@ -12,71 +12,117 @@ import {
 import { cn } from '../lib/utils';
 import { groqService } from '../lib/groq';
 import { useStore } from '../store/useStore';
+import { useNarrative } from '../hooks/useNarrative';
 
 type SidekickTab = 'revision' | 'braindump' | 'transformer';
 
 // Renders structured AI output: lines starting with ❌ get red, ✅ green, ## become headers, etc.
-const StructuredOutput: React.FC<{ text: string }> = ({ text }) => {
+const StructuredOutput: React.FC<{ 
+  text: string; 
+  onApply?: (original: string, suggestion: string) => void 
+}> = ({ text, onApply }) => {
   const lines = text.split('\n');
-  return (
-    <div className="space-y-2 text-sm leading-relaxed">
-      {lines.map((line, i) => {
-        if (!line.trim()) return <div key={i} className="h-2" />;
+  
+  // Group ❌, ✅, 🏷️, 💡 together into cards
+  const elements: React.ReactNode[] = [];
+  let currentSuggestion: { original?: string; suggestion?: string; reason?: string; category?: string } | null = null;
 
-        if (line.startsWith('##')) {
-          return (
-            <p key={i} className="text-[10px] uppercase tracking-widest font-bold text-blue-400 pt-2">
-              {line.replace(/^#+\s*/, '')}
-            </p>
-          );
-        }
-        if (line.startsWith('❌') || line.toLowerCase().startsWith('originale:') || line.toLowerCase().startsWith('prima:')) {
-          return (
-            <div key={i} className="flex items-start gap-2 bg-red-950/30 border border-red-500/20 rounded-lg px-3 py-2">
-              <span className="text-red-400 shrink-0 text-xs mt-0.5">✕</span>
-              <span className="text-red-300/90 text-xs italic">{line.replace(/^❌\s*/, '').replace(/^(originale:|prima:)\s*/i, '')}</span>
+  const flushSuggestion = (key: number) => {
+    if (currentSuggestion && currentSuggestion.original && currentSuggestion.suggestion) {
+      const { original, suggestion, reason, category } = currentSuggestion;
+      elements.push(
+        <div key={`sug-${key}`} className="bg-slate-800/80 border border-slate-700 rounded-xl overflow-hidden mb-4 shadow-lg group">
+          {category && (
+            <div className="bg-slate-700/50 px-3 py-1 flex items-center justify-between border-b border-slate-700">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                {category}
+              </span>
+              <button 
+                onClick={() => onApply?.(original, suggestion)}
+                className="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded transition-colors flex items-center gap-1"
+              >
+                <Zap className="w-2.5 h-2.5" />
+                Applica
+              </button>
             </div>
-          );
-        }
-        if (line.startsWith('✅') || line.toLowerCase().startsWith('suggerimento:') || line.toLowerCase().startsWith('revisione:') || line.toLowerCase().startsWith('dopo:')) {
-          return (
-            <div key={i} className="flex items-start gap-2 bg-green-950/30 border border-green-500/20 rounded-lg px-3 py-2">
-              <span className="text-green-400 shrink-0 text-xs mt-0.5">✓</span>
-              <span className="text-green-300/90 text-xs">{line.replace(/^✅\s*/, '').replace(/^(suggerimento:|revisione:|dopo:)\s*/i, '')}</span>
+          )}
+          <div className="p-3 space-y-2">
+            <div 
+              className="bg-red-950/20 border border-red-500/20 rounded-lg px-3 py-2 text-xs text-red-300 line-through opacity-70 cursor-not-allowed"
+            >
+              {original}
             </div>
-          );
-        }
-        if (line.startsWith('💡') || line.startsWith('•') || line.startsWith('-')) {
-          return (
-            <div key={i} className="flex items-start gap-2 px-2">
-              <span className="text-yellow-400 shrink-0 text-xs mt-0.5">›</span>
-              <span className="text-slate-300 text-xs">{line.replace(/^[💡•\-]\s*/, '')}</span>
+            <div 
+              onClick={() => onApply?.(original, suggestion)}
+              className="bg-green-600/10 border border-green-500/30 hover:border-green-500/60 rounded-lg px-3 py-2 text-xs text-green-300 cursor-pointer transition-all hover:bg-green-600/20 active:scale-[0.98] group-hover:ring-1 ring-green-500/50"
+            >
+              {suggestion}
             </div>
-          );
-        }
-        if (line.startsWith('**') && line.endsWith('**')) {
-          return (
-            <p key={i} className="font-semibold text-slate-200 text-xs px-1">
-              {line.replace(/\*\*/g, '')}
-            </p>
-          );
-        }
-        return (
-          <p key={i} className="text-slate-300 text-xs px-1">
-            {line}
-          </p>
-        );
-      })}
-    </div>
-  );
+            {reason && (
+              <p className="text-[10px] text-slate-400 italic px-1">
+                💡 {reason}
+              </p>
+            )}
+          </div>
+        </div>
+      );
+      currentSuggestion = null;
+    }
+  };
+
+  lines.forEach((line, i) => {
+    if (line.startsWith('❌')) {
+      flushSuggestion(i);
+      currentSuggestion = { original: line.replace(/^❌\s*/, '').trim() };
+    } else if (line.startsWith('✅')) {
+      if (currentSuggestion) currentSuggestion.suggestion = line.replace(/^✅\s*/, '').trim();
+    } else if (line.startsWith('💡')) {
+      if (currentSuggestion) currentSuggestion.reason = line.replace(/^💡\s*/, '').trim();
+    } else if (line.startsWith('🏷️')) {
+      if (currentSuggestion) currentSuggestion.category = line.replace(/^🏷️\s*/, '').trim();
+    } else if (line.startsWith('##')) {
+      flushSuggestion(i);
+      elements.push(
+        <h3 key={i} className="text-[10px] uppercase tracking-widest font-bold text-blue-400 pt-4 pb-2 border-b border-blue-500/20 mb-3">
+          {line.replace(/^#+\s*/, '')}
+        </h3>
+      );
+    } else if (line.trim()) {
+      flushSuggestion(i);
+      elements.push(<p key={i} className="text-slate-300 text-xs px-1 leading-relaxed">{line}</p>);
+    }
+  });
+  flushSuggestion(lines.length);
+
+  return <div className="space-y-1">{elements}</div>;
 };
 
 export const AISidekick: React.FC = () => {
-  const { currentSceneContent: content } = useStore();
+  const { currentSceneContent: content, activeSceneId, setCurrentSceneContent } = useStore();
+  const { updateSceneContent } = useNarrative();
   const [activeTab, setActiveTab] = React.useState<SidekickTab>('revision');
   const [analysis, setAnalysis] = React.useState<string>('');
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+
+  const applySuggestion = async (original: string, suggestion: string) => {
+    if (!activeSceneId || !content) return;
+
+    // Very basic search and replace in HTML. 
+    // This could be improved with DOM manipulation if needed.
+    // We try to match the text even if there are subtle HTML differences
+    const newContent = content.replace(original, suggestion);
+    
+    if (newContent !== content) {
+      setCurrentSceneContent(newContent);
+      await updateSceneContent(activeSceneId, newContent);
+    } else {
+      // Fallback: if exact match fails, try a more aggressive approach (stripping tags for search)
+      // For now, let's stick to exact match and see how it performs.
+      // Most AI suggestions will be contiguous text without tags inside.
+      console.warn("Could not find original text in content for replacement.");
+    }
+  };
 
   // Strip HTML tags to get plain text for AI analysis
   const getPlainText = (html: string) => {
@@ -98,19 +144,21 @@ Il tuo compito è revisionare la bozza fornita dall'utente con precisione chirur
 
 OBIETTIVO: Rendere il testo più SCORREVOLE, DINAMICO e COINVOLGENTE.
 
-METODOLOGIA — Per ogni problema trovato, usa questo formato esatto:
+METODOLOGIA — Per ogni problema trovato, usa questo formato esatto. Le CATEGORIE devono includere specificamente Verbi, Avverbi, Ridondanze se presenti:
 ❌ [frase originale problematica]
 ✅ [proposta di revisione migliorata]
+🏷️ [Categoria: Es. Verbo, Avverbio, Ridondanza, Ritmo, ecc.]
 💡 [brevissima spiegazione del motivo]
 
 CRITERI DI REVISIONE (applica tutti):
 1. RITMO — Spezza periodi troppo lunghi. Alterna frasi brevi e incisive a quelle più distese.
-2. VERBI ATTIVI — Sostituisci costruzioni passive o deboli ("c'era", "si trovava", "sembrava che") con verbi forti e diretti.
+2. VERBI ATTIVI — Sostituisci costruzioni passive o deboli ("c'era", "si trovava", "sembrava che") con verbi forti e diretti. Sii spietato con i verbi generici.
 3. ELIMINAZIONE AVVERBI — Rimuovi avverbi ridondanti (molto, abbastanza, davvero). Trova il verbo o aggettivo più preciso.
-4. SHOW DON'T TELL — Ogni emozione deve essere mostrata attraverso un'azione o sensazione fisica, non dichiarata.
-5. FLUIDITÀ DIALOGO — I dialoghi devono suonare naturali, non letterari. Usa incisi di movimento, non solo "disse".
-6. PAROLE RIPETUTE — Segnala e sostituisci le stesse parole usate in prossimità.
-7. APERTURA SCENA — L'incipit deve essere un gancio immediato. Se è debole, proponi un'alternativa.
+4. RIDONDANZE — Elimina ripetizioni ed espressioni superflue.
+5. SHOW DON'T TELL — Ogni emozione deve essere mostrata attraverso un'azione o sensazione fisica, non dichiarata.
+6. FLUIDITÀ DIALOGO — I dialoghi devono suonare naturali, non letterari. Usa incisi di movimento, non solo "disse".
+7. PAROLE RIPETUTE — Segnala e sostituisci le stesse parole usate in prossimità.
+8. APERTURA SCENA — L'incipit deve essere un gancio immediato. Se è debole, proponi un'alternativa.
 
 Inizia con: ## Analisi Revisione
 Poi elenca max 5-7 interventi prioritari nel formato sopra.
@@ -299,8 +347,8 @@ Riscrivi in italiano. Restituisci SOLO il testo riscritto.`,
             )}
 
             {analysis ? (
-              <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2">
-                <StructuredOutput text={analysis} />
+              <div className="animate-in slide-in-from-bottom-2">
+                <StructuredOutput text={analysis} onApply={applySuggestion} />
               </div>
             ) : (
               !isAnalyzing && (
