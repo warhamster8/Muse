@@ -13,6 +13,7 @@ import { cn } from '../lib/utils';
 import { groqService } from '../lib/groq';
 import { useStore } from '../store/useStore';
 import { useNarrative } from '../hooks/useNarrative';
+import { useToast } from './Toast';
 
 type SidekickTab = 'revision' | 'braindump' | 'transformer';
 
@@ -100,6 +101,7 @@ const StructuredOutput: React.FC<{
 export const AISidekick: React.FC = () => {
   const { currentSceneContent: content, activeSceneId, setCurrentSceneContent } = useStore();
   const { updateSceneContent } = useNarrative();
+  const { addToast } = useToast();
   const [activeTab, setActiveTab] = React.useState<SidekickTab>('revision');
   const [analysis, setAnalysis] = React.useState<string>('');
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
@@ -108,19 +110,23 @@ export const AISidekick: React.FC = () => {
   const applySuggestion = async (original: string, suggestion: string) => {
     if (!activeSceneId || !content) return;
 
-    // Very basic search and replace in HTML. 
-    // This could be improved with DOM manipulation if needed.
-    // We try to match the text even if there are subtle HTML differences
-    const newContent = content.replace(original, suggestion);
+    // Robust search and replace that ignores HTML tags between words
+    const escapedOriginal = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const words = escapedOriginal.split(/\s+/).filter(w => w.length > 0);
+    
+    // Create pattern that matches words separated by any amount of whitespace OR html tags
+    const pattern = words.join('\\s*(?:<[^>]+>\\s*)*');
+    const regex = new RegExp(pattern, 'i'); // Case insensitive for better match
+    
+    const newContent = content.replace(regex, suggestion);
     
     if (newContent !== content) {
       setCurrentSceneContent(newContent);
       await updateSceneContent(activeSceneId, newContent);
+      addToast('Modifica applicata con successo', 'success');
     } else {
-      // Fallback: if exact match fails, try a more aggressive approach (stripping tags for search)
-      // For now, let's stick to exact match and see how it performs.
-      // Most AI suggestions will be contiguous text without tags inside.
-      console.warn("Could not find original text in content for replacement.");
+      console.warn("Could not find original text in content for replacement:", original);
+      addToast('Impossibile trovare il testo originale nella scena. Prova a modificare manualmente.', 'error');
     }
   };
 
