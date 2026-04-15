@@ -67,6 +67,7 @@ export default function EditableNode({ id, data, isConnectable, selected }: any)
   const textColor = nodeColor ? getTextColor(nodeColor) : '#f1f5f9';
   const isRoot = !data.isSubnode;
   const hasNotes = typeof data.notes === 'string' && data.notes.trim().length > 0;
+  const IconComponent = data.icon ? NODE_ICONS[data.icon] ?? null : null;
 
   // ── Root node: rounded card with gradient accent ──────────────────────────
   // ── Subnode: compact pill ──────────────────────────────────────────────────
