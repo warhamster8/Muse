@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
-import { Plus, Search, Trash2, ExternalLink, Image as ImageIcon, Maximize2 } from 'lucide-react';
+import { 
+  Plus, Search, Trash2, ExternalLink, Image as ImageIcon, Maximize2,
+  Bold, Italic, List, ListOrdered, Type, Quote, Undo, Redo, Code as CodeIcon,
+  Strikethrough, Heading1, Heading2, Link as LinkIcon
+} from 'lucide-react';
 import type { Note } from '../hooks/useNotes';
 import { useNotes } from '../hooks/useNotes';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../components/Toast';
+import { cn } from '../lib/utils';
 
 export const NotesView: React.FC = () => {
   const { notes, addNote, updateNote, deleteNote, loading } = useNotes();
@@ -73,10 +78,10 @@ export const NotesView: React.FC = () => {
             <AnimatePresence mode="popLayout">
               {filteredNotes.map((note) => (
                 <NoteCard 
-                  key={note.id} 
-                  note={note} 
-                  onClick={() => setEditingNote(note)}
-                  onDelete={() => deleteNote(note.id)}
+                   key={note.id} 
+                   note={note} 
+                   onClick={() => setEditingNote(note)}
+                   onDelete={() => deleteNote(note.id)}
                 />
               ))}
             </AnimatePresence>
@@ -102,7 +107,6 @@ export const NotesView: React.FC = () => {
 };
 
 const NoteCard: React.FC<{ note: Note; onClick: () => void; onDelete: () => void }> = ({ note, onClick, onDelete }) => {
-  // Strip HTML for preview
   const preview = note.content.replace(/<[^>]*>/g, '').slice(0, 150) + (note.content.length > 150 ? '...' : '');
 
   return (
@@ -134,6 +138,132 @@ const NoteCard: React.FC<{ note: Note; onClick: () => void; onDelete: () => void
   );
 };
 
+const MenuBar: React.FC<{ editor: Editor }> = ({ editor }) => {
+  if (!editor) return null;
+
+  const addImage = () => {
+    const url = prompt('Inserisci URL immagine:');
+    if (url) {
+      editor.chain().focus().setImage({ src: url }).run();
+    }
+  };
+
+  const setLink = () => {
+    const url = prompt('Inserisci URL link:');
+    if (url === null) return;
+    if (url === '') {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      return;
+    }
+    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+  };
+
+  const ToolbarButton = ({ onClick, isActive, icon: Icon, title }: any) => (
+    <button
+      onClick={onClick}
+      title={title}
+      className={cn(
+        "p-2 rounded-lg transition-all hover:bg-slate-700",
+        isActive ? "text-blue-400 bg-blue-500/10" : "text-slate-400"
+      )}
+    >
+      <Icon className="w-4 h-4" />
+    </button>
+  );
+
+  return (
+    <div className="flex flex-wrap items-center gap-1 p-2 border-b border-slate-700 bg-slate-800/20">
+      <ToolbarButton 
+        onClick={() => editor.chain().focus().toggleBold().run()}
+        isActive={editor.isActive('bold')}
+        icon={Bold}
+        title="Bold"
+      />
+      <ToolbarButton 
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+        isActive={editor.isActive('italic')}
+        icon={Italic}
+        title="Italic"
+      />
+      <ToolbarButton 
+        onClick={() => editor.chain().focus().toggleStrike().run()}
+        isActive={editor.isActive('strike')}
+        icon={Strikethrough}
+        title="Strike"
+      />
+      <ToolbarButton 
+        onClick={() => editor.chain().focus().toggleCode().run()}
+        isActive={editor.isActive('code')}
+        icon={CodeIcon}
+        title="In-line Code"
+      />
+      
+      <div className="w-px h-6 bg-slate-700 mx-1" />
+
+      <ToolbarButton 
+        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        isActive={editor.isActive('heading', { level: 1 })}
+        icon={Heading1}
+        title="Heading 1"
+      />
+      <ToolbarButton 
+        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        isActive={editor.isActive('heading', { level: 2 })}
+        icon={Heading2}
+        title="Heading 2"
+      />
+      
+      <div className="w-px h-6 bg-slate-700 mx-1" />
+
+      <ToolbarButton 
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        isActive={editor.isActive('bulletList')}
+        icon={List}
+        title="Bullet List"
+      />
+      <ToolbarButton 
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        isActive={editor.isActive('orderedList')}
+        icon={ListOrdered}
+        title="Ordered List"
+      />
+      <ToolbarButton 
+        onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        isActive={editor.isActive('blockquote')}
+        icon={Quote}
+        title="Blockquote"
+      />
+
+      <div className="w-px h-6 bg-slate-700 mx-1" />
+
+      <ToolbarButton 
+        onClick={setLink}
+        isActive={editor.isActive('link')}
+        icon={LinkIcon}
+        title="Link"
+      />
+      <ToolbarButton 
+        onClick={addImage}
+        icon={ImageIcon}
+        title="Image"
+      />
+
+      <div className="flex-1" />
+
+      <ToolbarButton 
+        onClick={() => editor.chain().focus().undo().run()}
+        icon={Undo}
+        title="Undo"
+      />
+      <ToolbarButton 
+        onClick={() => editor.chain().focus().redo().run()}
+        icon={Redo}
+        title="Redo"
+      />
+    </div>
+  );
+};
+
 const NoteModal: React.FC<{ note: Note; onClose: () => void; onSave: (updates: Partial<Note>) => void }> = ({ note, onClose, onSave }) => {
   const [title, setTitle] = useState(note.title);
   const editor = useEditor({
@@ -151,20 +281,6 @@ const NoteModal: React.FC<{ note: Note; onClose: () => void; onSave: (updates: P
     onSave({ title, content: editor.getHTML() });
   };
 
-  const addImage = () => {
-    const url = prompt('Inserisci URL immagine:');
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
-    }
-  };
-
-  const addLink = () => {
-    const url = prompt('Inserisci URL link:');
-    if (url) {
-      editor.chain().focus().setLink({ href: url }).run();
-    }
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <motion.div 
@@ -178,24 +294,17 @@ const NoteModal: React.FC<{ note: Note; onClose: () => void; onSave: (updates: P
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className="relative w-full max-w-4xl max-h-[90vh] bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+        className="relative w-full max-w-5xl h-[85vh] bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
       >
         {/* Header */}
-        <div className="p-4 border-b border-slate-700 flex items-center gap-4 bg-slate-800/30">
+        <div className="p-4 border-b border-slate-700 flex items-center justify-between bg-slate-800/30">
           <input 
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="flex-1 bg-transparent text-xl font-bold text-slate-200 focus:outline-none placeholder:opacity-20"
+            className="bg-transparent text-xl font-bold text-slate-200 focus:outline-none placeholder:opacity-20 flex-1 px-4"
             placeholder="Titolo della nota..."
           />
-          <div className="flex items-center gap-2">
-            <button onClick={addLink} className="p-2 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg transition-all border border-transparent hover:border-blue-500/20">
-              <ExternalLink className="w-5 h-5" />
-            </button>
-            <button onClick={addImage} className="p-2 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg transition-all border border-transparent hover:border-blue-500/20">
-              <ImageIcon className="w-5 h-5" />
-            </button>
-            <div className="w-px h-6 bg-slate-700 mx-2" />
+          <div className="flex items-center gap-3">
             <button 
               onClick={onClose}
               className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors"
@@ -204,15 +313,17 @@ const NoteModal: React.FC<{ note: Note; onClose: () => void; onSave: (updates: P
             </button>
             <button 
               onClick={handleSave}
-              className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl font-bold text-sm shadow-lg shadow-blue-900/40"
+              className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-900/40 transition-all active:scale-95"
             >
-              Salva
+              Salva Cambiamenti
             </button>
           </div>
         </div>
 
-        {/* Editor */}
-        <div className="flex-1 overflow-y-auto p-8 bg-slate-900/50">
+        <MenuBar editor={editor} />
+
+        {/* Editor Content Area */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-12 bg-slate-900/50">
           <div className="prose prose-invert prose-blue max-w-none min-h-full">
             <EditorContent editor={editor} />
           </div>

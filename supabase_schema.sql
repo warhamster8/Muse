@@ -63,6 +63,7 @@ create table public.characters (
   psychology text default '',
   evolution text default '',
   relations text default '',
+  avatar_url text default '',
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -132,6 +133,26 @@ create policy "Users can access mindmaps of their projects" on public.mindmaps
     exists (
       select 1 from public.projects 
       where projects.id = mindmaps.project_id 
+      and projects.user_id = auth.uid()
+    )
+  );
+
+-- 8. Tabella NOTES
+create table public.notes (
+  id uuid default gen_random_uuid() primary key,
+  project_id uuid references public.projects(id) on delete cascade not null,
+  title text not null,
+  content text default '',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.notes enable row level security;
+create policy "Users can access notes of their projects" on public.notes
+  for all using (
+    exists (
+      select 1 from public.projects 
+      where projects.id = notes.project_id 
       and projects.user_id = auth.uid()
     )
   );
