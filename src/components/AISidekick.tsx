@@ -80,25 +80,34 @@ const StructuredOutput: React.FC<{
   };
 
   lines.forEach((line, i) => {
-    if (line.startsWith('❌')) {
+    const trimmedLine = line.trim();
+    if (/^(?:\d+\.\s*)?❌/.test(trimmedLine)) {
       flushSuggestion(i);
-      currentSuggestion = { original: line.replace(/^❌\s*/, '').trim() };
-    } else if (line.startsWith('✅')) {
-      if (currentSuggestion) currentSuggestion.suggestion = line.replace(/^✅\s*/, '').trim();
-    } else if (line.startsWith('💡')) {
-      if (currentSuggestion) currentSuggestion.reason = line.replace(/^💡\s*/, '').trim();
-    } else if (line.startsWith('🏷️')) {
-      if (currentSuggestion) currentSuggestion.category = line.replace(/^🏷️\s*/, '').trim();
-    } else if (line.startsWith('##')) {
+      currentSuggestion = { 
+        original: trimmedLine.replace(/^(?:\d+\.\s*)?❌\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim() 
+      };
+    } else if (/^(?:\d+\.\s*)?✅/.test(trimmedLine)) {
+      if (currentSuggestion) {
+        currentSuggestion.suggestion = trimmedLine.replace(/^(?:\d+\.\s*)?✅\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim();
+      }
+    } else if (/^(?:\d+\.\s*)?💡/.test(trimmedLine)) {
+      if (currentSuggestion) {
+        currentSuggestion.reason = trimmedLine.replace(/^(?:\d+\.\s*)?💡\s*/, '').trim();
+      }
+    } else if (/^(?:\d+\.\s*)?🏷️/.test(trimmedLine)) {
+      if (currentSuggestion) {
+        currentSuggestion.category = trimmedLine.replace(/^(?:\d+\.\s*)?🏷️\s*/, '').trim();
+      }
+    } else if (trimmedLine.startsWith('##')) {
       flushSuggestion(i);
       elements.push(
         <h3 key={i} className="text-[10px] uppercase tracking-widest font-bold text-blue-400 pt-4 pb-2 border-b border-blue-500/20 mb-3">
-          {line.replace(/^#+\s*/, '')}
+          {trimmedLine.replace(/^#+\s*/, '')}
         </h3>
       );
-    } else if (line.trim()) {
+    } else if (trimmedLine) {
       flushSuggestion(i);
-      elements.push(<p key={i} className="text-slate-300 text-xs px-1 leading-relaxed">{line}</p>);
+      elements.push(<p key={i} className="text-slate-300 text-xs px-1 leading-relaxed">{trimmedLine}</p>);
     }
   });
   flushSuggestion(lines.length);
