@@ -119,46 +119,57 @@ export const AISidekick: React.FC = () => {
   const applySuggestion = async (originalText: string, suggestion: string) => {
     if (!activeSceneId || !content) return;
 
-    // Helper to normalize strings (handle smart quotes, normalize whitespace)
-    const normalize = (str: string) => str
+    // Normalizza la stringa per apostrofi o costrutti comuni (es. E' -> È)
+    const normalizeIt = (str: string) => str
       .replace(/[\u201C\u201D]/g, '"')
       .replace(/[\u2018\u2019]/g, "'")
+      .replace(/E['’]/g, 'È')
       .replace(/\u00A0/g, ' ')
-      .replace(/\s+/g, ' ')
       .trim();
 
-    const normalizedOriginal = normalize(originalText);
+    const normalizedOriginal = normalizeIt(originalText);
     
-    // Extract only alpha-numeric tokens (including Italian accented chars)
-    // This makes the match robust against slight punctuation differences in the AI quote
-    const words = normalizedOriginal.match(/[a-zA-Z0-9\u00C0-\u017F]+/g) || [];
+    // Identifica le ellissi ("..." o "…") usate dall'IA per troncare il testo
+    const parts = normalizedOriginal.split(/\.\.\.|…/);
     
-    if (words.length === 0) {
-       console.warn("Could not extract words from originalText for matching:", originalText);
+    // Pattern flessibile: permette spazi, tag HTML (<...>), ENTITA' HTML (&nbsp;), e punteggiature.
+    const gapPattern = '(?:[\\s\\u00A0]|&[a-zA-Z0-9#]+;|<[^>]+>|[^a-zA-Z0-9<]+)*';
+    
+    let regexStr = parts.map(part => {
+        const words = part.match(/[a-zA-Z0-9\u00C0-\u017F]+/g) || [];
+        return words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(gapPattern);
+    }).filter(p => p).join('(?:.|\\n){0,150}?'); // Se l'IA ha usato i puntini, permette fino a 150 caratteri extra nel mezzo
+    
+    if (!regexStr) {
        addToast('Impossibile elaborare il testo originale.', 'error');
        return;
     }
 
-    // Pattern that matches words separated by tags, standard whitespace, non-breaking spaces, 
-    // AND punctuation/other symbols that the AI might have missed.
-    const gapPattern = '[\\s\\u00A0]*([^a-zA-Z0-9<]*|<[^>]+>[\\s\\u00A0]*)*';
-    const pattern = words
-      .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-      .join(gapPattern);
-    
-    const regex = new RegExp(pattern, 'i');
-    
-    // Replace in content
-    const newContent = content.replace(regex, suggestion);
-    
-    if (newContent !== content) {
+    let regex = new RegExp(regexStr, 'i');
+    let match = content.match(regex);
+
+    // FALLBACK 1: Se non trova, ed è una frase lunga, l'IA potrebbe aver cambiato una parola in mezzo.
+    // Proviamo a matchare solo le prime 2 e le ultime 2 parole.
+    if (!match) {
+        const allWords = normalizedOriginal.match(/[a-zA-Z0-9\u00C0-\u017F]+/g) || [];
+        if (allWords.length > 5) {
+            const first2 = allWords.slice(0, 2).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(gapPattern);
+            const last2 = allWords.slice(-2).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(gapPattern);
+            regexStr = first2 + '(?:.|\\n){0,300}?' + last2;
+            regex = new RegExp(regexStr, 'i');
+            match = content.match(regex);
+        }
+    }
+
+    if (match) {
+      const newContent = content.replace(regex, suggestion);
       setCurrentSceneContent(newContent);
       await updateSceneContent(activeSceneId, newContent);
       setAppliedSuggestions(prev => [...prev, originalText]);
       addToast('Modifica applicata con successo', 'success');
     } else {
-      console.warn("Could not find original text in content for replacement:", originalText, "Regex used:", pattern);
-      addToast('Impossibile trovare il testo originale. Prova a selezionare meno testo o modificare manualmente.', 'error');
+      console.warn("Could not find original text in content for replacement:", originalText);
+      addToast('Impossibile trovare il testo originale. Modificalo manualmente.', 'error');
     }
   };
 
@@ -184,7 +195,7 @@ Il tuo compito è revisionare la bozza fornita dall'utente con precisione chirur
 OBIETTIVO: Rendere il testo più SCORREVOLE, DINAMICO e COINVOLGENTE.
 
 METODOLOGIA — Per ogni problema trovato, usa questo formato esatto. Le CATEGORIE devono includere specificamente Verbi, Avverbi, Ridondanze se presenti:
-❌ [frase originale problematica]
+❌ [COPIA ESATTA E LETTERALE della frase dal testo. NON MODIFICARE UNA VIRGOLA E NON TRONCARE CON I PUNTINI (...)]
 ✅ [proposta di revisione migliorata]
 🏷️ [Categoria: Es. Verbo, Avverbio, Ridondanza, Ritmo, ecc.]
 💡 [brevissima spiegazione del motivo]
