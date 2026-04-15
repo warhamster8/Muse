@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { Chapter } from '../types/narrative';
 
 export type ViewTab = 'narrative' | 'characters' | 'world' | 'notes' | 'analysis' | 'config';
 
@@ -19,6 +20,7 @@ interface AppState {
   activeTab: ViewTab;
   activeSceneId: string | null;
   currentSceneContent: string;
+  chapters: Chapter[];
   isLocalMode: boolean;
   isLoading: boolean;
   
@@ -27,6 +29,7 @@ interface AppState {
   setActiveTab: (tab: ViewTab) => void;
   setActiveSceneId: (id: string | null) => void;
   setCurrentSceneContent: (content: string) => void;
+  setChapters: (chapters: Chapter[]) => void;
   setLocalMode: (enabled: boolean) => void;
   setLoading: (loading: boolean) => void;
   logout: () => void;
@@ -40,6 +43,7 @@ export const useStore = create<AppState>()(
       activeTab: 'narrative',
       activeSceneId: null,
       currentSceneContent: '',
+      chapters: [],
       isLocalMode: false,
       isLoading: false,
       
@@ -48,6 +52,7 @@ export const useStore = create<AppState>()(
       setActiveTab: (tab) => set({ activeTab: tab }),
       setActiveSceneId: (id) => set({ activeSceneId: id }),
       setCurrentSceneContent: (content) => set({ currentSceneContent: content }),
+      setChapters: (chapters) => set({ chapters }),
       setLocalMode: (enabled) => set({ isLocalMode: enabled, user: null, currentProject: null }),
       setLoading: (loading) => set({ isLoading: loading }),
       logout: () => set({ user: null, currentProject: null, isLocalMode: false }),

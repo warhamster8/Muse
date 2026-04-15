@@ -2,26 +2,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { storage } from '../lib/storage';
 import { useStore } from '../store/useStore';
-
-export type Scene = {
-  id: string;
-  chapter_id: string;
-  title: string;
-  content: string;
-  order_index: number;
-};
-
-export type Chapter = {
-  id: string;
-  project_id: string;
-  title: string;
-  order_index: number;
-  scenes?: Scene[];
-};
+import { Chapter, Scene } from '../types/narrative';
 
 export function useNarrative() {
-  const { currentProject, isLocalMode } = useStore();
-  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const { currentProject, isLocalMode, chapters, setChapters } = useStore();
   const [loading, setLoading] = useState(false);
 
   const fetchNarrative = async () => {
@@ -97,15 +81,15 @@ export function useNarrative() {
   };
 
   const updateSceneContent = async (sceneId: string, content: string) => {
-    // Update local state first for immediate UI feedback
-    setChapters(prevChapters => 
-      prevChapters.map(chapter => ({
-        ...chapter,
-        scenes: chapter.scenes?.map(scene => 
-          scene.id === sceneId ? { ...scene, content } : scene
-        )
-      }))
-    );
+    // Update global state first for immediate UI feedback
+    const updatedChapters = chapters.map(chapter => ({
+      ...chapter,
+      scenes: chapter.scenes?.map(scene => 
+        scene.id === sceneId ? { ...scene, content } : scene
+      )
+    }));
+    
+    setChapters(updatedChapters);
 
     if (isLocalMode) {
       storage.update('scenes', sceneId, { content });
@@ -120,3 +104,4 @@ export function useNarrative() {
 
   return { chapters, loading, addChapter, addScene, updateSceneContent, refresh: fetchNarrative };
 }
+
