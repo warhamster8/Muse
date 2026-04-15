@@ -128,14 +128,27 @@ export const AISidekick: React.FC = () => {
       .trim();
 
     const normalizedOriginal = normalize(originalText);
-    const escapedOriginal = normalizedOriginal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const words = escapedOriginal.split(' ').filter(w => w.length > 0);
     
-    // Pattern that matches words separated by tags, standard whitespace, or non-breaking spaces
-    const pattern = words.join('[\\s\\u00A0]*(?:<[^>]+>[\\s\\u00A0]*)*');
+    // Extract only alpha-numeric tokens (including Italian accented chars)
+    // This makes the match robust against slight punctuation differences in the AI quote
+    const words = normalizedOriginal.match(/[a-zA-Z0-9\u00C0-\u017F]+/g) || [];
+    
+    if (words.length === 0) {
+       console.warn("Could not extract words from originalText for matching:", originalText);
+       addToast('Impossibile elaborare il testo originale.', 'error');
+       return;
+    }
+
+    // Pattern that matches words separated by tags, standard whitespace, non-breaking spaces, 
+    // AND punctuation/other symbols that the AI might have missed.
+    const gapPattern = '[\\s\\u00A0]*([^a-zA-Z0-9<]*|<[^>]+>[\\s\\u00A0]*)*';
+    const pattern = words
+      .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .join(gapPattern);
+    
     const regex = new RegExp(pattern, 'i');
     
-    // We also normalize a copy of the content (strip entities) to see if we CAN find a match
+    // Replace in content
     const newContent = content.replace(regex, suggestion);
     
     if (newContent !== content) {
@@ -144,7 +157,7 @@ export const AISidekick: React.FC = () => {
       setAppliedSuggestions(prev => [...prev, originalText]);
       addToast('Modifica applicata con successo', 'success');
     } else {
-      console.warn("Could not find original text in content for replacement:", originalText);
+      console.warn("Could not find original text in content for replacement:", originalText, "Regex used:", pattern);
       addToast('Impossibile trovare il testo originale. Prova a selezionare meno testo o modificare manualmente.', 'error');
     }
   };
