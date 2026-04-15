@@ -3,17 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --font-serif: 'Lora', serif;
-  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'EB Garamond', serif;
+  --font-display: 'Cormorant Garamond', serif;
+  --font-sans: 'Outfit', 'Inter', sans-serif;
 }
 
 @layer base {
   body {
-    @apply bg-slate-900 text-slate-100 font-sans antialiased;
+    @apply bg-[#050b1a] text-slate-100 font-sans antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif text-slate-50;
+    @apply font-display text-slate-50 tracking-tight;
   }
 }
 
@@ -23,31 +24,53 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-slate-800;
+  @apply bg-transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-600 rounded-full;
+  @apply bg-slate-800 rounded-full hover:bg-slate-700 transition-colors;
 }
 
 /* Glassmorphism */
 .glass {
-  @apply bg-slate-800/50 backdrop-blur-md border border-slate-700/50;
+  @apply bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 shadow-2xl;
 }
 
 /* TipTap Editor Styling */
 .ProseMirror {
-    @apply outline-none min-h-[500px] text-lg leading-relaxed text-slate-200;
+    @apply outline-none min-h-[500px] text-xl leading-relaxed text-slate-200 font-serif;
 }
 
 .ProseMirror p {
-    @apply mb-4;
+    @apply mb-6;
 }
 
 .ProseMirror h1 {
-    @apply text-3xl font-bold mb-6 mt-8;
+    @apply text-4xl font-display font-bold mb-8 mt-10 text-white;
 }
 
 .ProseMirror h2 {
-    @apply text-2xl font-bold mb-4 mt-6;
+    @apply text-3xl font-display font-bold mb-6 mt-8 text-white/90;
+}
+
+.ProseMirror blockquote {
+    @apply border-l-4 border-blue-600/50 pl-6 my-8 italic text-slate-400 font-serif;
+}
+
+.ProseMirror ul, .ProseMirror ol {
+    @apply ml-6 my-6 space-y-2;
+}
+
+.ProseMirror ul {
+    @apply list-disc;
+}
+
+.ProseMirror ol {
+    @apply list-decimal;
+}
+
+/* Logo Blending */
+.logo-blend {
+    mix-blend-mode: screen;
+    filter: brightness(1.1) contrast(1.1);
 }

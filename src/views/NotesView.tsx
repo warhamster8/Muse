@@ -301,7 +301,7 @@ const NoteModal: React.FC<{ note: Note; onClose: () => void; onSave: (updates: P
           <input 
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="bg-transparent text-xl font-bold text-slate-200 focus:outline-none placeholder:opacity-20 flex-1 px-4"
+            className="bg-transparent text-xl font-display font-bold text-slate-200 focus:outline-none placeholder:opacity-20 flex-1 px-4"
             placeholder="Titolo della nota..."
           />
           <div className="flex items-center gap-3">
