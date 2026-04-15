@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type ViewTab = 'narrative' | 'characters' | 'world' | 'mindmap' | 'analysis' | 'config';
+export type ViewTab = 'narrative' | 'characters' | 'world' | 'notes' | 'analysis' | 'config';
 
 interface User {
   id: string;

@@ -5,7 +5,7 @@ import { useStore } from './store/useStore';
 import { supabase } from './lib/supabase';
 import { NarrativeView } from './views/NarrativeView';
 import { CharactersView } from './views/CharactersView';
-import { MindmapView } from './views/MindmapView';
+import { NotesView } from './views/NotesView';
 import { WorldView } from './views/WorldView';
 import { AuthView } from './views/AuthView';
 import { ProjectSelector } from './views/ProjectSelector';
@@ -107,7 +107,7 @@ function App() {
           {activeTab === 'narrative' && <NarrativeView />}
           {activeTab === 'characters' && <CharactersView />}
           {activeTab === 'world' && <WorldView />}
-          {activeTab === 'mindmap' && <MindmapView />}
+          {activeTab === 'notes' && <NotesView />}
           {activeTab === 'analysis' && (
              <div className="h-full flex items-center justify-center glass rounded-xl border border-slate-700">
                 <p className="text-sm italic text-slate-500">Analysis dashboard implementation coming soon...</p>

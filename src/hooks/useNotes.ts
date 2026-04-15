@@ -1,0 +1,84 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { storage } from '../lib/storage';
+import { useStore } from '../store/useStore';
+
+export type Note = {
+  id: string;
+  project_id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at?: string;
+};
+
+export function useNotes() {
+  const { currentProject, isLocalMode } = useStore();
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchNotes = async () => {
+    if (!currentProject) return;
+    setLoading(true);
+    
+    if (isLocalMode) {
+      const allNotes: Note[] = storage.getCollection('notes');
+      const projectNotes = allNotes
+        .filter(n => n.project_id === currentProject.id)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setNotes(projectNotes);
+    } else {
+      const { data, error } = await supabase
+        .from('notes')
+        .select('*')
+        .eq('project_id', currentProject.id)
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        setNotes(data);
+      }
+    }
+    setLoading(false);
+  };
+
+  const addNote = async (title: string, content: string = '') => {
+    if (!currentProject) return;
+    if (isLocalMode) {
+      storage.insert('notes', { project_id: currentProject.id, title, content });
+      fetchNotes();
+    } else {
+      const { error } = await supabase.from('notes').insert([{ 
+        project_id: currentProject.id, 
+        title, 
+        content 
+      }]);
+      if (!error) fetchNotes();
+    }
+  };
+
+  const updateNote = async (id: string, updates: Partial<Note>) => {
+    if (isLocalMode) {
+      storage.update('notes', id, updates);
+      fetchNotes();
+    } else {
+      const { error } = await supabase.from('notes').update(updates).eq('id', id);
+      if (!error) fetchNotes();
+    }
+  };
+
+  const deleteNote = async (id: string) => {
+    if (isLocalMode) {
+      storage.delete('notes', id);
+      fetchNotes();
+    } else {
+      const { error } = await supabase.from('notes').delete().eq('id', id);
+      if (!error) fetchNotes();
+    }
+  };
+
+  useEffect(() => {
+    fetchNotes();
+  }, [currentProject, isLocalMode]);
+
+  return { notes, loading, addNote, updateNote, deleteNote, refresh: fetchNotes };
+}

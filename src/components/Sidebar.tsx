@@ -7,7 +7,7 @@ import {
   Settings, 
   LogOut,
   ChevronRight,
-  Network,
+  StickyNote,
   Library
 } from 'lucide-react';
 import { useStore, type ViewTab } from '../store/useStore';
@@ -24,7 +24,7 @@ const navItems: NavItem[] = [
   { id: 'narrative', label: 'Narrative', icon: BookOpen },
   { id: 'characters', label: 'Characters', icon: Users },
   { id: 'world', label: 'World Settings', icon: Globe },
-  { id: 'mindmap', label: 'Mindmap', icon: Network },
+  { id: 'notes', label: 'Note', icon: StickyNote },
   { id: 'analysis', label: 'Analysis', icon: BarChart2 },
 ];
 
