@@ -7,19 +7,31 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '../components/Toast';
 
 export const NotesView: React.FC = () => {
   const { notes, addNote, updateNote, deleteNote, loading } = useNotes();
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const { addToast } = useToast();
+  const [editingNote, setEditingNote] = React.useState<Note | null>(null);
+  const [searchQuery, setSearchQuery] = React.useState('');
 
   const filteredNotes = notes.filter(n => 
-    n.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    n.content.toLowerCase().includes(searchQuery.toLowerCase())
+    (n.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) || 
+    (n.content?.toLowerCase() || '').includes(searchQuery.toLowerCase())
   );
 
-  const handleCreateNote = () => {
-    addNote('Nuova Nota', '');
+  const handleCreateNote = async () => {
+    try {
+      const newNote = await addNote('Nuova Nota', '');
+      if (newNote) {
+        setEditingNote(newNote);
+        addToast('Nota creata con successo', 'success');
+      } else {
+        addToast('Errore nella creazione della nota. Verifica la connessione o il database.', 'error');
+      }
+    } catch (err) {
+      addToast('Errore imprevisto durante la creazione.', 'error');
+    }
   };
 
   return (

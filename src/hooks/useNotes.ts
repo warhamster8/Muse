@@ -42,17 +42,25 @@ export function useNotes() {
   };
 
   const addNote = async (title: string, content: string = '') => {
-    if (!currentProject) return;
+    if (!currentProject) return null;
+    let newNote: Note;
+    
     if (isLocalMode) {
-      storage.insert('notes', { project_id: currentProject.id, title, content });
-      fetchNotes();
+      newNote = storage.insert('notes', { project_id: currentProject.id, title, content }) as Note;
+      await fetchNotes();
+      return newNote;
     } else {
-      const { error } = await supabase.from('notes').insert([{ 
+      const { data, error } = await supabase.from('notes').insert([{ 
         project_id: currentProject.id, 
         title, 
         content 
-      }]);
-      if (!error) fetchNotes();
+      }]).select().single();
+      
+      if (!error && data) {
+        await fetchNotes();
+        return data as Note;
+      }
+      return null;
     }
   };
 
