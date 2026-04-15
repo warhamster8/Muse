@@ -107,17 +107,26 @@ export const AISidekick: React.FC = () => {
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
 
-  const applySuggestion = async (original: string, suggestion: string) => {
+  const applySuggestion = async (originalText: string, suggestion: string) => {
     if (!activeSceneId || !content) return;
 
-    // Robust search and replace that ignores HTML tags between words
-    const escapedOriginal = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const words = escapedOriginal.split(/\s+/).filter(w => w.length > 0);
+    // Helper to normalize strings (handle smart quotes, normalize whitespace)
+    const normalize = (str: string) => str
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/\u00A0/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const normalizedOriginal = normalize(originalText);
+    const escapedOriginal = normalizedOriginal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const words = escapedOriginal.split(' ').filter(w => w.length > 0);
     
-    // Create pattern that matches words separated by any amount of whitespace OR html tags
-    const pattern = words.join('\\s*(?:<[^>]+>\\s*)*');
-    const regex = new RegExp(pattern, 'i'); // Case insensitive for better match
+    // Pattern that matches words separated by tags, standard whitespace, or non-breaking spaces
+    const pattern = words.join('[\\s\\u00A0]*(?:<[^>]+>[\\s\\u00A0]*)*');
+    const regex = new RegExp(pattern, 'i');
     
+    // We also normalize a copy of the content (strip entities) to see if we CAN find a match
     const newContent = content.replace(regex, suggestion);
     
     if (newContent !== content) {
@@ -125,8 +134,8 @@ export const AISidekick: React.FC = () => {
       await updateSceneContent(activeSceneId, newContent);
       addToast('Modifica applicata con successo', 'success');
     } else {
-      console.warn("Could not find original text in content for replacement:", original);
-      addToast('Impossibile trovare il testo originale nella scena. Prova a modificare manualmente.', 'error');
+      console.warn("Could not find original text in content for replacement:", originalText);
+      addToast('Impossibile trovare il testo originale. Prova a selezionare meno testo o modificare manualmente.', 'error');
     }
   };
 
