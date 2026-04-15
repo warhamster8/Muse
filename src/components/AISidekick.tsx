@@ -119,7 +119,46 @@ export const AISidekick: React.FC = () => {
   const applySuggestion = async (originalText: string, suggestion: string) => {
     if (!activeSceneId || !content) return;
 
-    // Normalizza la stringa per apostrofi o costrutti comuni (es. E' -> È)
+    // 1. Costruiamo una mappa millimetrica: Text -> HTML
+    const buildMapping = (html: string) => {
+      const textMap: number[] = [];
+      const charLens: number[] = [];
+      let textStr = '';
+      let inTag = false;
+      let i = 0;
+      while (i < html.length) {
+          if (html[i] === '<') { inTag = true; i++; continue; }
+          if (html[i] === '>') { inTag = false; i++; continue; }
+          if (inTag) { i++; continue; }
+          
+          if (html[i] === '&') {
+              const end = html.indexOf(';', i);
+              if (end !== -1 && end - i < 10) {
+                  const entity = html.substring(i, end + 1);
+                  textMap.push(i);
+                  charLens.push(entity.length);
+                  // Riduciamo le entità a spazi per la ricerca (Tiptap usa &nbsp;)
+                  if (entity === '&nbsp;') textStr += ' ';
+                  else if (entity === '&lt;') textStr += '<';
+                  else if (entity === '&gt;') textStr += '>';
+                  else if (entity === '&amp;') textStr += '&';
+                  else textStr += ' '; 
+                  i = end + 1;
+                  continue;
+              }
+          }
+          
+          textMap.push(i);
+          charLens.push(1);
+          textStr += html[i];
+          i++;
+      }
+      return { textStr, textMap, charLens };
+    };
+
+    const { textStr, textMap, charLens } = buildMapping(content);
+
+    // 2. Normalizziamo la base per gestire la creatività dell'IA
     const normalizeIt = (str: string) => str
       .replace(/[\u201C\u201D]/g, '"')
       .replace(/[\u2018\u2019]/g, "'")
@@ -127,18 +166,22 @@ export const AISidekick: React.FC = () => {
       .replace(/\u00A0/g, ' ')
       .trim();
 
+    // Rimuoviamo gli accenti per non far fallire la ricerca (es. "e'" vs "è")
+    const removeAccents = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
     const normalizedOriginal = normalizeIt(originalText);
+    const searchOriginal = removeAccents(normalizedOriginal);
+    const searchStrHtml = removeAccents(textStr);
+
+    // 3. Creiamo la regex flessibile solo sul TS (Plain Text Mappato)
+    const parts = searchOriginal.split(/\.\.\.|…/);
+    const gapPattern = '[^a-zA-Z0-9]*';
     
-    // Identifica le ellissi ("..." o "…") usate dall'IA per troncare il testo
-    const parts = normalizedOriginal.split(/\.\.\.|…/);
-    
-    // Pattern flessibile: permette spazi, tag HTML (<...>), ENTITA' HTML (&nbsp;), e punteggiature.
-    const gapPattern = '(?:[\\s\\u00A0]|&[a-zA-Z0-9#]+;|<[^>]+>|[^a-zA-Z0-9<]+)*';
-    
+    // Pattern principale: trova tutte le parole
     let regexStr = parts.map(part => {
-        const words = part.match(/[a-zA-Z0-9\u00C0-\u017F]+/g) || [];
+        const words = part.match(/[a-zA-Z0-9]+/g) || [];
         return words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(gapPattern);
-    }).filter(p => p).join('(?:.|\\n){0,150}?'); // Se l'IA ha usato i puntini, permette fino a 150 caratteri extra nel mezzo
+    }).filter(p => p).join('(?:.|\\n){0,150}?');
     
     if (!regexStr) {
        addToast('Impossibile elaborare il testo originale.', 'error');
@@ -146,30 +189,42 @@ export const AISidekick: React.FC = () => {
     }
 
     let regex = new RegExp(regexStr, 'i');
-    let match = content.match(regex);
+    let match = searchStrHtml.match(regex);
 
-    // FALLBACK 1: Se non trova, ed è una frase lunga, l'IA potrebbe aver cambiato una parola in mezzo.
-    // Proviamo a matchare solo le prime 2 e le ultime 2 parole.
+    // FALLBACK: L'IA ha aggiunto/tolto una parola o ha sbagliato ortografia a metà frase
     if (!match) {
-        const allWords = normalizedOriginal.match(/[a-zA-Z0-9\u00C0-\u017F]+/g) || [];
-        if (allWords.length > 5) {
+        const allWords = searchOriginal.match(/[a-zA-Z0-9]+/g) || [];
+        if (allWords.length > 5) { // Funziona in sicurezza solo con frasi medio-lunghe
             const first2 = allWords.slice(0, 2).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(gapPattern);
             const last2 = allWords.slice(-2).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(gapPattern);
-            regexStr = first2 + '(?:.|\\n){0,300}?' + last2;
+            // Limitiamo la tolleranza al doppio della frase originale per non assorbire troppi paragrafi
+            const maxLen = Math.max(100, normalizedOriginal.length + 50);
+            regexStr = first2 + `(?:.|\\n){0,${maxLen}}?` + last2;
             regex = new RegExp(regexStr, 'i');
-            match = content.match(regex);
+            match = searchStrHtml.match(regex);
         }
     }
 
+    // 4. Risolviamo indici ed iniettiamo!
     if (match) {
-      const newContent = content.replace(regex, suggestion);
+      const textStart = match.index!;
+      const textEnd = textStart + match[0].length - 1;
+      
+      const htmlStart = textMap[textStart];
+      const htmlEnd = textMap[textEnd] + charLens[textEnd];
+      
+      const newContent = content.slice(0, htmlStart) + suggestion + content.slice(htmlEnd);
+      
+      // Update global store
       setCurrentSceneContent(newContent);
+      // Persist to DB
       await updateSceneContent(activeSceneId, newContent);
+      // Clean UI
       setAppliedSuggestions(prev => [...prev, originalText]);
       addToast('Modifica applicata con successo', 'success');
     } else {
-      console.warn("Could not find original text in content for replacement:", originalText);
-      addToast('Impossibile trovare il testo originale. Modificalo manualmente.', 'error');
+      console.warn("Could not find original text. Clean HTML Search used:", searchStrHtml, "Regex:", regexStr);
+      addToast('Impossibile trovare il testo originale, modificalo manualmente', 'error');
     }
   };
 
