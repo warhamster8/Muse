@@ -4,93 +4,246 @@ import {
   AlertTriangle, 
   Lightbulb, 
   Zap,
-  RefreshCw
+  RefreshCw,
+  PenLine,
+  Wand2,
+  BookOpen
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { groqService } from '../lib/groq';
 import { useStore } from '../store/useStore';
 
-type SidekickTab = 'consistency' | 'braindump' | 'transformer';
+type SidekickTab = 'revision' | 'braindump' | 'transformer';
+
+// Renders structured AI output: lines starting with ❌ get red, ✅ green, ## become headers, etc.
+const StructuredOutput: React.FC<{ text: string }> = ({ text }) => {
+  const lines = text.split('\n');
+  return (
+    <div className="space-y-2 text-sm leading-relaxed">
+      {lines.map((line, i) => {
+        if (!line.trim()) return <div key={i} className="h-2" />;
+
+        if (line.startsWith('##')) {
+          return (
+            <p key={i} className="text-[10px] uppercase tracking-widest font-bold text-blue-400 pt-2">
+              {line.replace(/^#+\s*/, '')}
+            </p>
+          );
+        }
+        if (line.startsWith('❌') || line.toLowerCase().startsWith('originale:') || line.toLowerCase().startsWith('prima:')) {
+          return (
+            <div key={i} className="flex items-start gap-2 bg-red-950/30 border border-red-500/20 rounded-lg px-3 py-2">
+              <span className="text-red-400 shrink-0 text-xs mt-0.5">✕</span>
+              <span className="text-red-300/90 text-xs italic">{line.replace(/^❌\s*/, '').replace(/^(originale:|prima:)\s*/i, '')}</span>
+            </div>
+          );
+        }
+        if (line.startsWith('✅') || line.toLowerCase().startsWith('suggerimento:') || line.toLowerCase().startsWith('revisione:') || line.toLowerCase().startsWith('dopo:')) {
+          return (
+            <div key={i} className="flex items-start gap-2 bg-green-950/30 border border-green-500/20 rounded-lg px-3 py-2">
+              <span className="text-green-400 shrink-0 text-xs mt-0.5">✓</span>
+              <span className="text-green-300/90 text-xs">{line.replace(/^✅\s*/, '').replace(/^(suggerimento:|revisione:|dopo:)\s*/i, '')}</span>
+            </div>
+          );
+        }
+        if (line.startsWith('💡') || line.startsWith('•') || line.startsWith('-')) {
+          return (
+            <div key={i} className="flex items-start gap-2 px-2">
+              <span className="text-yellow-400 shrink-0 text-xs mt-0.5">›</span>
+              <span className="text-slate-300 text-xs">{line.replace(/^[💡•\-]\s*/, '')}</span>
+            </div>
+          );
+        }
+        if (line.startsWith('**') && line.endsWith('**')) {
+          return (
+            <p key={i} className="font-semibold text-slate-200 text-xs px-1">
+              {line.replace(/\*\*/g, '')}
+            </p>
+          );
+        }
+        return (
+          <p key={i} className="text-slate-300 text-xs px-1">
+            {line}
+          </p>
+        );
+      })}
+    </div>
+  );
+};
 
 export const AISidekick: React.FC = () => {
   const { currentSceneContent: content } = useStore();
-  const [activeTab, setActiveTab] = React.useState<SidekickTab>('consistency');
+  const [activeTab, setActiveTab] = React.useState<SidekickTab>('revision');
   const [analysis, setAnalysis] = React.useState<string>('');
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
 
-  const runStyleTransform = async (style: string) => {
-    if (!content || content.length < 10) return;
+  // Strip HTML tags to get plain text for AI analysis
+  const getPlainText = (html: string) => {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent || div.innerText || '';
+  };
+
+  const plainText = getPlainText(content || '');
+
+  // ─── TAB: REVISIONE BOZZA ───────────────────────────────────────────────────
+  const runDraftRevision = async () => {
+    if (!plainText || plainText.length < 30) return;
     setIsAnalyzing(true);
+    setAnalysis('');
     try {
-      const messages = [
-        { 
-          role: 'system', 
-          content: `You are a Senior Fiction Editor. Transform the user's input using the 'Show, Don't Tell' technique. 
-          Style focus: ${style.toUpperCase()}. 
-          1. VISCERAL: focus on physical sensations. 
-          2. ATMOSPHERIC: focus on environment and light. 
-          3. METAPHORICAL: use similes and symbolism. 
-          4. PSICHOLOGICAL: explore internal monologue.
-          BE ORIGINAL AND EVOCATIVE. USE ITALIAN.` 
-        },
-        { role: 'user', content: `Rewrite this: ${content}` }
-      ];
-      const res = await groqService.getChatCompletion(messages);
-      setAnalysis(res.choices[0]?.message?.content || '');
+      const systemPrompt = `Sei un editor letterario senior specializzato in narrativa italiana contemporanea.
+Il tuo compito è revisionare la bozza fornita dall'utente con precisione chirurgica.
+
+OBIETTIVO: Rendere il testo più SCORREVOLE, DINAMICO e COINVOLGENTE.
+
+METODOLOGIA — Per ogni problema trovato, usa questo formato esatto:
+❌ [frase originale problematica]
+✅ [proposta di revisione migliorata]
+💡 [brevissima spiegazione del motivo]
+
+CRITERI DI REVISIONE (applica tutti):
+1. RITMO — Spezza periodi troppo lunghi. Alterna frasi brevi e incisive a quelle più distese.
+2. VERBI ATTIVI — Sostituisci costruzioni passive o deboli ("c'era", "si trovava", "sembrava che") con verbi forti e diretti.
+3. ELIMINAZIONE AVVERBI — Rimuovi avverbi ridondanti (molto, abbastanza, davvero). Trova il verbo o aggettivo più preciso.
+4. SHOW DON'T TELL — Ogni emozione deve essere mostrata attraverso un'azione o sensazione fisica, non dichiarata.
+5. FLUIDITÀ DIALOGO — I dialoghi devono suonare naturali, non letterari. Usa incisi di movimento, non solo "disse".
+6. PAROLE RIPETUTE — Segnala e sostituisci le stesse parole usate in prossimità.
+7. APERTURA SCENA — L'incipit deve essere un gancio immediato. Se è debole, proponi un'alternativa.
+
+Inizia con: ## Analisi Revisione
+Poi elenca max 5-7 interventi prioritari nel formato sopra.
+Concludi con: ## Note Generali (2-3 osservazioni sintetiche sullo stile complessivo).
+
+LINGUA: Rispondi sempre in italiano. Sii preciso, non generico.`;
+
+      await groqService.streamChatCompletion(
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Revisiona questa bozza:\n\n${plainText}` }
+        ],
+        'llama-3.3-70b-versatile',
+        (chunk) => setAnalysis(prev => prev + chunk)
+      );
     } catch (err) {
-      setAnalysis('Error connecting to AI service.');
+      setAnalysis('❌ Errore di connessione al servizio AI.');
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const runConsistencyCheck = async () => {
-    if (!content || content.length < 50) return;
-    setIsAnalyzing(true);
-    try {
-      const messages = [
-        { 
-          role: 'system', 
-          content: 'You are a story consistency checker. Analyze the provided scene text and identify potential contradictions with characters or logical gaps. Be concise.' 
-        },
-        { role: 'user', content: `Analyze this scene: ${content}` }
-      ];
-      const res = await groqService.getChatCompletion(messages);
-      setAnalysis(res.choices[0]?.message?.content || 'No issues found.');
-    } catch (err) {
-      setAnalysis('Error connecting to AI service.');
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
+  // ─── TAB: BRAINDUMP ─────────────────────────────────────────────────────────
   const runBraindump = async () => {
     if (!braindumpInput.trim()) return;
     setIsAnalyzing(true);
+    setAnalysis('');
     try {
-      const messages = [
-        { 
-          role: 'system', 
-          content: `Sei un assistente alla scrittura creativa. L'utente ha inserito dei pensieri sparsi (Braindump). 
-          Il tuo compito è espanderli in suggerimenti concreti e narrativi per la scena corrente. 
-          CONTESTO SCENA: ${content || 'Inizio capitolo'}.
-          PENSIERI SPARSI: ${braindumpInput}.
-          STRUTTURA: Breve analisi + 3 suggerimenti pratici di scrittura in italiano.` 
-        },
-        { role: 'user', content: 'Espandi questi pensieri in stile narrativo.' }
-      ];
-      const res = await groqService.getChatCompletion(messages);
-      setAnalysis(res.choices[0]?.message?.content || '');
+      const systemPrompt = `Sei un assistente alla scrittura creativa. L'utente ha inserito dei pensieri sparsi (Braindump).
+Il tuo compito è trasformarli in suggestioni narrative concrete e azionabili.
+
+CONTESTO SCENA ATTUALE:
+${plainText ? plainText.slice(0, 600) : 'Nessuna scena attiva.'}
+
+STRUTTURA RISPOSTA:
+## Interpretazione
+(2 righe: cosa hai capito dal braindump)
+
+## 3 Direzioni Narrative
+Per ognuna:
+- **Direzione [N]:** [titolo evocativo]
+  Sviluppo: [2-3 frasi concrete di come potrebbe svilupparsi la scena]
+  Incipit suggerito: [una frase di apertura pronta all'uso]
+
+## Dettagli Sensoriali
+💡 [3 dettagli sensoriali specifici da integrare]
+
+Rispondi in italiano. Sii concreto e originale.`;
+
+      await groqService.streamChatCompletion(
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Braindump: ${braindumpInput}` }
+        ],
+        'llama-3.3-70b-versatile',
+        (chunk) => setAnalysis(prev => prev + chunk)
+      );
     } catch (err) {
-      setAnalysis('Errore durante l\'elaborazione del braindump.');
+      setAnalysis('❌ Errore durante l\'elaborazione del braindump.');
     } finally {
       setIsAnalyzing(false);
     }
   };
 
+  // ─── TAB: TRANSFORMER ───────────────────────────────────────────────────────
+  const stylePrompts: Record<string, string> = {
+    visceral: `Sei un editor esperto di narrativa corporea e sensoriale.
+Riscrivi il testo dato usando ESCLUSIVAMENTE sensazioni fisiche, tattili, olfattive, gustative, propriocettive.
+REGOLE:
+- Ogni emozione diventa una reazione del corpo (tachicardia, tensione muscolare, sapore amaro in bocca).
+- Usa verbi fisici potenti: stringere, bruciare, contrarsi, esplodere.
+- Zero astrazioni. Solo carne, sudore, respiro.
+- Mantieni la trama, trasforma SOLO il modo di raccontare.
+Riscrivi in italiano. Restituisci SOLO il testo riscritto, senza commenti.`,
+
+    atmospheric: `Sei un maestro del "worldbuilding" sensoriale.
+Riscrivi il testo dato trasformando l'ambiente in un personaggio vivo e carico di tensione.
+REGOLE:
+- La luce, l'ombra, il suono, il silenzio, il clima devono riflettere lo stato emotivo della scena.
+- Usa personificazioni dell'ambiente ("il vento portava la sua inquietudine").
+- Dettagli architettonici, naturali o urbani come metafore implicite.
+- Alterna descrizione rapida e immersione lenta per gestire il ritmo.
+Riscrivi in italiano. Restituisci SOLO il testo riscritto.`,
+
+    metaphorical: `Sei un poeta-narratore con un registro fortemente simbolico.
+Riscrivi il testo dado usando metafore estese, similitudini originali e immagini archetipiche.
+REGOLE:
+- Ogni concetto emotivo ha una sua immagine concreta e originale (non cliché).
+- Usa almeno 2 similitudini costruite su elementi insoliti (non "come il vento", ma elementi specifici e inattesi).
+- Il simbolismo deve emergere naturalmente, non forzatamente.
+- Mantieni la leggibilità: poesia al servizio della storia.
+Riscrivi in italiano. Restituisci SOLO il testo riscritto.`,
+
+    psychological: `Sei uno scrittore di narrativa psicologica e flusso di coscienza.
+Riscrivi il testo dato portando il lettore DENTRO la mente del personaggio.
+REGOLE:
+- Usa il monologo interiore in prima o terza persona ravvicinata.
+- Alterna pensieri lucidi a pensieri frammentati e irrazionali.
+- Mostra il meccanismo di difesa, il dubbio, la razionalizzazione.
+- La voce interna può contraddire le azioni esterne.
+- Usa la punteggiatura per creare il ritmo del pensiero (ellissi, trattini).
+Riscrivi in italiano. Restituisci SOLO il testo riscritto.`,
+  };
+
+  const runStyleTransform = async (style: string) => {
+    if (!plainText || plainText.length < 10) return;
+    setIsAnalyzing(true);
+    setAnalysis('');
+    try {
+      await groqService.streamChatCompletion(
+        [
+          { role: 'system', content: stylePrompts[style] },
+          { role: 'user', content: `Riscrivi questo:\n\n${plainText}` }
+        ],
+        'llama-3.3-70b-versatile',
+        (chunk) => setAnalysis(prev => prev + chunk)
+      );
+    } catch (err) {
+      setAnalysis('❌ Errore di connessione al servizio AI.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const tabs: { id: SidekickTab; label: string; icon: React.ReactNode }[] = [
+    { id: 'revision', label: 'Revisione', icon: <PenLine className="w-3 h-3" /> },
+    { id: 'braindump', label: 'Braindump', icon: <Lightbulb className="w-3 h-3" /> },
+    { id: 'transformer', label: 'Stile', icon: <Wand2 className="w-3 h-3" /> },
+  ];
+
   return (
     <div className="w-80 h-screen glass border-l border-slate-700 flex flex-col">
+      {/* Header */}
       <div className="p-4 border-b border-slate-700 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Sparkles className="w-5 h-5 text-blue-400" />
@@ -99,60 +252,80 @@ export const AISidekick: React.FC = () => {
         {isAnalyzing && <RefreshCw className="w-4 h-4 animate-spin text-blue-400" />}
       </div>
 
+      {/* Tabs */}
       <div className="flex p-2 gap-1">
-        {(['consistency', 'braindump', 'transformer'] as SidekickTab[]).map(tab => (
+        {tabs.map(tab => (
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
+            key={tab.id}
+            onClick={() => { setActiveTab(tab.id); setAnalysis(''); }}
             className={cn(
-              "flex-1 text-[10px] uppercase tracking-tighter py-2 rounded transition-all",
-              activeTab === tab ? "bg-slate-700 text-blue-400" : "text-slate-500 hover:text-slate-300"
+              "flex-1 flex items-center justify-center gap-1 text-[10px] uppercase tracking-tighter py-2 rounded transition-all",
+              activeTab === tab.id ? "bg-slate-700 text-blue-400" : "text-slate-500 hover:text-slate-300"
             )}
           >
-            {tab}
+            {tab.icon}
+            {tab.label}
           </button>
         ))}
       </div>
 
+      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {activeTab === 'consistency' && (
+
+        {/* ── REVISIONE ── */}
+        {activeTab === 'revision' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase">Context Analysis</span>
-              <button 
-                onClick={runConsistencyCheck}
-                className="text-xs bg-blue-600 hover:bg-blue-500 px-2 py-1 rounded text-white flex items-center space-x-1"
+              <span className="text-xs font-bold text-slate-500 uppercase">Correzione Bozza</span>
+              <button
+                onClick={runDraftRevision}
+                disabled={isAnalyzing || plainText.length < 30}
+                className="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-3 py-1.5 rounded-lg text-white flex items-center space-x-1 transition-all"
               >
                 <Zap className="w-3 h-3" />
-                <span>Check</span>
+                <span>Analizza</span>
               </button>
             </div>
-            
+
+            <div className="bg-blue-900/10 border border-blue-500/20 p-3 rounded-lg flex items-start space-x-3">
+              <BookOpen className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+              <p className="text-xs text-slate-400">
+                L'AI proporrà modifiche <span className="text-blue-400 font-semibold">prima/dopo</span> per rendere il testo più scorrevole e dinamico.
+              </p>
+            </div>
+
+            {plainText.length > 0 && plainText.length < 30 && (
+              <p className="text-xs text-yellow-500/80 text-center italic">Scrivi almeno qualche frase nella scena per avviare la revisione.</p>
+            )}
+
             {analysis ? (
-              <div className="bg-slate-800/50 p-3 rounded border border-slate-700 text-sm leading-relaxed text-slate-300">
-                {analysis}
+              <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2">
+                <StructuredOutput text={analysis} />
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-40 text-slate-600 space-y-2">
-                <AlertTriangle className="w-8 h-8 opacity-20" />
-                <p className="text-xs text-center">Ready to analyze your scene for contradictions.</p>
-              </div>
+              !isAnalyzing && (
+                <div className="flex flex-col items-center justify-center h-36 text-slate-600 space-y-2">
+                  <AlertTriangle className="w-8 h-8 opacity-20" />
+                  <p className="text-xs text-center">Seleziona una scena e premi Analizza<br/>per ricevere proposte di revisione precise.</p>
+                </div>
+              )
             )}
           </div>
         )}
 
+        {/* ── BRAINDUMP ── */}
         {activeTab === 'braindump' && (
           <div className="space-y-4">
-            <p className="text-xs text-slate-500">Scarica qui i tuoi pensieri. L'IA li trasformerà in suggestioni narrative.</p>
-            
+            <p className="text-xs text-slate-500">Scarica qui i tuoi pensieri. L'IA li trasformerà in direzioni narrative concrete.</p>
+
             <textarea
               className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-xl p-3 text-xs text-slate-300 focus:outline-none focus:border-blue-500 transition-all resize-none shadow-inner"
-              placeholder="Esempio: La stanza puzza di fumo, lui è nervoso, fuori piove da ore..."
+              placeholder="Es: la stanza puzza di fumo, lui è nervoso, fuori piove da ore, qualcosa non torna..."
               value={braindumpInput}
               onChange={(e) => setBraindumpInput(e.target.value)}
             />
 
-            <button 
+            <button
               onClick={runBraindump}
               disabled={isAnalyzing || !braindumpInput.trim()}
               className="w-full py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all"
@@ -162,8 +335,8 @@ export const AISidekick: React.FC = () => {
             </button>
 
             {analysis && (
-              <div className="bg-slate-800/50 p-3 rounded border border-slate-700 text-sm leading-relaxed text-slate-300 animate-in slide-in-from-bottom-2">
-                {analysis}
+              <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2">
+                <StructuredOutput text={analysis} />
               </div>
             )}
 
@@ -173,35 +346,52 @@ export const AISidekick: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* ── TRANSFORMER ── */}
         {activeTab === 'transformer' && (
           <div className="space-y-4">
-            <p className="text-xs text-slate-500">Transform your paragraph using "Show, Don't Tell" styles.</p>
+            <p className="text-xs text-slate-500">Riscrivi la tua scena in uno stile narrativo specifico.</p>
             <div className="grid grid-cols-2 gap-2">
-              {['visceral', 'atmospheric', 'metaphorical', 'psychological'].map((style) => (
+              {[
+                { key: 'visceral', label: '🩸 Viscerale', desc: 'Sensazioni fisiche' },
+                { key: 'atmospheric', label: '🌫️ Atmosferico', desc: 'Ambiente vivo' },
+                { key: 'metaphorical', label: '🌀 Metaforico', desc: 'Simboli e immagini' },
+                { key: 'psychological', label: '🧠 Psicologico', desc: 'Flusso di coscienza' },
+              ].map(({ key, label, desc }) => (
                 <button
-                  key={style}
-                  onClick={() => runStyleTransform(style)}
-                  disabled={isAnalyzing}
-                  className="bg-slate-800 hover:bg-slate-700 p-2 rounded text-[10px] uppercase font-bold text-slate-300 border border-slate-700 transition-colors"
+                  key={key}
+                  onClick={() => runStyleTransform(key)}
+                  disabled={isAnalyzing || plainText.length < 10}
+                  className="bg-slate-800 hover:bg-slate-700 disabled:opacity-50 p-3 rounded-lg text-left border border-slate-700 hover:border-blue-500/50 transition-all group"
                 >
-                  {style}
+                  <div className="text-xs font-bold text-slate-200 group-hover:text-blue-400 transition-colors">{label}</div>
+                  <div className="text-[10px] text-slate-500 mt-0.5">{desc}</div>
                 </button>
               ))}
             </div>
-            {analysis && activeTab === 'transformer' && (
-              <div className="bg-slate-800/50 p-3 rounded border border-slate-700 text-sm leading-relaxed text-slate-300 animate-in fade-in">
-                {analysis}
+
+            {analysis && (
+              <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in fade-in">
+                <StructuredOutput text={analysis} />
+              </div>
+            )}
+
+            {!analysis && !isAnalyzing && (
+              <div className="flex flex-col items-center justify-center h-24 text-slate-600 space-y-2">
+                <Wand2 className="w-8 h-8 opacity-20" />
+                <p className="text-xs text-center">Scegli uno stile per riscrivere la scena attiva.</p>
               </div>
             )}
           </div>
         )}
       </div>
 
+      {/* Footer */}
       <div className="p-4 border-t border-slate-700 space-y-3">
-         <div className="flex items-center space-x-2 text-[10px] text-slate-500 uppercase font-bold">
-            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <span>Llama 3 Connected</span>
-         </div>
+        <div className="flex items-center space-x-2 text-[10px] text-slate-500 uppercase font-bold">
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+          <span>Llama 3 Connected</span>
+        </div>
       </div>
     </div>
   );

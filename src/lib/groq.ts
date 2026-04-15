@@ -5,24 +5,30 @@ const apiKey = import.meta.env.VITE_GROQ_API_KEY;
 const groq = apiKey ? new Groq({ apiKey, dangerouslyAllowBrowser: true }) : null;
 
 export const groqService = {
-  async getChatCompletion(messages: any[], model = 'llama-3.3-70b-versatile') {
+  async getChatCompletion(messages: any[], model = 'llama-3.3-70b-versatile', temperature = 0.5) {
     if (!groq) throw new Error('Groq API Key missing');
     
     return groq.chat.completions.create({
       messages,
       model,
-      temperature: 0.7,
+      temperature,
     });
   },
 
-  async streamChatCompletion(messages: any[], model = 'llama-3.3-70b-versatile', onChunk: (text: string) => void) {
+  async streamChatCompletion(
+    messages: any[],
+    model = 'llama-3.3-70b-versatile',
+    onChunk: (text: string) => void,
+    temperature = 0.55
+  ) {
     if (!groq) throw new Error('Groq API Key missing');
 
     const stream = await groq.chat.completions.create({
       messages,
       model,
       stream: true,
-      temperature: 0.7,
+      temperature,
+      max_tokens: 2048,
     });
 
     for await (const chunk of stream) {
