@@ -16,6 +16,7 @@ export const AISidekick: React.FC = () => {
   const { currentSceneContent: content } = useStore();
   const [activeTab, setActiveTab] = React.useState<SidekickTab>('consistency');
   const [analysis, setAnalysis] = React.useState<string>('');
+  const [braindumpInput, setBraindumpInput] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
 
   const runStyleTransform = async (style: string) => {
@@ -59,6 +60,30 @@ export const AISidekick: React.FC = () => {
       setAnalysis(res.choices[0]?.message?.content || 'No issues found.');
     } catch (err) {
       setAnalysis('Error connecting to AI service.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const runBraindump = async () => {
+    if (!braindumpInput.trim()) return;
+    setIsAnalyzing(true);
+    try {
+      const messages = [
+        { 
+          role: 'system', 
+          content: `Sei un assistente alla scrittura creativa. L'utente ha inserito dei pensieri sparsi (Braindump). 
+          Il tuo compito è espanderli in suggerimenti concreti e narrativi per la scena corrente. 
+          CONTESTO SCENA: ${content || 'Inizio capitolo'}.
+          PENSIERI SPARSI: ${braindumpInput}.
+          STRUTTURA: Breve analisi + 3 suggerimenti pratici di scrittura in italiano.` 
+        },
+        { role: 'user', content: 'Espandi questi pensieri in stile narrativo.' }
+      ];
+      const res = await groqService.getChatCompletion(messages);
+      setAnalysis(res.choices[0]?.message?.content || '');
+    } catch (err) {
+      setAnalysis('Errore durante l\'elaborazione del braindump.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -118,10 +143,33 @@ export const AISidekick: React.FC = () => {
 
         {activeTab === 'braindump' && (
           <div className="space-y-4">
-            <p className="text-xs text-slate-500">Need inspiration? Use braindumping to explore sensory details or twists.</p>
+            <p className="text-xs text-slate-500">Scarica qui i tuoi pensieri. L'IA li trasformerà in suggestioni narrative.</p>
+            
+            <textarea
+              className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-xl p-3 text-xs text-slate-300 focus:outline-none focus:border-blue-500 transition-all resize-none shadow-inner"
+              placeholder="Esempio: La stanza puzza di fumo, lui è nervoso, fuori piove da ore..."
+              value={braindumpInput}
+              onChange={(e) => setBraindumpInput(e.target.value)}
+            />
+
+            <button 
+              onClick={runBraindump}
+              disabled={isAnalyzing || !braindumpInput.trim()}
+              className="w-full py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all"
+            >
+              <Zap className="w-3 h-3" />
+              Espandi Idee
+            </button>
+
+            {analysis && (
+              <div className="bg-slate-800/50 p-3 rounded border border-slate-700 text-sm leading-relaxed text-slate-300 animate-in slide-in-from-bottom-2">
+                {analysis}
+              </div>
+            )}
+
             <div className="bg-blue-900/10 border border-blue-500/20 p-3 rounded-lg flex items-start space-x-3">
               <Lightbulb className="w-5 h-5 text-yellow-500 shrink-0" />
-              <p className="text-xs text-slate-300">Try focusing on the smell of the room to heighten the tension in this moment.</p>
+              <p className="text-xs text-slate-300 italic opacity-70">Tip: Più dettagli sensoriali aggiungi, più l'IA sarà precisa.</p>
             </div>
           </div>
         )}

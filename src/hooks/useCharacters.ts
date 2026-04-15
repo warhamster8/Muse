@@ -41,8 +41,13 @@ export function useCharacters() {
       storage.insert('characters', { project_id: currentProject.id, name, bio: '', psychology: '', evolution: '', relations: '' });
       fetchCharacters();
     } else {
-      await supabase.from('characters').insert([{ project_id: currentProject.id, name, bio: '', psychology: '', evolution: '', relations: '' }]);
-      fetchCharacters();
+      const { error } = await supabase.from('characters').insert([{ project_id: currentProject.id, name, bio: '', psychology: '', evolution: '', relations: '' }]);
+      if (error) {
+        console.error('Error adding character:', error);
+        alert('Errore nella creazione del personaggio: ' + error.message);
+      } else {
+        fetchCharacters();
+      }
     }
   };
 

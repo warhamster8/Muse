@@ -4,12 +4,18 @@ import { useNarrative } from '../hooks/useNarrative';
 import { useStore } from '../store/useStore';
 import { Editor } from '../components/Editor';
 import { cn } from '../lib/utils';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { CreationModal } from '../components/CreationModal';
+import { useToast, ToastContainer } from '../components/Toast';
 
 export const NarrativeView: React.FC = () => {
   const { chapters, addChapter, addScene, updateSceneContent } = useNarrative();
   const { activeSceneId, setActiveSceneId, setCurrentSceneContent } = useStore();
-  const [expandedChapters, setExpandedChapters] = React.useState<Set<string>>(new Set());
+  const { addToast } = useToast();
+  const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
+  
+  const [modalType, setModalType] = useState<'chapter' | 'scene' | null>(null);
+  const [targetChapterId, setTargetChapterId] = useState<string | null>(null);
 
   const activeScene = chapters.flatMap(c => c.scenes || []).find(s => s.id === activeSceneId);
 
@@ -28,15 +34,16 @@ export const NarrativeView: React.FC = () => {
     setExpandedChapters(next);
   };
 
-  const handleCreateChapter = async () => {
-    const title = prompt('Chapter Title:');
-    if (title) await addChapter(title);
+  const handleCreateChapter = (title: string) => {
+    addChapter(title);
+    addToast(`Capitolo "${title}" creato correttamente`, 'success');
   };
 
-  const handleCreateScene = async (e: React.MouseEvent, chapterId: string) => {
-    e.stopPropagation();
-    const title = prompt('Scene Title:');
-    if (title) await addScene(chapterId, title);
+  const handleCreateScene = (title: string) => {
+    if (targetChapterId) {
+      addScene(targetChapterId, title);
+      addToast(`Scena "${title}" creata correttamente`, 'success');
+    }
   };
 
   return (
@@ -45,7 +52,7 @@ export const NarrativeView: React.FC = () => {
       <div className="w-64 glass border border-slate-700 rounded-xl overflow-hidden flex flex-col">
         <div className="p-3 border-b border-slate-700 flex items-center justify-between bg-slate-800/50">
           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Manuscript</span>
-          <button onClick={handleCreateChapter} className="p-1 hover:bg-slate-700 rounded text-slate-400">
+          <button onClick={() => setModalType('chapter')} className="p-1 hover:bg-slate-700 rounded text-slate-400">
             <Plus className="w-4 h-4" />
           </button>
         </div>
@@ -60,7 +67,11 @@ export const NarrativeView: React.FC = () => {
                 {expandedChapters.has(chapter.id) ? <ChevronDown className="w-4 h-4 text-slate-500" /> : <ChevronRight className="w-4 h-4 text-slate-500" />}
                 <Folder className="w-4 h-4 text-blue-400 opacity-70" />
                 <span className="text-sm font-medium text-slate-300 flex-1 truncate">{chapter.title}</span>
-                <Plus onClick={(e) => handleCreateScene(e, chapter.id)} className="w-3 h-3 text-slate-500 opacity-0 group-hover:opacity-100 hover:text-white transition-opacity" />
+                <Plus onClick={(e) => {
+                  e.stopPropagation();
+                  setTargetChapterId(chapter.id);
+                  setModalType('scene');
+                }} className="w-3 h-3 text-slate-500 opacity-0 group-hover:opacity-100 hover:text-white transition-opacity" />
               </div>
 
               {expandedChapters.has(chapter.id) && (
@@ -103,6 +114,23 @@ export const NarrativeView: React.FC = () => {
           </div>
         )}
       </div>
+      
+      <CreationModal 
+        isOpen={modalType === 'chapter'}
+        onClose={() => setModalType(null)}
+        onConfirm={handleCreateChapter}
+        title="Crea Nuovo Capitolo"
+        placeholder="Inserisci il titolo del capitolo..."
+      />
+
+      <CreationModal 
+        isOpen={modalType === 'scene'}
+        onClose={() => setModalType(null)}
+        onConfirm={handleCreateScene}
+        title="Crea Nuova Scena"
+        placeholder="Inserisci il titolo della scena..."
+      />
+      <ToastContainer />
     </div>
   );
 };

@@ -1,19 +1,22 @@
 import React from 'react';
-import { Plus, User, FileText, Brain, TrendingUp, Users as UsersIcon, MessageSquare } from 'lucide-react';
+import { Plus, User, FileText, Brain, TrendingUp, MessageSquare } from 'lucide-react';
 import { useCharacters } from '../hooks/useCharacters';
 import type { Character } from '../hooks/useCharacters';
 import { cn } from '../lib/utils';
 import { groqService } from '../lib/groq';
+import { CreationModal } from '../components/CreationModal';
+import { useToast } from '../components/Toast';
 
 export const CharactersView: React.FC = () => {
-  const { characters, addCharacter, updateCharacter, addInterview, fetchInterviews } = useCharacters();
+  const { characters, addCharacter, updateCharacter, addInterview } = useCharacters();
+  const { addToast } = useToast();
   const [selectedChar, setSelectedChar] = React.useState<Character | null>(null);
   const [isInterviewing, setIsInterviewing] = React.useState(false);
-  const [interviewText, setInterviewText] = React.useState('');
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
 
-  const handleAdd = async () => {
-    const name = prompt('Character Name:');
-    if (name) await addCharacter(name);
+  const handleConfirmAdd = (name: string) => {
+    addCharacter(name);
+    addToast(`Personaggio "${name}" creato!`, 'success');
   };
 
   const handleInterview = async () => {
@@ -32,8 +35,9 @@ export const CharactersView: React.FC = () => {
       ];
       const res = await groqService.getChatCompletion(messages);
       const answer = res.choices[0]?.message?.content || '';
-      await addInterview(selectedChar.id, 'Tell me something about your deepest secret or motivation.', answer);
-      alert(`${selectedChar.name} says: ${answer}`);
+      await addInterview(selectedChar.id, 'Parlami di te...', answer);
+      addToast(`Intervista completata con ${selectedChar.name}`, 'info');
+      alert(`${selectedChar.name} dice: ${answer}`);
     } catch (err) {
       console.error(err);
     } finally {
@@ -50,7 +54,7 @@ export const CharactersView: React.FC = () => {
             <User className="w-5 h-5 text-blue-400" />
             Characters
           </h2>
-          <button onClick={handleAdd} className="bg-blue-600 hover:bg-blue-500 p-2 rounded-lg transition-colors">
+          <button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-500 p-2 rounded-lg transition-colors">
             <Plus className="w-4 h-4" />
           </button>
         </div>
@@ -141,6 +145,14 @@ export const CharactersView: React.FC = () => {
           </div>
         )}
       </div>
+      
+      <CreationModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirmAdd}
+        title="Nuovo Personaggio"
+        placeholder="Inserisci il nome del personaggio..."
+      />
     </div>
   );
 };

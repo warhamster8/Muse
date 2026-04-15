@@ -16,8 +16,6 @@ import {
   type EdgeTypes,
   getBezierPath,
   BaseEdge,
-  EdgeLabelRenderer,
-  getSmoothStepPath,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useMindmaps } from '../hooks/useMindmaps';
@@ -29,50 +27,78 @@ import {
   FileText,
   Trash2,
   GitBranch,
-  Maximize2,
   LayoutGrid,
   Sparkles,
   CheckCircle2,
   Loader2,
-  Info,
-  Star,
-  Zap,
   Circle,
 } from 'lucide-react';
 import EditableNode from '../components/mindmap/EditableNode';
 
-// ─── Custom Edge ──────────────────────────────────────────────────────────────
-function AnimatedEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, selected, markerEnd, data }: any) {
-  const [edgePath, labelX, labelY] = getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
-
+// ─── Edge: Node ↔ Node — smooth Bezier with animated glow ────────────────────
+function NodeLinkEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, selected, markerEnd }: any) {
+  const [edgePath] = getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
   return (
     <>
-      {/* Glow layer */}
+      {/* Glow halo */}
       <path
         d={edgePath}
         fill="none"
-        stroke="rgba(96,165,250,0.12)"
-        strokeWidth={selected ? 12 : 6}
-        style={{ transition: 'stroke-width 0.2s' }}
+        stroke={selected ? 'rgba(99,102,241,0.35)' : 'rgba(99,102,241,0.12)'}
+        strokeWidth={selected ? 14 : 8}
+        style={{ transition: 'stroke-width 0.2s, stroke 0.2s' }}
       />
       <BaseEdge
         id={id}
         path={edgePath}
         markerEnd={markerEnd}
         style={{
-          stroke: selected ? '#60a5fa' : 'rgba(148,163,184,0.5)',
+          stroke: selected ? '#818cf8' : 'rgba(148,163,184,0.45)',
           strokeWidth: selected ? 2.5 : 1.5,
+          strokeDasharray: '0',
           transition: 'stroke 0.2s, stroke-width 0.2s',
-          strokeDasharray: data?.dashed ? '6,4' : undefined,
         }}
       />
     </>
   );
 }
 
-const edgeTypes: EdgeTypes = { animated: AnimatedEdge as any };
+// ─── Edge: Node ↔ Subnode — rigid orthogonal elbow (tree bracket) ─────────────
+function SubnodeTreeEdge({ id, sourceX, sourceY, targetX, targetY, selected, markerEnd }: any) {
+  // Elbow: horizontal segment from source, then vertical to target Y, then horizontal to target
+  const midX = sourceX + (targetX - sourceX) * 0.5;
+  const edgePath = `M ${sourceX} ${sourceY} H ${midX} V ${targetY} H ${targetX}`;
 
-// ─── Node Types ───────────────────────────────────────────────────────────────
+  return (
+    <>
+      {/* Subtle glow */}
+      <path
+        d={edgePath}
+        fill="none"
+        stroke={selected ? 'rgba(52,211,153,0.25)' : 'rgba(52,211,153,0.06)'}
+        strokeWidth={selected ? 10 : 5}
+        style={{ transition: 'stroke-width 0.2s, stroke 0.2s' }}
+      />
+      <path
+        id={id}
+        d={edgePath}
+        fill="none"
+        stroke={selected ? '#34d399' : 'rgba(100,116,139,0.5)'}
+        strokeWidth={selected ? 2 : 1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        markerEnd={markerEnd}
+        style={{ transition: 'stroke 0.2s, stroke-width 0.2s' }}
+      />
+    </>
+  );
+}
+
+const edgeTypes: EdgeTypes = {
+  'node-link': NodeLinkEdge as any,
+  'subnode-tree': SubnodeTreeEdge as any,
+};
+
 const nodeTypes = { editable: EditableNode };
 
 // ─── Color Presets ────────────────────────────────────────────────────────────
@@ -87,17 +113,13 @@ const COLORS = [
   { hex: '#f97316', label: 'Orange' },
 ];
 
-const ICONS = [
-  { key: 'star', Icon: Star },
-  { key: 'zap', Icon: Zap },
-  { key: 'circle', Icon: Circle },
-];
+// Icon presets (reserved for future icon picker in context menu)
+// const ICONS = [ { key: 'star', Icon: Star }, { key: 'zap' }, { key: 'circle' } ];
 
-// ─── Auto-layout helper (simple radial) ──────────────────────────────────────
+// ─── Auto-layout: true tree (horizontal, left-to-right) ──────────────────────
 function getAutoLayout(nodes: Node[], edges: Edge[]): Node[] {
   if (nodes.length === 0) return nodes;
 
-  // Build adjacency: parent -> [children]
   const children: Record<string, string[]> = {};
   const hasParent: Record<string, boolean> = {};
   edges.forEach(e => {
@@ -108,29 +130,51 @@ function getAutoLayout(nodes: Node[], edges: Edge[]): Node[] {
 
   const roots = nodes.filter(n => !hasParent[n.id]);
   const positioned: Record<string, { x: number; y: number }> = {};
-  const H_GAP = 220;
-  const V_GAP = 110;
 
-  let rootX = 0;
+  // Compute subtree height (number of leaf nodes × spacing)
+  const NODE_W = 240;
+  const H_GAP = 80;
+  const V_GAP_ROOT = 60;
+  const V_GAP_SUB = 44;
 
-  function place(nodeId: string, x: number, y: number) {
-    positioned[nodeId] = { x, y };
+  function subtreeLeafCount(nodeId: string): number {
     const kids = children[nodeId] || [];
-    const startY = y - ((kids.length - 1) * V_GAP) / 2;
-    kids.forEach((kid, i) => {
-      place(kid, x + H_GAP, startY + i * V_GAP);
+    if (kids.length === 0) return 1;
+    return kids.reduce((sum, k) => sum + subtreeLeafCount(k), 0);
+  }
+
+  function placeSubtree(nodeId: string, x: number, centerY: number, depth: number) {
+    positioned[nodeId] = { x, y: centerY };
+    const kids = children[nodeId] || [];
+    if (kids.length === 0) return;
+
+    const isRoot = depth === 0;
+    const vGap = isRoot ? V_GAP_ROOT : V_GAP_SUB;
+    const childX = x + NODE_W + H_GAP;
+
+    // Distribute children vertically around centerY
+    const totalLeaves = kids.reduce((sum, k) => sum + subtreeLeafCount(k), 0);
+    const totalHeight = (totalLeaves - 1) * vGap;
+    let runY = centerY - totalHeight / 2;
+
+    kids.forEach(kid => {
+      const leaves = subtreeLeafCount(kid);
+      const kidHeight = (leaves - 1) * vGap;
+      placeSubtree(kid, childX, runY + kidHeight / 2, depth + 1);
+      runY += kidHeight + vGap;
     });
   }
 
+  // Place roots vertically spaced
+  let rootY = 0;
   roots.forEach(root => {
-    place(root.id, rootX, 0);
-    const subtreeHeight = (children[root.id]?.length || 1) * V_GAP;
-    rootX += subtreeHeight + V_GAP;
+    const leaves = subtreeLeafCount(root.id);
+    const subtreeH = (leaves - 1) * V_GAP_ROOT;
+    placeSubtree(root.id, 0, rootY + subtreeH / 2, 0);
+    rootY += subtreeH + V_GAP_ROOT * 2;
   });
 
-  return nodes.map(n =>
-    positioned[n.id] ? { ...n, position: positioned[n.id] } : n
-  );
+  return nodes.map(n => (positioned[n.id] ? { ...n, position: positioned[n.id] } : n));
 }
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
@@ -139,7 +183,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 pointer-events-none">
       <div
         style={{
-          background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.12) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse at center, rgba(99,102,241,0.1) 0%, transparent 68%)',
           position: 'absolute',
           inset: 0,
         }}
@@ -147,27 +191,32 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
       <div className="relative flex flex-col items-center gap-4 pointer-events-auto">
         <div
           style={{
-            width: 80,
-            height: 80,
+            width: 88,
+            height: 88,
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2))',
-            border: '1.5px solid rgba(59,130,246,0.3)',
+            background: 'linear-gradient(135deg, rgba(99,102,241,0.18), rgba(139,92,246,0.18))',
+            border: '1.5px solid rgba(99,102,241,0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            boxShadow: '0 0 40px rgba(99,102,241,0.15)',
           }}
         >
-          <Sparkles style={{ width: 32, height: 32, color: '#60a5fa' }} />
+          <Sparkles style={{ width: 34, height: 34, color: '#818cf8' }} />
         </div>
         <div className="text-center">
-          <p className="text-slate-300 font-semibold text-base">Your story map is empty</p>
-          <p className="text-slate-500 text-sm mt-1">Add a root node to start building your narrative web</p>
+          <p style={{ color: '#e2e8f0', fontWeight: 700, fontSize: 15, fontFamily: 'Lora, serif' }}>
+            La tua storia è ancora da mappare
+          </p>
+          <p style={{ color: 'rgba(148,163,184,0.6)', fontSize: 12, marginTop: 4 }}>
+            Aggiungi un nodo radice per iniziare la tua mappa narrativa
+          </p>
         </div>
         <button
           onClick={onAdd}
           style={{
-            padding: '10px 24px',
-            background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+            padding: '10px 26px',
+            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
             border: 'none',
             borderRadius: 12,
             color: '#fff',
@@ -177,19 +226,23 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
             display: 'flex',
             alignItems: 'center',
             gap: 8,
-            boxShadow: '0 4px 20px rgba(59,130,246,0.35)',
+            boxShadow: '0 4px 24px rgba(99,102,241,0.4)',
             transition: 'all 0.2s',
           }}
+          onMouseOver={e => (e.currentTarget.style.transform = 'translateY(-1px)')}
+          onMouseOut={e => (e.currentTarget.style.transform = 'translateY(0)')}
         >
           <Plus style={{ width: 16, height: 16 }} />
-          Add Your First Node
+          Aggiungi il Primo Nodo
         </button>
       </div>
-      <div className="relative flex gap-8 text-center" style={{ color: 'rgba(148,163,184,0.5)' }}>
+
+      {/* Shortcut legend */}
+      <div className="relative flex gap-8 text-center" style={{ color: 'rgba(148,163,184,0.45)' }}>
         {[
-          { key: 'TAB', desc: 'Add child node' },
-          { key: 'ENTER', desc: 'Add sibling' },
-          { key: 'DEL', desc: 'Delete selected' },
+          { key: 'TAB', desc: 'Aggiungi figlio' },
+          { key: 'ENTER', desc: 'Aggiungi fratello' },
+          { key: 'DEL', desc: 'Elimina' },
         ].map(({ key, desc }) => (
           <div key={key} className="flex flex-col items-center gap-1">
             <kbd
@@ -213,24 +266,65 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
   );
 }
 
+// ─── Legend Bar ───────────────────────────────────────────────────────────────
+function EdgeLegend() {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        bottom: 16,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 10,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 20,
+        background: 'rgba(15,23,42,0.88)',
+        border: '1px solid rgba(148,163,184,0.12)',
+        borderRadius: 10,
+        padding: '6px 16px',
+        backdropFilter: 'blur(12px)',
+        fontSize: 11,
+        color: 'rgba(148,163,184,0.7)',
+        pointerEvents: 'none',
+      }}
+    >
+      {/* Node-to-node legend */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+        <svg width="32" height="16" viewBox="0 0 32 16">
+          <path d="M0 8 C 8 0, 24 16, 32 8" stroke="rgba(148,163,184,0.55)" strokeWidth="1.5" fill="none" />
+        </svg>
+        <span>Nodo ↔ Nodo</span>
+      </div>
+      <div style={{ width: 1, height: 14, background: 'rgba(148,163,184,0.15)' }} />
+      {/* Subnode legend */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+        <svg width="32" height="16" viewBox="0 0 32 16">
+          <path d="M0 8 H16 V2 H32" stroke="rgba(100,116,139,0.65)" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <span>Nodo ↔ Subnodo</span>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Canvas ──────────────────────────────────────────────────────────────
 function MindmapCanvas() {
   const { mindmap, updateMindmap, loading } = useMindmaps();
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
-  const { screenToFlowPosition, fitView, setNodes: rfSetNodes } = useReactFlow();
+  const { screenToFlowPosition, fitView } = useReactFlow();
 
-  // UI state
   const [menu, setMenu] = useState<{ id: string; top: number; left: number } | null>(null);
   const [noteModal, setNoteModal] = useState<{ id: string; notes: string; label: string } | null>(null);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [detailPanel, setDetailPanel] = useState(false);
+  // selectedNodeId tracked via nodes[n].selected directly
+
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const autoSaveTimer = useRef<any>(null);
 
-  // ── Load ──────────────────────────────────────────────────────────────────
+  // ── Load ────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (mindmap) {
       setNodes(mindmap.nodes || []);
@@ -249,15 +343,20 @@ function MindmapCanvas() {
     }, 1500);
   }, [updateMindmap]);
 
-  // ── Connect ──────────────────────────────────────────────────────────────
+  // ── Connect — default to node-link when connecting manually ───────────────
   const onConnect = useCallback((params: Connection) => {
     setEdges(eds => {
+      const targetNode = nodes.find(n => n.id === params.target);
+      // If target is a subnode, use tree edge
+      const edgeType = targetNode?.data?.isSubnode ? 'subnode-tree' : 'node-link';
       const newEds = addEdge(
         {
           ...params,
-          type: 'animated',
-          markerEnd: { type: MarkerType.ArrowClosed, color: 'rgba(148,163,184,0.6)' },
-          data: {},
+          type: edgeType,
+          markerEnd: edgeType === 'subnode-tree'
+            ? { type: MarkerType.Arrow, color: 'rgba(100,116,139,0.6)', width: 12, height: 12 }
+            : { type: MarkerType.ArrowClosed, color: 'rgba(148,163,184,0.5)', width: 10, height: 10 },
+          data: { edgeType },
         },
         eds
       );
@@ -266,10 +365,9 @@ function MindmapCanvas() {
     });
   }, [nodes, triggerAutoSave]);
 
-  // ── Nodes change with auto-save ───────────────────────────────────────────
+  // ── Nodes change ──────────────────────────────────────────────────────────
   const handleNodesChange = useCallback((changes: any) => {
     onNodesChange(changes);
-    // Debounced save on positional drag
     const hasDrag = changes.some((c: any) => c.type === 'position' && c.dragging === false);
     if (hasDrag) {
       setNodes(curr => {
@@ -279,49 +377,56 @@ function MindmapCanvas() {
     }
   }, [onNodesChange, edges, triggerAutoSave]);
 
-  // ── Spawn helpers ─────────────────────────────────────────────────────────
+  // ── Spawn child subnode (always tree edge) ────────────────────────────────
   const spawnChildNode = useCallback((parentId: string) => {
     const parentNode = nodes.find(n => n.id === parentId);
     if (!parentNode) return;
 
     const newId = `node-${Date.now()}`;
+    // Place child to the right and aligned vertically
+    const siblings = edges.filter(e => e.source === parentId);
+    const childY = parentNode.position.y + siblings.length * 54;
+
     const newNode: Node = {
       id: newId,
       type: 'editable',
-      position: { x: parentNode.position.x + 220, y: parentNode.position.y },
-      data: { label: 'New Subnode', notes: '', color: parentNode.data?.color, isSubnode: true },
+      position: { x: parentNode.position.x + 260, y: childY },
+      data: { label: 'Nuovo Subnodo', notes: '', color: parentNode.data?.color, isSubnode: true },
     };
     const newEdge: Edge = {
       id: `e-${parentId}-${newId}`,
       source: parentId,
       target: newId,
-      type: 'animated',
-      markerEnd: { type: MarkerType.ArrowClosed, color: 'rgba(148,163,184,0.6)' },
-      data: {},
+      type: 'subnode-tree',
+      markerEnd: { type: MarkerType.Arrow, color: 'rgba(100,116,139,0.6)', width: 12, height: 12 },
+      data: { edgeType: 'subnode-tree' },
     };
+
     setNodes(nds => {
-      const updated = nds.map(n => ({ ...n, selected: n.id === newId })).concat({ ...newNode, selected: true });
+      const updated = nds.map(n => ({ ...n, selected: false })).concat({ ...newNode, selected: true });
       triggerAutoSave(updated, [...edges, newEdge]);
       return updated;
     });
     setEdges(eds => [...eds, newEdge]);
   }, [nodes, edges, triggerAutoSave]);
 
+  // ── Spawn sibling ─────────────────────────────────────────────────────────
   const spawnSiblingNode = useCallback((siblingId: string) => {
     const siblingNode = nodes.find(n => n.id === siblingId);
     if (!siblingNode) return;
     const incomingEdge = edges.find(e => e.target === siblingId);
     const newId = `node-${Date.now()}`;
+    const isSubnode = !!incomingEdge;
 
     const newNode: Node = {
       id: newId,
       type: 'editable',
-      position: { x: siblingNode.position.x, y: siblingNode.position.y + 110 },
+      position: { x: siblingNode.position.x, y: siblingNode.position.y + (isSubnode ? 54 : 100) },
       data: {
-        label: incomingEdge ? 'New Node' : 'New Root',
+        label: isSubnode ? 'Nuovo Subnodo' : 'Nuovo Nodo',
         notes: '',
         color: siblingNode.data?.color,
-        isSubnode: siblingNode.data?.isSubnode,
+        isSubnode,
       },
     };
 
@@ -331,9 +436,9 @@ function MindmapCanvas() {
         id: `e-${incomingEdge.source}-${newId}`,
         source: incomingEdge.source,
         target: newId,
-        type: 'animated',
-        markerEnd: { type: MarkerType.ArrowClosed, color: 'rgba(148,163,184,0.6)' },
-        data: {},
+        type: 'subnode-tree',
+        markerEnd: { type: MarkerType.Arrow, color: 'rgba(100,116,139,0.6)', width: 12, height: 12 },
+        data: { edgeType: 'subnode-tree' },
       });
     }
 
@@ -345,7 +450,7 @@ function MindmapCanvas() {
     setEdges(newEdges);
   }, [nodes, edges, triggerAutoSave]);
 
-  // ── Keyboard shortcuts ────────────────────────────────────────────────────
+  // ── Keyboard ──────────────────────────────────────────────────────────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const tag = (document.activeElement as HTMLElement)?.tagName;
@@ -364,19 +469,24 @@ function MindmapCanvas() {
         const selNodes = nodes.filter(n => n.selected);
         if (selNodes.length > 0) {
           const ids = selNodes.map(n => n.id);
-          setNodes(nds => nds.filter(n => !ids.includes(n.id)));
-          setEdges(eds => eds.filter(e => !ids.includes(e.source) && !ids.includes(e.target)));
+          setNodes(nds => {
+            const updated = nds.filter(n => !ids.includes(n.id));
+            const updatedEdges = edges.filter(e => !ids.includes(e.source) && !ids.includes(e.target));
+            setEdges(updatedEdges);
+            triggerAutoSave(updated, updatedEdges);
+            return updated;
+          });
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [nodes, spawnChildNode, spawnSiblingNode]);
+  }, [nodes, edges, spawnChildNode, spawnSiblingNode, triggerAutoSave]);
 
-  // ── Selection tracking ────────────────────────────────────────────────────
-  const onSelectionChange = useCallback(({ nodes: sel }: { nodes: Node[] }) => {
-    setSelectedNodeId(sel.length === 1 ? sel[0].id : null);
-  }, []);
+  // onSelectionChange: selection is read directly from nodes[].selected
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const onSelectionChange = useCallback((_: { nodes: Node[] }) => {}, []);
+
 
   // ── Context menu ──────────────────────────────────────────────────────────
   const onNodeContextMenu = useCallback((event: React.MouseEvent, node: Node) => {
@@ -385,8 +495,8 @@ function MindmapCanvas() {
     if (!pane) return;
     setMenu({
       id: node.id,
-      top: event.clientY < pane.bottom - 260 ? event.clientY : event.clientY - 260,
-      left: event.clientX < pane.right - 220 ? event.clientX : event.clientX - 220,
+      top: event.clientY < pane.bottom - 280 ? event.clientY : event.clientY - 280,
+      left: event.clientX < pane.right - 230 ? event.clientX : event.clientX - 230,
     });
   }, []);
 
@@ -398,28 +508,47 @@ function MindmapCanvas() {
     const { id } = menu;
 
     if (action === 'delete') {
-      setNodes(nds => nds.filter(n => n.id !== id));
-      setEdges(eds => eds.filter(e => e.source !== id && e.target !== id));
+      setNodes(nds => {
+        const updated = nds.filter(n => n.id !== id);
+        const updatedEdges = edges.filter(e => e.source !== id && e.target !== id);
+        setEdges(updatedEdges);
+        triggerAutoSave(updated, updatedEdges);
+        return updated;
+      });
       setMenu(null);
     } else if (action === 'addChild') {
       spawnChildNode(id);
       setMenu(null);
-    } else if (action === 'color' && value) {
-      setNodes(nds =>
-        nds.map(n => (n.id === id ? { ...n, data: { ...n.data, color: value } } : n))
-      );
+    } else if (action === 'color' && value !== undefined) {
+      setNodes(nds => nds.map(n => (n.id === id ? { ...n, data: { ...n.data, color: value } } : n)));
     } else if (action === 'icon' && value !== undefined) {
-      setNodes(nds =>
-        nds.map(n => (n.id === id ? { ...n, data: { ...n.data, icon: value || undefined } } : n))
-      );
+      setNodes(nds => nds.map(n => (n.id === id ? { ...n, data: { ...n.data, icon: value || undefined } } : n)));
     } else if (action === 'notes') {
       const node = nodes.find(n => n.id === id);
       if (node) setNoteModal({ id: node.id, notes: (node.data.notes as string) || '', label: (node.data.label as string) || '' });
       setMenu(null);
-    } else if (action === 'toggleRoot') {
+    } else if (action === 'toggleSubnode') {
       setNodes(nds =>
         nds.map(n => (n.id === id ? { ...n, data: { ...n.data, isSubnode: !n.data.isSubnode } } : n))
       );
+      // Also update connected edges type accordingly
+      const node = nodes.find(n => n.id === id);
+      if (node) {
+        const nextIsSubnode = !node.data.isSubnode;
+        setEdges(eds => eds.map(e => {
+          if (e.target === id) {
+            const newType = nextIsSubnode ? 'subnode-tree' : 'node-link';
+            return {
+              ...e,
+              type: newType,
+              markerEnd: nextIsSubnode
+                ? { type: MarkerType.Arrow, color: 'rgba(100,116,139,0.6)', width: 12, height: 12 }
+                : { type: MarkerType.ArrowClosed, color: 'rgba(148,163,184,0.5)', width: 10, height: 10 },
+            };
+          }
+          return e;
+        }));
+      }
       setMenu(null);
     }
   };
@@ -431,7 +560,7 @@ function MindmapCanvas() {
       id: `node-${Date.now()}`,
       type: 'editable',
       position,
-      data: { label: 'Main Focus', notes: '', isSubnode: false },
+      data: { label: 'Idea Centrale', notes: '', isSubnode: false },
     };
     setNodes(nds => {
       const updated = nds.concat(newNode);
@@ -444,7 +573,8 @@ function MindmapCanvas() {
   const handleAutoLayout = () => {
     const newNodes = getAutoLayout(nodes, edges);
     setNodes(newNodes);
-    setTimeout(() => fitView({ padding: 0.1, duration: 600 }), 50);
+    setTimeout(() => fitView({ padding: 0.12, duration: 700 }), 50);
+    triggerAutoSave(newNodes, edges);
   };
 
   // ── Save notes ────────────────────────────────────────────────────────────
@@ -468,15 +598,12 @@ function MindmapCanvas() {
     setTimeout(() => setSaveState('idle'), 2200);
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
-  const selectedNode = nodes.find(n => n.id === selectedNodeId);
-
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="flex flex-col items-center gap-3" style={{ color: 'rgba(148,163,184,0.6)' }}>
           <Loader2 style={{ width: 28, height: 28, animation: 'spin 1s linear infinite' }} />
-          <p style={{ fontSize: 13 }}>Loading your story map…</p>
+          <p style={{ fontSize: 13 }}>Caricamento mappa narrativa…</p>
         </div>
       </div>
     );
@@ -484,7 +611,8 @@ function MindmapCanvas() {
 
   return (
     <div className="h-full flex flex-col gap-3">
-      {/* ── Toolbar ──────────────────────────────────────────────────────── */}
+
+      {/* ── Toolbar ──────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
           <h2
@@ -499,118 +627,68 @@ function MindmapCanvas() {
           >
             Story Mindmap
           </h2>
-          <p style={{ fontSize: 11, color: 'rgba(148,163,184,0.6)', marginTop: 2 }}>
-            <kbd
-              style={{
-                background: 'rgba(30,41,59,0.8)',
-                border: '1px solid rgba(148,163,184,0.2)',
-                borderRadius: 4,
-                padding: '0 5px',
-                fontFamily: 'monospace',
-                fontSize: 10,
-              }}
-            >
-              TAB
-            </kbd>{' '}
-            child ·{' '}
-            <kbd
-              style={{
-                background: 'rgba(30,41,59,0.8)',
-                border: '1px solid rgba(148,163,184,0.2)',
-                borderRadius: 4,
-                padding: '0 5px',
-                fontFamily: 'monospace',
-                fontSize: 10,
-              }}
-            >
-              ENTER
-            </kbd>{' '}
-            sibling ·{' '}
-            <kbd
-              style={{
-                background: 'rgba(30,41,59,0.8)',
-                border: '1px solid rgba(148,163,184,0.2)',
-                borderRadius: 4,
-                padding: '0 5px',
-                fontFamily: 'monospace',
-                fontSize: 10,
-              }}
-            >
-              DEL
-            </kbd>{' '}
-            delete · Right-click for options
+          <p style={{ fontSize: 11, color: 'rgba(148,163,184,0.55)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <kbd style={{ background: 'rgba(30,41,59,0.8)', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 4, padding: '0 5px', fontFamily: 'monospace', fontSize: 10 }}>TAB</kbd>
+            figlio ·{' '}
+            <kbd style={{ background: 'rgba(30,41,59,0.8)', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 4, padding: '0 5px', fontFamily: 'monospace', fontSize: 10 }}>ENTER</kbd>
+            fratello ·{' '}
+            <kbd style={{ background: 'rgba(30,41,59,0.8)', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 4, padding: '0 5px', fontFamily: 'monospace', fontSize: 10 }}>DEL</kbd>
+            elimina · Tasto destro per le opzioni
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Auto-layout */}
           <button
             onClick={handleAutoLayout}
-            title="Auto-arrange nodes"
+            title="Organizza automaticamente"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
+              display: 'flex', alignItems: 'center', gap: 6,
               padding: '7px 14px',
               background: 'rgba(30,41,59,0.8)',
               border: '1px solid rgba(148,163,184,0.15)',
-              borderRadius: 10,
-              color: '#94a3b8',
-              fontSize: 12,
-              cursor: 'pointer',
+              borderRadius: 10, color: '#94a3b8', fontSize: 12, cursor: 'pointer',
               transition: 'all 0.2s',
             }}
+            onMouseOver={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.12)'; e.currentTarget.style.color = '#818cf8'; }}
+            onMouseOut={e => { e.currentTarget.style.background = 'rgba(30,41,59,0.8)'; e.currentTarget.style.color = '#94a3b8'; }}
           >
             <LayoutGrid style={{ width: 14, height: 14 }} />
             Auto-layout
           </button>
 
-          {/* Add root */}
           <button
             onClick={handleAddRootNode}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
+              display: 'flex', alignItems: 'center', gap: 6,
               padding: '7px 14px',
               background: 'rgba(30,41,59,0.8)',
               border: '1px solid rgba(148,163,184,0.15)',
-              borderRadius: 10,
-              color: '#e2e8f0',
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: 'pointer',
+              borderRadius: 10, color: '#e2e8f0', fontSize: 12, fontWeight: 600, cursor: 'pointer',
               transition: 'all 0.2s',
             }}
+            onMouseOver={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.15)'; e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)'; }}
+            onMouseOut={e => { e.currentTarget.style.background = 'rgba(30,41,59,0.8)'; e.currentTarget.style.borderColor = 'rgba(148,163,184,0.15)'; }}
           >
             <Plus style={{ width: 14, height: 14 }} />
-            Add Node
+            Aggiungi Nodo
           </button>
 
-          {/* Save */}
           <button
             onClick={handleSave}
             disabled={saveState === 'saving'}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
+              display: 'flex', alignItems: 'center', gap: 6,
               padding: '7px 16px',
-              background:
-                saveState === 'saved'
-                  ? 'linear-gradient(135deg, #10b981, #059669)'
-                  : 'linear-gradient(135deg, #3b82f6, #6366f1)',
-              border: 'none',
-              borderRadius: 10,
-              color: '#fff',
-              fontSize: 12,
-              fontWeight: 700,
+              background: saveState === 'saved'
+                ? 'linear-gradient(135deg, #10b981, #059669)'
+                : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              border: 'none', borderRadius: 10,
+              color: '#fff', fontSize: 12, fontWeight: 700,
               cursor: saveState === 'saving' ? 'not-allowed' : 'pointer',
               transition: 'all 0.3s',
-              boxShadow:
-                saveState === 'saved'
-                  ? '0 4px 16px rgba(16,185,129,0.3)'
-                  : '0 4px 16px rgba(59,130,246,0.3)',
+              boxShadow: saveState === 'saved'
+                ? '0 4px 16px rgba(16,185,129,0.3)'
+                : '0 4px 16px rgba(99,102,241,0.35)',
               opacity: saveState === 'saving' ? 0.7 : 1,
             }}
           >
@@ -621,20 +699,20 @@ function MindmapCanvas() {
             ) : (
               <Save style={{ width: 14, height: 14 }} />
             )}
-            {saveState === 'saving' ? 'Saving…' : saveState === 'saved' ? 'Saved!' : 'Save'}
+            {saveState === 'saving' ? 'Salvataggio…' : saveState === 'saved' ? 'Salvato!' : 'Salva'}
           </button>
         </div>
       </div>
 
-      {/* ── Main Canvas ───────────────────────────────────────────────────── */}
+      {/* ── Main Canvas ───────────────────────────────────────────────────────── */}
       <div
         ref={wrapperRef}
         className="flex-1 relative overflow-hidden"
         style={{
           borderRadius: 20,
           border: '1.5px solid rgba(100,116,139,0.2)',
-          background: 'rgba(15,23,42,0.95)',
-          boxShadow: '0 4px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)',
+          background: 'rgba(10,15,30,0.97)',
+          boxShadow: '0 4px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03)',
         }}
       >
         <ReactFlow
@@ -651,46 +729,44 @@ function MindmapCanvas() {
           onSelectionChange={onSelectionChange}
           colorMode="dark"
           fitView
-          minZoom={0.08}
+          minZoom={0.06}
           maxZoom={3}
           proOptions={{ hideAttribution: true }}
+          defaultEdgeOptions={{ type: 'node-link' }}
         >
-          {/* Grid background */}
           <Background
-            color="rgba(100,116,139,0.15)"
-            gap={28}
-            size={1.5}
+            color="rgba(100,116,139,0.1)"
+            gap={32}
+            size={1}
           />
-
-          {/* Minimap */}
           <MiniMap
             nodeColor={(n: Node) => {
               const c = n.data?.color;
               if (typeof c === 'string' && c.startsWith('#')) return c;
-              return n.data?.isSubnode ? '#334155' : '#3b82f6';
+              return n.data?.isSubnode ? '#1e293b' : '#6366f1';
             }}
-            maskColor="rgba(15,23,42,0.7)"
+            maskColor="rgba(10,15,30,0.72)"
             style={{
-              background: 'rgba(15,23,42,0.85)',
-              border: '1px solid rgba(148,163,184,0.15)',
+              background: 'rgba(10,15,30,0.9)',
+              border: '1px solid rgba(148,163,184,0.12)',
               borderRadius: 12,
             }}
           />
-
-          {/* Controls */}
           <Controls
             style={{
-              background: 'rgba(15,23,42,0.85)',
-              border: '1px solid rgba(148,163,184,0.15)',
+              background: 'rgba(15,23,42,0.88)',
+              border: '1px solid rgba(148,163,184,0.12)',
               borderRadius: 12,
             }}
           />
         </ReactFlow>
 
-        {/* Empty state */}
         {nodes.length === 0 && <EmptyState onAdd={handleAddRootNode} />}
 
-        {/* ── Context Menu ────────────────────────────────────────────────── */}
+        {/* Legend */}
+        {nodes.length > 0 && <EdgeLegend />}
+
+        {/* ── Context Menu ─────────────────────────────────────────────────── */}
         {menu && (
           <div
             style={{
@@ -698,48 +774,60 @@ function MindmapCanvas() {
               top: menu.top,
               left: menu.left,
               zIndex: 100,
-              background: 'rgba(15,23,42,0.97)',
-              border: '1.5px solid rgba(148,163,184,0.15)',
+              background: 'rgba(10,15,30,0.98)',
+              border: '1.5px solid rgba(148,163,184,0.12)',
               borderRadius: 16,
-              boxShadow: '0 16px 48px rgba(0,0,0,0.6)',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
               backdropFilter: 'blur(20px)',
               padding: 8,
-              width: 210,
+              width: 220,
               fontSize: 12,
             }}
           >
-            {/* Header */}
             <div
               style={{
                 padding: '6px 10px 8px',
-                color: 'rgba(148,163,184,0.5)',
+                color: 'rgba(148,163,184,0.45)',
                 fontSize: 10,
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
                 fontWeight: 700,
               }}
             >
-              Node Options
+              Opzioni Nodo
             </div>
 
             <CtxButton
-              icon={<GitBranch style={{ width: 13, height: 13, color: '#60a5fa' }} />}
-              label="Add Child (TAB)"
+              icon={<GitBranch style={{ width: 13, height: 13, color: '#818cf8' }} />}
+              label="Aggiungi Figlio (TAB)"
               onClick={() => handleMenuAction('addChild')}
             />
             <CtxButton
               icon={<FileText style={{ width: 13, height: 13, color: '#34d399' }} />}
-              label="Edit Notes"
+              label="Modifica Note"
               onClick={() => handleMenuAction('notes')}
             />
 
-            <div style={{ height: 1, background: 'rgba(148,163,184,0.1)', margin: '6px 0' }} />
+            {/* Toggle subnode */}
+            {(() => {
+              const targetNode = nodes.find(n => n.id === menu.id);
+              const isSubnode = targetNode?.data?.isSubnode;
+              return (
+                <CtxButton
+                  icon={<Circle style={{ width: 13, height: 13, color: '#f59e0b' }} />}
+                  label={isSubnode ? 'Converti a Nodo' : 'Converti a Subnodo'}
+                  onClick={() => handleMenuAction('toggleSubnode')}
+                />
+              );
+            })()}
+
+            <div style={{ height: 1, background: 'rgba(148,163,184,0.08)', margin: '6px 0' }} />
 
             {/* Color swatches */}
             <div style={{ padding: '4px 10px 6px' }}>
               <div
                 style={{
-                  color: 'rgba(148,163,184,0.5)',
+                  color: 'rgba(148,163,184,0.45)',
                   fontSize: 10,
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
@@ -751,7 +839,7 @@ function MindmapCanvas() {
                 }}
               >
                 <Palette style={{ width: 11, height: 11, color: '#c084fc' }} />
-                Color
+                Colore
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                 {COLORS.map(({ hex, label }) => (
@@ -760,38 +848,35 @@ function MindmapCanvas() {
                     title={label}
                     onClick={() => handleMenuAction('color', hex)}
                     style={{
-                      width: 20,
-                      height: 20,
+                      width: 22,
+                      height: 22,
                       borderRadius: '50%',
                       background: hex,
                       border: '2px solid rgba(255,255,255,0.15)',
                       cursor: 'pointer',
-                      transition: 'transform 0.15s',
+                      transition: 'transform 0.15s, box-shadow 0.15s',
                     }}
-                    onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.25)')}
-                    onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
+                    onMouseOver={e => {
+                      e.currentTarget.style.transform = 'scale(1.3)';
+                      e.currentTarget.style.boxShadow = `0 0 8px ${hex}88`;
+                    }}
+                    onMouseOut={e => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                   />
                 ))}
                 {/* Custom color */}
-                <div style={{ position: 'relative', width: 20, height: 20 }}>
+                <div style={{ position: 'relative', width: 22, height: 22 }}>
                   <input
                     type="color"
                     onChange={e => handleMenuAction('color', e.target.value)}
-                    title="Custom color"
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      opacity: 0,
-                      width: '100%',
-                      height: '100%',
-                      cursor: 'pointer',
-                    }}
+                    title="Colore personalizzato"
+                    style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }}
                   />
                   <div
                     style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
+                      width: 22, height: 22, borderRadius: '50%',
                       background: 'conic-gradient(red, yellow, lime, cyan, blue, magenta, red)',
                       border: '2px solid rgba(255,255,255,0.15)',
                       pointerEvents: 'none',
@@ -801,18 +886,17 @@ function MindmapCanvas() {
               </div>
             </div>
 
-            {/* Reset color */}
             <CtxButton
               icon={<X style={{ width: 13, height: 13, color: '#94a3b8' }} />}
-              label="Reset Color"
+              label="Reimposta Colore"
               onClick={() => handleMenuAction('color', '')}
             />
 
-            <div style={{ height: 1, background: 'rgba(148,163,184,0.1)', margin: '6px 0' }} />
+            <div style={{ height: 1, background: 'rgba(148,163,184,0.08)', margin: '6px 0' }} />
 
             <CtxButton
               icon={<Trash2 style={{ width: 13, height: 13, color: '#f87171' }} />}
-              label="Delete Node"
+              label="Elimina Nodo"
               onClick={() => handleMenuAction('delete')}
               danger
             />
@@ -820,112 +904,81 @@ function MindmapCanvas() {
         )}
       </div>
 
-      {/* ── Notes Modal ───────────────────────────────────────────────────── */}
+      {/* ── Notes Modal ─────────────────────────────────────────────────────────── */}
       {noteModal && (
         <div
           style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 200,
-            background: 'rgba(0,0,0,0.7)',
-            backdropFilter: 'blur(12px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 24,
+            position: 'fixed', inset: 0, zIndex: 200,
+            background: 'rgba(0,0,0,0.75)',
+            backdropFilter: 'blur(14px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
           }}
           onClick={e => { if (e.target === e.currentTarget) setNoteModal(null); }}
         >
           <div
             style={{
-              background: 'rgba(15,23,42,0.98)',
-              border: '1.5px solid rgba(148,163,184,0.15)',
+              background: 'rgba(10,15,30,0.99)',
+              border: '1.5px solid rgba(148,163,184,0.14)',
               borderRadius: 20,
-              boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
-              width: '100%',
-              maxWidth: 560,
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
+              boxShadow: '0 24px 80px rgba(0,0,0,0.7)',
+              width: '100%', maxWidth: 560,
+              display: 'flex', flexDirection: 'column', overflow: 'hidden',
             }}
           >
-            {/* Modal header */}
             <div
               style={{
                 padding: '16px 20px',
                 borderBottom: '1px solid rgba(148,163,184,0.1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                background: 'rgba(30,41,59,0.4)',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                background: 'rgba(30,41,59,0.3)',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <FileText style={{ width: 18, height: 18, color: '#60a5fa' }} />
+                <FileText style={{ width: 18, height: 18, color: '#818cf8' }} />
                 <div>
-                  <p
-                    style={{
-                      fontWeight: 700,
-                      fontSize: 14,
-                      fontFamily: 'Lora, serif',
-                      color: '#e2e8f0',
-                    }}
-                  >
-                    {noteModal.label || 'Node Notes'}
+                  <p style={{ fontWeight: 700, fontSize: 14, fontFamily: 'Lora, serif', color: '#e2e8f0' }}>
+                    {noteModal.label || 'Note del Nodo'}
                   </p>
                   <p style={{ fontSize: 10, color: 'rgba(148,163,184,0.5)', marginTop: 1 }}>
-                    Full notes, lore, and background
+                    Note, lore e background
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setNoteModal(null)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'rgba(148,163,184,0.5)',
-                  cursor: 'pointer',
-                  padding: 4,
-                  borderRadius: 8,
-                }}
+                style={{ background: 'none', border: 'none', color: 'rgba(148,163,184,0.5)', cursor: 'pointer', padding: 4, borderRadius: 8 }}
               >
                 <X style={{ width: 18, height: 18 }} />
               </button>
             </div>
 
-            {/* Textarea */}
-            <div style={{ padding: 20, flex: 1 }}>
+            <div style={{ padding: 20 }}>
               <textarea
                 autoFocus
                 style={{
-                  width: '100%',
-                  height: 220,
+                  width: '100%', height: 220,
                   background: 'rgba(30,41,59,0.4)',
                   border: '1px solid rgba(148,163,184,0.12)',
                   borderRadius: 12,
-                  color: '#e2e8f0',
-                  fontSize: 14,
-                  lineHeight: 1.7,
-                  padding: '12px 14px',
-                  resize: 'none',
-                  outline: 'none',
+                  color: '#e2e8f0', fontSize: 14, lineHeight: 1.7,
+                  padding: '12px 14px', resize: 'none', outline: 'none',
                   fontFamily: 'Inter, sans-serif',
+                  transition: 'border-color 0.2s',
                 }}
-                placeholder="Write full background information, lore, plot points, or any notes about this concept…"
+                onFocus={e => (e.currentTarget.style.borderColor = 'rgba(99,102,241,0.4)')}
+                onBlur={e => (e.currentTarget.style.borderColor = 'rgba(148,163,184,0.12)')}
+                placeholder="Scrivi informazioni di background, lore, punti narrativi o qualsiasi nota su questo concetto…"
                 value={noteModal.notes}
                 onChange={e => setNoteModal({ ...noteModal, notes: e.target.value })}
               />
             </div>
 
-            {/* Modal footer */}
             <div
               style={{
                 padding: '12px 20px',
                 borderTop: '1px solid rgba(148,163,184,0.1)',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: 10,
-                background: 'rgba(15,23,42,0.6)',
+                display: 'flex', justifyContent: 'flex-end', gap: 10,
+                background: 'rgba(10,15,30,0.6)',
               }}
             >
               <button
@@ -934,58 +987,51 @@ function MindmapCanvas() {
                   padding: '8px 18px',
                   background: 'rgba(30,41,59,0.6)',
                   border: '1px solid rgba(148,163,184,0.15)',
-                  borderRadius: 10,
-                  color: '#94a3b8',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
+                  borderRadius: 10, color: '#94a3b8', fontSize: 12, fontWeight: 600, cursor: 'pointer',
                 }}
               >
-                Cancel
+                Annulla
               </button>
               <button
                 onClick={saveNoteModal}
                 style={{
-                  padding: '8px 20px',
-                  background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
-                  border: 'none',
-                  borderRadius: 10,
-                  color: '#fff',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 16px rgba(59,130,246,0.3)',
+                  padding: '8px 22px',
+                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                  border: 'none', borderRadius: 10,
+                  color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                  boxShadow: '0 4px 16px rgba(99,102,241,0.35)',
                 }}
               >
-                Save Notes
+                Salva Note
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Spin keyframe injected once */}
+      {/* Spin keyframe */}
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .react-flow__node { cursor: grab; }
         .react-flow__node:active { cursor: grabbing; }
-        .react-flow__handle { opacity: 0; transition: opacity 0.2s; }
+        .react-flow__handle { opacity: 0; transition: opacity 0.18s; width: 10px !important; height: 10px !important; }
         .react-flow__node:hover .react-flow__handle { opacity: 1; }
         .react-flow__controls button {
-          background: rgba(30,41,59,0.9) !important;
-          border-color: rgba(148,163,184,0.15) !important;
+          background: rgba(15,23,42,0.9) !important;
+          border-color: rgba(148,163,184,0.12) !important;
           color: #94a3b8 !important;
         }
         .react-flow__controls button:hover {
-          background: rgba(59,130,246,0.15) !important;
-          color: #60a5fa !important;
+          background: rgba(99,102,241,0.15) !important;
+          color: #818cf8 !important;
         }
+        .react-flow__attribution { display: none !important; }
       `}</style>
     </div>
   );
 }
 
-// ─── Context menu button helper ────────────────────────────────────────────────
+// ─── Context menu button ──────────────────────────────────────────────────────
 function CtxButton({
   icon,
   label,
@@ -1001,25 +1047,12 @@ function CtxButton({
     <button
       onClick={onClick}
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        width: '100%',
-        padding: '7px 10px',
-        background: 'none',
-        border: 'none',
-        borderRadius: 10,
-        color: danger ? '#f87171' : '#cbd5e1',
-        fontSize: 12,
-        cursor: 'pointer',
-        textAlign: 'left',
-        transition: 'background 0.15s',
+        display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+        padding: '7px 10px', background: 'none', border: 'none', borderRadius: 10,
+        color: danger ? '#f87171' : '#cbd5e1', fontSize: 12, cursor: 'pointer',
+        textAlign: 'left', transition: 'background 0.15s',
       }}
-      onMouseOver={e =>
-        (e.currentTarget.style.background = danger
-          ? 'rgba(239,68,68,0.1)'
-          : 'rgba(148,163,184,0.08)')
-      }
+      onMouseOver={e => (e.currentTarget.style.background = danger ? 'rgba(239,68,68,0.1)' : 'rgba(148,163,184,0.07)')}
       onMouseOut={e => (e.currentTarget.style.background = 'none')}
     >
       {icon}

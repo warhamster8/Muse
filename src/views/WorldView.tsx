@@ -3,14 +3,18 @@ import { Plus, Map, Info, Home, Landmark } from 'lucide-react';
 import { useWorld } from '../hooks/useWorld';
 import type { Setting } from '../hooks/useWorld';
 import { cn } from '../lib/utils';
+import { CreationModal } from '../components/CreationModal';
+import { useToast } from '../components/Toast';
 
 export const WorldView: React.FC = () => {
   const { settings, addSetting, updateSetting } = useWorld();
+  const { addToast } = useToast();
   const [selectedSetting, setSelectedSetting] = React.useState<Setting | null>(null);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
 
-  const handleAdd = async () => {
-    const name = prompt('Location Name:');
-    if (name) await addSetting(name, 'Primary');
+  const handleConfirmAdd = (name: string) => {
+    addSetting(name, 'Primary');
+    addToast(`Luogo "${name}" aggiunto al mondo`, 'success');
   };
 
   return (
@@ -22,7 +26,7 @@ export const WorldView: React.FC = () => {
             <Map className="w-5 h-5 text-emerald-400" />
             World Building
           </h2>
-          <button onClick={handleAdd} className="bg-emerald-600 hover:bg-emerald-500 p-2 rounded-lg transition-colors">
+          <button onClick={() => setIsModalOpen(true)} className="bg-emerald-600 hover:bg-emerald-500 p-2 rounded-lg transition-colors">
             <Plus className="w-4 h-4" />
           </button>
         </div>
@@ -90,6 +94,14 @@ export const WorldView: React.FC = () => {
           </div>
         )}
       </div>
+      
+      <CreationModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirmAdd}
+        title="Nuovo Luogo"
+        placeholder="Inserisci il nome della location..."
+      />
     </div>
   );
 };

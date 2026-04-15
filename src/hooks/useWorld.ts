@@ -39,8 +39,13 @@ export function useWorld() {
       storage.insert('settings', { project_id: currentProject.id, name, type, description: '' });
       fetchWorld();
     } else {
-      await supabase.from('settings').insert([{ project_id: currentProject.id, name, type, description: '' }]);
-      fetchWorld();
+      const { error } = await supabase.from('settings').insert([{ project_id: currentProject.id, name, type, description: '' }]);
+      if (error) {
+        console.error('Error adding setting:', error);
+        alert('Errore nella creazione dell\'ambientazione: ' + error.message);
+      } else {
+        fetchWorld();
+      }
     }
   };
 
