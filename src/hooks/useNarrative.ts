@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { storage } from '../lib/storage';
 import { useStore } from '../store/useStore';
-import { Chapter, Scene } from '../types/narrative';
+import type { Chapter, Scene } from '../types/narrative';
 
 export function useNarrative() {
   const { currentProject, isLocalMode, chapters, setChapters } = useStore();
@@ -104,4 +104,3 @@ export function useNarrative() {
 
   return { chapters, loading, addChapter, addScene, updateSceneContent, refresh: fetchNarrative };
 }
-

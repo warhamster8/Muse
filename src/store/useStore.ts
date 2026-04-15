@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Chapter } from '../types/narrative';
+import type { Chapter } from '../types/narrative';
 
 export type ViewTab = 'narrative' | 'characters' | 'world' | 'notes' | 'analysis' | 'config';
 
