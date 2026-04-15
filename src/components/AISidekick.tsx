@@ -20,8 +20,9 @@ type SidekickTab = 'revision' | 'braindump' | 'transformer';
 // Renders structured AI output: lines starting with ❌ get red, ✅ green, ## become headers, etc.
 const StructuredOutput: React.FC<{ 
   text: string; 
-  onApply?: (original: string, suggestion: string) => void 
-}> = ({ text, onApply }) => {
+  onApply?: (original: string, suggestion: string) => void;
+  appliedSuggestions?: string[];
+}> = ({ text, onApply, appliedSuggestions }) => {
   const lines = text.split('\n');
   
   // Group ❌, ✅, 🏷️, 💡 together into cards
@@ -31,8 +32,15 @@ const StructuredOutput: React.FC<{
   const flushSuggestion = (key: number) => {
     if (currentSuggestion && currentSuggestion.original && currentSuggestion.suggestion) {
       const { original, suggestion, reason, category } = currentSuggestion;
+      
+      // Skip if already applied
+      if (appliedSuggestions?.includes(original)) {
+        currentSuggestion = null;
+        return;
+      }
+
       elements.push(
-        <div key={`sug-${key}`} className="bg-slate-800/80 border border-slate-700 rounded-xl overflow-hidden mb-4 shadow-lg group">
+        <div key={`sug-${key}`} className="bg-slate-800/80 border border-slate-700 rounded-xl overflow-hidden mb-4 shadow-lg group animate-in fade-in zoom-in-95 duration-300">
           {category && (
             <div className="bg-slate-700/50 px-3 py-1 flex items-center justify-between border-b border-slate-700">
               <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
@@ -104,6 +112,7 @@ export const AISidekick: React.FC = () => {
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = React.useState<SidekickTab>('revision');
   const [analysis, setAnalysis] = React.useState<string>('');
+  const [appliedSuggestions, setAppliedSuggestions] = React.useState<string[]>([]);
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
 
@@ -132,6 +141,7 @@ export const AISidekick: React.FC = () => {
     if (newContent !== content) {
       setCurrentSceneContent(newContent);
       await updateSceneContent(activeSceneId, newContent);
+      setAppliedSuggestions(prev => [...prev, originalText]);
       addToast('Modifica applicata con successo', 'success');
     } else {
       console.warn("Could not find original text in content for replacement:", originalText);
@@ -153,6 +163,7 @@ export const AISidekick: React.FC = () => {
     if (!plainText || plainText.length < 30) return;
     setIsAnalyzing(true);
     setAnalysis('');
+    setAppliedSuggestions([]);
     try {
       const systemPrompt = `Sei un editor letterario senior specializzato in narrativa italiana contemporanea.
 Il tuo compito è revisionare la bozza fornita dall'utente con precisione chirurgica.
@@ -363,7 +374,11 @@ Riscrivi in italiano. Restituisci SOLO il testo riscritto.`,
 
             {analysis ? (
               <div className="animate-in slide-in-from-bottom-2">
-                <StructuredOutput text={analysis} onApply={applySuggestion} />
+                <StructuredOutput 
+                  text={analysis} 
+                  onApply={applySuggestion} 
+                  appliedSuggestions={appliedSuggestions}
+                />
               </div>
             ) : (
               !isAnalyzing && (
