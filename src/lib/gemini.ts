@@ -35,16 +35,21 @@ export const geminiService = {
       ],
     };
 
-    // Usiamo fetch diretto con la chiave nell'URL (metodo infallibile contro proxy/header conflitti)
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`;
+    const trimmedKey = apiKey.trim();
+    console.log(`[DEBUG] Chiamata Gemini con chiave: ${trimmedKey.substring(0, 4)}...${trimmedKey.slice(-4)}`);
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${trimmedKey}`;
 
     const response = await fetch(url, {
       method: 'POST',
+      credentials: 'omit',
       headers: {
         'Content-Type': 'application/json',
+        'x-goog-api-key': trimmedKey,
       },
       body: JSON.stringify(payload),
     });
+
+    console.log(`[DEBUG] Risposta Gemini Status: ${response.status}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
