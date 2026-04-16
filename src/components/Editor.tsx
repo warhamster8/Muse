@@ -1,5 +1,5 @@
 import React from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Extension } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import CharacterCount from '@tiptap/extension-character-count';
 import { 
@@ -13,6 +13,16 @@ import {
 
 import { useStore } from '../store/useStore';
 
+const CustomShortcuts = Extension.create({
+  name: 'customShortcuts',
+  addKeyboardShortcuts() {
+    return {
+      'Mod-Alt-1': () => this.editor.commands.insertContent('«'),
+      'Mod-Alt-2': () => this.editor.commands.insertContent('»'),
+    }
+  },
+});
+
 export const Editor: React.FC<{ initialContent: string; onChange: (content: string) => void }> = ({ initialContent, onChange }) => {
   const isExternallyUpdating = React.useRef(false);
   const { setActiveSelection } = useStore();
@@ -21,6 +31,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
     extensions: [
       StarterKit,
       CharacterCount,
+      CustomShortcuts,
     ],
     content: initialContent,
     onUpdate: ({ editor }) => {
