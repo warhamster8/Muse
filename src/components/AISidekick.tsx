@@ -248,7 +248,6 @@ export const AISidekick: React.FC = () => {
     sceneAnalysis,
     setSceneAnalysis,
     activeSelection,
-    setActiveSelection,
     aiConfig,
     setActiveTab: setGlobalTab
   } = useStore();
