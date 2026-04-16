@@ -176,7 +176,7 @@ export const AISidekick: React.FC = () => {
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
 
-  const sceneIgnoredSuggestions = activeSceneId ? ignoredSuggestions[activeSceneId] || [] : [];
+  const sceneIgnoredSuggestions = activeSceneId ? (ignoredSuggestions || {})[activeSceneId] || [] : [];
 
   // Parse all originals from the analysis to sync with active suggestions
   React.useEffect(() => {

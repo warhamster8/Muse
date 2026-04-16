@@ -65,8 +65,8 @@ export const useStore = create<AppState>()(
       setActiveSuggestions: (suggestions) => set({ activeSuggestions: suggestions }),
       addIgnoredSuggestion: (sceneId, suggestion) => set((state) => ({
         ignoredSuggestions: {
-          ...state.ignoredSuggestions,
-          [sceneId]: [...(state.ignoredSuggestions[sceneId] || []), suggestion]
+          ...(state.ignoredSuggestions || {}),
+          [sceneId]: [...((state.ignoredSuggestions || {})[sceneId] || []), suggestion]
         }
       })),
     }),
@@ -77,7 +77,7 @@ export const useStore = create<AppState>()(
         currentProject: state.currentProject, 
         isLocalMode: state.isLocalMode,
         activeTab: state.activeTab,
-        ignoredSuggestions: state.ignoredSuggestions
+        ignoredSuggestions: state.ignoredSuggestions || {}
       }),
     }
   )
