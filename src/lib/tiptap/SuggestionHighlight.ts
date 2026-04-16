@@ -57,13 +57,16 @@ export const SuggestionHighlight = Extension.create<SuggestionHighlightOptions>(
 
                   if (regexStr) {
                     try {
-                      // Usiamo 'g' per trovare tutte le occorrenze
                       const regex = new RegExp(regexStr, 'gi');
                       let match;
 
                       while ((match = regex.exec(searchNodeText)) !== null) {
-                        // Approssimazione: la lunghezza del match sul testo pulito potrebbe non essere esatta
-                        // ma per l'highlight va bene
+                        // Prevent infinite loop on zero-length matches
+                        if (match[0].length === 0) {
+                          regex.lastIndex++;
+                          continue;
+                        }
+                        
                         const startObj = match.index;
                         const endObj = startObj + match[0].length;
 

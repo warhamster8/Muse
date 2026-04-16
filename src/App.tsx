@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { AISidekick } from './components/AISidekick';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { useStore } from './store/useStore';
 import { supabase } from './lib/supabase';
 import { NarrativeView } from './views/NarrativeView';
@@ -38,6 +39,34 @@ function App() {
 
   const handleTestLocally = () => {
     setLocalMode(true);
+  };
+
+  const renderView = () => {
+    switch (activeTab) {
+      case 'narrative':
+        return <NarrativeView />;
+      case 'characters':
+        return <CharactersView />;
+      case 'world':
+        return <WorldView />;
+      case 'notes':
+        return <NotesView />;
+      case 'config':
+        return (
+          <div className="h-full flex flex-col items-center justify-center glass rounded-xl border border-slate-700 space-y-4">
+            <Settings className="w-16 h-16 opacity-10" />
+            <p className="text-sm italic text-slate-500">Global Configuration settings coming soon...</p>
+          </div>
+        );
+      case 'analysis':
+        return (
+          <div className="h-full flex items-center justify-center glass rounded-xl border border-slate-700">
+             <p className="text-sm italic text-slate-500">Analysis dashboard implementation coming soon...</p>
+          </div>
+        );
+      default:
+        return <NarrativeView />;
+    }
   };
 
   // 1. Landing Screen (Not logged in, Not local, Not in Auth view)
@@ -101,34 +130,22 @@ function App() {
 
   // 4. Main App Dashboard
   return (
-    <div className="flex bg-slate-950 text-slate-100 h-screen overflow-hidden font-sans">
-      <Sidebar />
-      
-      <main className="flex-1 h-screen p-6 overflow-hidden flex flex-col">
-        <div className="flex-1 min-h-0">
-          {activeTab === 'narrative' && <NarrativeView />}
-          {activeTab === 'characters' && <CharactersView />}
-          {activeTab === 'world' && <WorldView />}
-          {activeTab === 'notes' && <NotesView />}
-          {activeTab === 'analysis' && (
-             <div className="h-full flex items-center justify-center glass rounded-xl border border-slate-700">
-                <p className="text-sm italic text-slate-500">Analysis dashboard implementation coming soon...</p>
-             </div>
-          )}
-          {activeTab === 'config' && (
-             <div className="h-full flex flex-col items-center justify-center glass rounded-xl border border-slate-700 space-y-4">
-                <Settings className="w-16 h-16 opacity-10" />
-                <p className="text-sm italic text-slate-500">Global Configuration settings coming soon...</p>
-             </div>
-          )}
-        </div>
-      </main>
-
-      {activeTab === 'narrative' && <AISidekick />}
-      {currentProject && <ToastContainer />}
+    <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
+      <ErrorBoundary>
+        <Sidebar />
+        <main className="flex-1 p-6 relative overflow-hidden flex gap-6">
+          <div className="flex-1 min-w-0">
+            {renderView()}
+          </div>
+          
+          <aside className="w-[450px] shrink-0 h-full">
+            <AISidekick />
+          </aside>
+        </main>
+      </ErrorBoundary>
+      <ToastContainer />
     </div>
   );
 }
 
 export default App;
-
