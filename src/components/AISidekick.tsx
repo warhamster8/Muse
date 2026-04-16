@@ -8,6 +8,8 @@ import {
   PenLine,
   Wand2,
   BookOpen,
+  Languages,
+  Compass,
   X
 } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -16,7 +18,7 @@ import { useStore } from '../store/useStore';
 import { useNarrative } from '../hooks/useNarrative';
 import { useToast } from './Toast';
 
-type SidekickTab = 'revision' | 'braindump' | 'transformer';
+type SidekickTab = 'revision' | 'braindump' | 'transformer' | 'lexicon';
 
 // Simple word-level diffing utility
 type DiffPart = { value: string; added?: boolean; removed?: boolean };
@@ -175,6 +177,7 @@ export const AISidekick: React.FC = () => {
   const [analysis, setAnalysis] = React.useState<string>('');
   const [appliedSuggestions, setAppliedSuggestions] = React.useState<string[]>([]);
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
+  const [lexiconInput, setLexiconInput] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
 
   const sceneIgnoredSuggestions = React.useMemo(() => 
@@ -482,10 +485,48 @@ Riscrivi in italiano. Restituisci SOLO il testo riscritto.`,
     }
   };
 
+  const runLexiconTool = async (mode: 'synonyms' | 'metaphors') => {
+    if (!lexiconInput.trim()) return;
+    setIsAnalyzing(true);
+    setAnalysis('');
+    try {
+      const prompts = {
+        synonyms: `Sei un esperto di semantica e lessicografia italiana. 
+L'utente cerca sinonimi e contrari per la parola: "${lexiconInput}".
+REGOLE:
+- Fornisci una lista di sinonimi divisi per sfumatura di significato (es: formali, colloquiali, intensi).
+- Fornisci una lista di contrari.
+- Suggerisci 2-3 termini rari o letterari che potrebbero nobilitare il testo.
+Rispondi in italiano con un tono professionale ma d'ispirazione.`,
+        metaphors: `Sei un consulente creativo per scrittori di narrativa.
+L'utente cerca immagini evocative per il concetto: "${lexiconInput}".
+REGOLE:
+- Genera 5 metafore o similitudini originali (evita i cliché).
+- Le immagini devono essere legate alla sensazione fisica, all'ambiente o ad elementi naturali.
+- Ogni metafora deve essere accompagnata da una breve spiegazione del sotto-testo emotivo.
+Rispondi con una lista puntata, in italiano.`
+      };
+
+      await groqService.streamChatCompletion(
+        [
+          { role: 'system', content: prompts[mode] },
+          { role: 'user', content: `Parola/Concetto: ${lexiconInput}` }
+        ],
+        'llama-3.3-70b-versatile',
+        (chunk) => setAnalysis(prev => prev + chunk)
+      );
+    } catch (err) {
+      setAnalysis(`❌ Errore durante la ricerca nel lessico.`);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const tabs: { id: SidekickTab; label: string; icon: React.ReactNode }[] = [
     { id: 'revision', label: 'Revisione', icon: <PenLine className="w-3 h-3" /> },
     { id: 'braindump', label: 'Braindump', icon: <Lightbulb className="w-3 h-3" /> },
     { id: 'transformer', label: 'Stile', icon: <Wand2 className="w-3 h-3" /> },
+    { id: 'lexicon', label: 'Lessico', icon: <Languages className="w-3 h-3" /> },
   ];
 
   return (
@@ -647,6 +688,52 @@ Riscrivi in italiano. Restituisci SOLO il testo riscritto.`,
                 <p className="text-xs text-center">Scegli uno stile per riscrivere la scena attiva.</p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── LESSICO ── */}
+        {activeTab === 'lexicon' && (
+          <div className="space-y-4">
+            <p className="text-xs text-slate-500">Trova la parola perfetta o un'immagine indimenticabile.</p>
+
+            <div className="relative">
+              <input
+                className="w-full bg-slate-900/50 border border-slate-700 rounded-xl p-3 pl-10 text-xs text-slate-300 focus:outline-none focus:border-blue-500 transition-all shadow-inner"
+                placeholder="Inserisci una parola o un concetto..."
+                value={lexiconInput}
+                onChange={(e) => setLexiconInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && runLexiconTool('synonyms')}
+              />
+              <Compass className="w-4 h-4 text-slate-600 absolute left-3 top-3" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => runLexiconTool('synonyms')}
+                disabled={isAnalyzing || !lexiconInput.trim()}
+                className="py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 rounded-lg text-xs font-bold transition-all border border-slate-700"
+              >
+                Sinonimi
+              </button>
+              <button
+                onClick={() => runLexiconTool('metaphors')}
+                disabled={isAnalyzing || !lexiconInput.trim()}
+                className="py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold transition-all"
+              >
+                Metafore
+              </button>
+            </div>
+
+            {analysis && (
+              <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2">
+                <StructuredOutput text={analysis} />
+              </div>
+            )}
+            
+            <div className="bg-blue-900/5 border border-blue-500/10 p-3 rounded-lg flex items-center space-x-3 mt-4">
+              <Languages className="w-4 h-4 text-blue-400 opacity-50" />
+              <p className="text-[10px] text-slate-500 italic">Dica: il vocabolario è lo scalpello dello scrittore.</p>
+            </div>
           </div>
         )}
       </div>
