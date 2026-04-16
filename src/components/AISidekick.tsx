@@ -207,7 +207,12 @@ const StructuredOutput: React.FC<{
       );
     } else if (trimmedLine) {
       if (!currentSuggestion) {
-        elements.push(<p key={i} className="text-slate-300 text-xs px-1 leading-relaxed mb-2">{trimmedLine}</p>);
+        // Se la linea non è strutturata, la mostriamo come paragrafo pulito
+        elements.push(
+          <p key={i} className="text-slate-300 text-xs px-1 leading-relaxed mb-3 whitespace-pre-wrap break-words">
+            {trimmedLine}
+          </p>
+        );
       }
     }
   });
@@ -659,7 +664,7 @@ Rispondi in italiano. Sii concreto e originale.`;
             </div>
 
             {analysis ? (
-              <div className="animate-in slide-in-from-bottom-2">
+              <div className="animate-in slide-in-from-bottom-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                 <StructuredOutput text={analysis} onApply={applySuggestion} onReject={handleReject} appliedSuggestions={appliedSuggestions} rejectedSuggestions={sceneIgnoredSuggestions} />
               </div>
             ) : (
