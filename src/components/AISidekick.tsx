@@ -234,7 +234,7 @@ export const AISidekick: React.FC = () => {
     sceneAnalysis,
     setSceneAnalysis,
     aiConfig,
-    setActiveTab
+    setActiveTab: setGlobalTab
   } = useStore();
   
   const { updateSceneContent } = useNarrative();
@@ -576,7 +576,7 @@ Rispondi in italiano. Sii concreto e originale.`;
               <div className="flex items-center space-x-3">
                 <BookOpen className="w-4 h-4 text-blue-400 shrink-0" />
                 <button 
-                  onClick={() => setActiveTab('config')}
+                  onClick={() => setGlobalTab('config')}
                   className="text-xs text-slate-400 hover:text-blue-400 transition-colors flex items-center gap-1 group"
                 >
                   Motore: <span className="text-white font-medium group-hover:text-blue-400">{aiConfig.provider === 'groq' ? 'Llama 3.3 70B' : 'Gemini 1.5 Flash'}</span>
