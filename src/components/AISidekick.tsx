@@ -8,7 +8,6 @@ import {
   PenLine,
   Wand2,
   BookOpen,
-  Trash2,
   X
 } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -30,12 +29,12 @@ function computeDiff(oldStr: string, newStr: string) {
   // We'll mark words that don't exist in the other string
   const oldParts: DiffPart[] = oldWords.map(word => ({
     value: word,
-    removed: word.trim() && !newStr.includes(word.trim())
+    removed: !!(word.trim() && !newStr.includes(word.trim()))
   }));
   
   const newParts: DiffPart[] = newWords.map(word => ({
     value: word,
-    added: word.trim() && !oldStr.includes(word.trim())
+    added: !!(word.trim() && !oldStr.includes(word.trim()))
   }));
 
   return { oldParts, newParts };
@@ -59,7 +58,7 @@ const StructuredOutput: React.FC<{
     if (currentSuggestion && currentSuggestion.original && currentSuggestion.suggestion) {
       const { original, suggestion, reason, category } = currentSuggestion;
       
-      // Skip if already applied or rejected
+      // Skip if already applied or ignored
       if (appliedSuggestions?.includes(original) || rejectedSuggestions?.includes(original)) {
         currentSuggestion = null;
         return;
@@ -80,7 +79,7 @@ const StructuredOutput: React.FC<{
                 title="Rifiuta"
               >
                 <X className="w-2.5 h-2.5" />
-                Scarta
+                Ignora
               </button>
               <button 
                 onClick={() => onApply?.(original, suggestion)}
@@ -161,18 +160,48 @@ const StructuredOutput: React.FC<{
 };
 
 export const AISidekick: React.FC = () => {
-  const { currentSceneContent: content, activeSceneId, setCurrentSceneContent } = useStore();
+  const { 
+    currentSceneContent: content, 
+    activeSceneId, 
+    setCurrentSceneContent,
+    ignoredSuggestions,
+    addIgnoredSuggestion,
+    setActiveSuggestions
+  } = useStore();
   const { updateSceneContent } = useNarrative();
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = React.useState<SidekickTab>('revision');
   const [analysis, setAnalysis] = React.useState<string>('');
   const [appliedSuggestions, setAppliedSuggestions] = React.useState<string[]>([]);
-  const [rejectedSuggestions, setRejectedSuggestions] = React.useState<string[]>([]);
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
 
+  const sceneIgnoredSuggestions = activeSceneId ? ignoredSuggestions[activeSceneId] || [] : [];
+
+  // Parse all originals from the analysis to sync with active suggestions
+  React.useEffect(() => {
+    if (!analysis) {
+        setActiveSuggestions([]);
+        return;
+    }
+    const lines = analysis.split('\n');
+    const originals: string[] = [];
+    lines.forEach(line => {
+      const trimmedLine = line.trim();
+      if (/^(?:\d+\.\s*)?❌/.test(trimmedLine)) {
+        const text = trimmedLine.replace(/^(?:\d+\.\s*)?❌\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim();
+        originals.push(text);
+      }
+    });
+    // Filter out applied or ignored ones
+    const active = originals.filter(o => !appliedSuggestions.includes(o) && !sceneIgnoredSuggestions.includes(o));
+    setActiveSuggestions(active);
+  }, [analysis, appliedSuggestions, sceneIgnoredSuggestions, setActiveSuggestions]);
+
   const handleReject = (originalText: string) => {
-    setRejectedSuggestions(prev => [...prev, originalText]);
+    if (activeSceneId) {
+       addIgnoredSuggestion(activeSceneId, originalText);
+    }
   };
 
   const applySuggestion = async (originalText: string, suggestion: string) => {
@@ -302,7 +331,6 @@ export const AISidekick: React.FC = () => {
     setIsAnalyzing(true);
     setAnalysis('');
     setAppliedSuggestions([]);
-    setRejectedSuggestions([]);
     try {
       const systemPrompt = `Sei un editor letterario senior specializzato in narrativa italiana contemporanea.
 Il tuo compito è revisionare la bozza fornita dall'utente con precisione chirurgica.
@@ -518,7 +546,7 @@ Riscrivi in italiano. Restituisci SOLO il testo riscritto.`,
                   onApply={applySuggestion} 
                   onReject={handleReject}
                   appliedSuggestions={appliedSuggestions}
-                  rejectedSuggestions={rejectedSuggestions}
+                  rejectedSuggestions={sceneIgnoredSuggestions}
                 />
               </div>
             ) : (

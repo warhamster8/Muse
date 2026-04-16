@@ -23,6 +23,8 @@ interface AppState {
   chapters: Chapter[];
   isLocalMode: boolean;
   isLoading: boolean;
+  activeSuggestions: string[];
+  ignoredSuggestions: Record<string, string[]>;
   
   setUser: (user: User | null) => void;
   setCurrentProject: (project: Project | null) => void;
@@ -33,6 +35,8 @@ interface AppState {
   setLocalMode: (enabled: boolean) => void;
   setLoading: (loading: boolean) => void;
   logout: () => void;
+  setActiveSuggestions: (suggestions: string[]) => void;
+  addIgnoredSuggestion: (sceneId: string, suggestion: string) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -46,6 +50,8 @@ export const useStore = create<AppState>()(
       chapters: [],
       isLocalMode: false,
       isLoading: false,
+      activeSuggestions: [],
+      ignoredSuggestions: {},
       
       setUser: (user) => set({ user }),
       setCurrentProject: (project) => set({ currentProject: project }),
@@ -56,6 +62,13 @@ export const useStore = create<AppState>()(
       setLocalMode: (enabled) => set({ isLocalMode: enabled, user: null, currentProject: null }),
       setLoading: (loading) => set({ isLoading: loading }),
       logout: () => set({ user: null, currentProject: null, isLocalMode: false }),
+      setActiveSuggestions: (suggestions) => set({ activeSuggestions: suggestions }),
+      addIgnoredSuggestion: (sceneId, suggestion) => set((state) => ({
+        ignoredSuggestions: {
+          ...state.ignoredSuggestions,
+          [sceneId]: [...(state.ignoredSuggestions[sceneId] || []), suggestion]
+        }
+      })),
     }),
     {
       name: 'muse-storage',
@@ -63,7 +76,8 @@ export const useStore = create<AppState>()(
         user: state.user, 
         currentProject: state.currentProject, 
         isLocalMode: state.isLocalMode,
-        activeTab: state.activeTab
+        activeTab: state.activeTab,
+        ignoredSuggestions: state.ignoredSuggestions
       }),
     }
   )

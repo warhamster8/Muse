@@ -81,3 +81,8 @@
     box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
     background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
 }
+
+/* Suggestion Highlights */
+.suggestion-highlight {
+    @apply bg-yellow-500/20 border-b-2 border-yellow-500/50 rounded-sm text-yellow-100 transition-colors duration-300;
+}

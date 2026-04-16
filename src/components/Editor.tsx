@@ -2,6 +2,8 @@ import React from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import CharacterCount from '@tiptap/extension-character-count';
+import { SuggestionHighlight } from '../lib/tiptap/SuggestionHighlight';
+import { useStore } from '../store/useStore';
 import { 
   Bold, 
   Italic, 
@@ -12,10 +14,15 @@ import {
 } from 'lucide-react';
 
 export const Editor: React.FC<{ initialContent: string; onChange: (content: string) => void }> = ({ initialContent, onChange }) => {
+  const { activeSuggestions } = useStore();
+  
   const editor = useEditor({
     extensions: [
       StarterKit,
       CharacterCount,
+      SuggestionHighlight.configure({
+        suggestions: activeSuggestions,
+      }),
     ],
     content: initialContent,
     onUpdate: ({ editor }) => {
@@ -29,6 +36,21 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
       editor.commands.setContent(initialContent);
     }
   }, [initialContent, editor]);
+
+  // Sync activeSuggestions when they change
+  React.useEffect(() => {
+    if (editor) {
+      editor.extensionManager.extensions.forEach((extension) => {
+        if (extension.name === 'suggestionHighlight') {
+          extension.options.suggestions = activeSuggestions;
+        }
+      });
+      // Force a re-render of ProseMirror to apply decorations
+      const view = editor.view;
+      const state = view.state;
+      view.dispatch(state.tr.setMeta('suggestionHighlight', true));
+    }
+  }, [activeSuggestions, editor]);
 
   if (!editor) return null;
 
