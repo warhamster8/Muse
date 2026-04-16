@@ -247,7 +247,8 @@ export const AISidekick: React.FC = () => {
 
   const setAnalysis = (val: string | ((prev: string) => string)) => {
     if (!activeSceneId) return;
-    const current = sceneAnalysis[activeSceneId] || '';
+    const currentState = useStore.getState();
+    const current = currentState.sceneAnalysis[activeSceneId] || '';
     const next = typeof val === 'function' ? val(current) : val;
     setSceneAnalysis(activeSceneId, next);
   };
