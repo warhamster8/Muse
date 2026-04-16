@@ -10,19 +10,13 @@ import {
   BookOpen,
   Languages,
   Compass,
-  X,
-  Settings as SettingsIcon,
-  Check,
-  Brain,
-  Cpu,
-  Key
+  X
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useStore } from '../store/useStore';
 import { useNarrative } from '../hooks/useNarrative';
 import { useToast } from './Toast';
-import { aiService, type AIProvider } from '../lib/aiService';
-import { supabase } from '../lib/supabase';
+import { aiService } from '../lib/aiService';
 
 type SidekickTab = 'revision' | 'braindump' | 'transformer' | 'lexicon';
 
@@ -225,21 +219,8 @@ const StructuredOutput: React.FC<{
   return <div className="space-y-1">{elements}</div>;
 };
 
-const MODELS: Record<AIProvider, { id: string; label: string; desc: string }[]> = {
-  groq: [
-    { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B', desc: 'Brain - Molto letterario' },
-    { id: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B', desc: 'Turbo - Velocissimo' },
-    { id: 'mixtral-8x7b-32768-v1', label: 'Mixtral (Legacy)', desc: 'Balanced - Equilibrato' }
-  ],
-  gemini: [
-    { id: 'gemini-flash-latest', label: 'Gemini Flash', desc: 'Turbo - Veloce, stabile e gratuito' },
-    { id: 'gemini-pro-latest', label: 'Gemini Pro', desc: 'Brain - Massima intelligenza' }
-  ]
-};
-
 export const AISidekick: React.FC = () => {
   const { 
-    user,
     currentSceneContent: content, 
     activeSceneId, 
     setCurrentSceneContent,
@@ -249,19 +230,11 @@ export const AISidekick: React.FC = () => {
     setLastAnalyzedPhrase,
     sceneAnalysis,
     setSceneAnalysis,
-    aiConfig,
-    setAIConfig
   } = useStore();
   
   const { updateSceneContent } = useNarrative();
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = React.useState<SidekickTab>('revision');
-  const [showSettings, setShowSettings] = React.useState(false);
-  
-  // Settings Local State
-  const [localGeminiKey, setLocalGeminiKey] = React.useState(aiConfig.geminiKey || '');
-  const [localProvider, setLocalProvider] = React.useState<AIProvider>(aiConfig.provider);
-  const [localModel, setLocalModel] = React.useState(aiConfig.model);
 
   const analysis = React.useMemo(() => 
     activeSceneId ? sceneAnalysis[activeSceneId] || '' : ''
@@ -282,31 +255,6 @@ export const AISidekick: React.FC = () => {
   const sceneIgnoredSuggestions = React.useMemo(() => 
     activeSceneId ? (ignoredSuggestions || {})[activeSceneId] || [] : []
   , [ignoredSuggestions, activeSceneId]);
-
-  const handleSaveSettings = async () => {
-    if (!user) return;
-    try {
-      const newConfig = { 
-        provider: localProvider, 
-        geminiKey: localGeminiKey,
-        model: localModel
-      };
-
-      await supabase
-        .from('user_profiles')
-        .upsert({
-          user_id: user.id,
-          gemini_api_key: localGeminiKey,
-          ai_settings: { provider: localProvider, model: localModel }
-        });
-      
-      setAIConfig(newConfig);
-      setShowSettings(false);
-      addToast('Impostazioni AI salvate con successo', 'success');
-    } catch (err) {
-      addToast('Errore nel salvataggio delle impostazioni', 'error');
-    }
-  };
 
   const handleReject = (originalText: string) => {
     if (activeSceneId) {
@@ -419,13 +367,6 @@ export const AISidekick: React.FC = () => {
     setAnalysis('');
     setAppliedSuggestions([]);
 
-    // Auto-fix per modelli dismessi che bloccano le impostazioni
-    let currentConfig = aiConfig;
-    if (currentConfig.model === 'mixtral-8x7b-32768') {
-       currentConfig = { ...currentConfig, model: 'llama-3.3-70b-versatile' };
-       setAIConfig(currentConfig);
-    }
-
     let textToAnalyze = plainText;
     const lastPhrase = activeSceneId ? lastAnalyzedPhrase[activeSceneId] : null;
     let isContinuation = false;
@@ -479,7 +420,7 @@ ${isContinuation ? "NOTA: Stai continuando la revisione. Non ripetere suggerimen
 LINGUA: Italiano.`;
 
       await aiService.streamChat(
-        currentConfig,
+        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
         [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Revisiona questa bozza${isContinuation ? " (riprendendo da dove eri rimasto)" : ""}:\n\n${textToAnalyze}` }
@@ -504,7 +445,7 @@ CONTESTO SCENA ATTUALE: ${plainText ? plainText.slice(0, 600) : 'Nessuna scena a
 Rispondi in italiano. Sii concreto e originale.`;
 
       await aiService.streamChat(
-        aiConfig,
+        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
         [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Braindump: ${braindumpInput}` }
@@ -533,7 +474,7 @@ Rispondi in italiano. Sii concreto e originale.`;
 
     try {
       await aiService.streamChat(
-        aiConfig,
+        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
         [
           { role: 'system', content: stylePrompts[style] + " Riscrivi in italiano. Restituisci SOLO il testo riscritto." },
           { role: 'user', content: `Riscrivi questo:\n\n${textToAnalyze}` }
@@ -557,7 +498,7 @@ Rispondi in italiano. Sii concreto e originale.`;
         : `Trova 5 metafore originali per: "${lexiconInput}". Formato: M: ..., 💡 [spiegazione]`;
 
       await aiService.streamChat(
-        aiConfig,
+        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
         [
           { role: 'system', content: prompt + " Rispondi in italiano." },
           { role: 'user', content: `Concetto: ${lexiconInput}` }
@@ -587,187 +528,96 @@ Rispondi in italiano. Sii concreto e originale.`;
         </div>
         <div className="flex items-center gap-2">
           {isAnalyzing && <RefreshCw className="w-4 h-4 animate-spin text-blue-400" />}
-          <button 
-            onClick={() => setShowSettings(!showSettings)}
-            className={cn("p-1.5 rounded-lg transition-all", showSettings ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-800")}
-          >
-            <SettingsIcon className="w-4 h-4" />
-          </button>
         </div>
       </div>
 
-      {showSettings ? (
-        <div className="flex-1 overflow-y-auto p-4 space-y-6 animate-in slide-in-from-right-4">
-           <div>
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
-                <Brain className="w-3 h-3" /> Motore IA
-              </h3>
-              <div className="grid grid-cols-2 gap-2">
-                <button 
-                   onClick={() => { 
-                    setLocalProvider('groq'); 
-                    setLocalModel('llama-3.3-70b-versatile'); 
-                   }}
-                   className={cn("p-3 rounded-xl border text-left transition-all", localProvider === 'groq' ? "bg-blue-600/10 border-blue-500 text-blue-100" : "bg-slate-900/50 border-slate-700 text-slate-400")}
-                >
-                  <div className="font-bold text-xs">Groq</div>
-                  <div className="text-[9px] opacity-60">Llama / Mixtral</div>
-                </button>
-                <button 
-                   onClick={() => { 
-                    setLocalProvider('gemini'); 
-                    setLocalModel('gemini-flash-latest'); 
-                   }}
-                   className={cn("p-3 rounded-xl border text-left transition-all", localProvider === 'gemini' ? "bg-purple-600/10 border-purple-500 text-purple-100" : "bg-slate-900/50 border-slate-700 text-slate-400")}
-                >
-                  <div className="font-bold text-xs">Gemini</div>
-                  <div className="text-[9px] opacity-60">Google AI (Free)</div>
-                </button>
-              </div>
-           </div>
+      <div className="flex p-2 gap-1">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1 text-[10px] uppercase tracking-tighter py-2 rounded transition-all",
+              activeTab === tab.id ? "bg-slate-700 text-blue-400" : "text-slate-500 hover:text-slate-300"
+            )}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-           <div>
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
-                <Cpu className="w-3 h-3" /> Modello Specifico
-              </h3>
-              <div className="space-y-2">
-                {MODELS[localProvider].map(m => (
-                  <button 
-                    key={m.id}
-                    onClick={() => setLocalModel(m.id)}
-                    className={cn(
-                      "w-full p-3 rounded-xl border text-left transition-all group", 
-                      localModel === m.id ? "bg-blue-600/10 border-blue-500 text-blue-100" : "bg-slate-900/50 border-slate-700 text-slate-400 hover:border-slate-500"
-                    )}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="font-bold text-xs">{m.label}</div>
-                      {localModel === m.id && <Check className="w-3 h-3" />}
-                    </div>
-                    <div className="text-[9px] opacity-60">{m.desc}</div>
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {activeTab === 'revision' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase">Correzione Bozza</span>
+              <div className="flex items-center gap-2">
+                {activeSceneId && lastAnalyzedPhrase[activeSceneId] && (
+                  <button onClick={() => { setLastAnalyzedPhrase(activeSceneId!, ''); setSceneAnalysis(activeSceneId!, ''); }} className="text-[10px] text-slate-500 hover:text-slate-300 flex items-center gap-1 px-2 py-1">
+                    <RefreshCw className="w-3 h-3" /> Ripristina
                   </button>
-                ))}
-              </div>
-           </div>
-
-           {localProvider === 'gemini' && (
-             <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                  <Key className="w-3 h-3" /> Configurazione Gemini
-                </h3>
-                <div className="space-y-2">
-                  <input 
-                    type="password"
-                    placeholder="Incolla qui la tua API Key..."
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs focus:border-purple-500 transition-all"
-                    value={localGeminiKey}
-                    onChange={(e) => setLocalGeminiKey(e.target.value)}
-                  />
-                  <p className="text-[9px] text-slate-500 italic leading-relaxed">
-                    La chiave viene salvata nel tuo profilo privato su Supabase.
-                  </p>
-                </div>
-             </div>
-           )}
-
-           <button 
-              onClick={handleSaveSettings}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/40"
-           >
-             <Check className="w-4 h-4" /> Salva Impostazioni
-           </button>
-        </div>
-      ) : (
-        <>
-          <div className="flex p-2 gap-1">
-            {tabs.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-1 text-[10px] uppercase tracking-tighter py-2 rounded transition-all",
-                  activeTab === tab.id ? "bg-slate-700 text-blue-400" : "text-slate-500 hover:text-slate-300"
                 )}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {activeTab === 'revision' && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-500 uppercase">Correzione Bozza</span>
-                  <div className="flex items-center gap-2">
-                    {activeSceneId && lastAnalyzedPhrase[activeSceneId] && (
-                      <button onClick={() => { setLastAnalyzedPhrase(activeSceneId!, ''); setSceneAnalysis(activeSceneId!, ''); }} className="text-[10px] text-slate-500 hover:text-slate-300 flex items-center gap-1 px-2 py-1">
-                        <RefreshCw className="w-3 h-3" /> Ripristina
-                      </button>
-                    )}
-                    <button onClick={runDraftRevision} disabled={isAnalyzing || plainText.length < 30} className="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-3 py-1.5 rounded-lg text-white flex items-center space-x-1 transition-all">
-                      <Zap className="w-3 h-3" />
-                      <span>{activeSceneId && lastAnalyzedPhrase[activeSceneId] ? 'Continua' : 'Analizza'}</span>
-                    </button>
-                  </div>
-                </div>
-                <div className="bg-blue-900/10 border border-blue-500/20 p-3 rounded-lg flex items-start space-x-3">
-                  <BookOpen className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-                  <p className="text-xs text-slate-400">Motore: <span className="text-white font-medium">{MODELS[aiConfig.provider].find(m => m.id === aiConfig.model)?.label || aiConfig.model}</span></p>
-                </div>
-                {analysis ? (
-                  <div className="animate-in slide-in-from-bottom-2">
-                    <StructuredOutput text={analysis} onApply={applySuggestion} onReject={handleReject} appliedSuggestions={appliedSuggestions} rejectedSuggestions={sceneIgnoredSuggestions} />
-                  </div>
-                ) : (
-                  !isAnalyzing && <div className="flex flex-col items-center justify-center h-36 text-slate-600 space-y-2"><AlertTriangle className="w-8 h-8 opacity-20" /><p className="text-xs text-center">Seleziona una scena e premi Analizza.</p></div>
-                )}
+                <button onClick={runDraftRevision} disabled={isAnalyzing || plainText.length < 30} className="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-3 py-1.5 rounded-lg text-white flex items-center space-x-1 transition-all">
+                  <Zap className="w-3 h-3" />
+                  <span>{activeSceneId && lastAnalyzedPhrase[activeSceneId] ? 'Continua' : 'Analizza'}</span>
+                </button>
               </div>
-            )}
-
-            {activeTab === 'braindump' && (
-              <div className="space-y-4">
-                <textarea className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-xl p-3 text-xs text-slate-300 focus:outline-none focus:border-blue-500 transition-all resize-none shadow-inner" placeholder="Pensieri sparsi..." value={braindumpInput} onChange={(e) => setBraindumpInput(e.target.value)} />
-                <button onClick={runBraindump} disabled={isAnalyzing || !braindumpInput.trim()} className="w-full py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all"><Zap className="w-3 h-3" />Espandi Idee</button>
-                {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2"><StructuredOutput text={analysis} /></div>}
+            </div>
+            <div className="bg-blue-900/10 border border-blue-500/20 p-3 rounded-lg flex items-start space-x-3">
+              <BookOpen className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+              <p className="text-xs text-slate-400">Motore: <span className="text-white font-medium">Llama 3.3 70B</span></p>
+            </div>
+            {analysis ? (
+              <div className="animate-in slide-in-from-bottom-2">
+                <StructuredOutput text={analysis} onApply={applySuggestion} onReject={handleReject} appliedSuggestions={appliedSuggestions} rejectedSuggestions={sceneIgnoredSuggestions} />
               </div>
-            )}
-
-            {activeTab === 'transformer' && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-2">
-                  {Object.keys(stylePrompts).map(key => (
-                    <button key={key} onClick={() => runStyleTransform(key)} disabled={isAnalyzing || plainText.length < 10} className="bg-slate-800 hover:bg-slate-700 disabled:opacity-50 p-3 rounded-lg text-left border border-slate-700 hover:border-blue-500/50 transition-all group">
-                      <div className="text-xs font-bold text-slate-200 group-hover:text-blue-400 transition-colors uppercase">{key}</div>
-                    </button>
-                  ))}
-                </div>
-                {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in fade-in"><StructuredOutput text={analysis} /></div>}
-              </div>
-            )}
-
-            {activeTab === 'lexicon' && (
-              <div className="space-y-4">
-                <div className="relative">
-                  <input className="w-full bg-slate-900/50 border border-slate-700 rounded-xl p-3 pl-10 text-xs text-slate-300 focus:outline-none focus:border-blue-500 transition-all shadow-inner" placeholder="Parola o concetto..." value={lexiconInput} onChange={(e) => setLexiconInput(e.target.value)} />
-                  <Compass className="w-4 h-4 text-slate-600 absolute left-3 top-3" />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button onClick={() => runLexiconTool('synonyms')} disabled={isAnalyzing || !lexiconInput.trim()} className="py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 rounded-lg text-xs font-bold transition-all border border-slate-700">Sinonimi</button>
-                  <button onClick={() => runLexiconTool('metaphors')} disabled={isAnalyzing || !lexiconInput.trim()} className="py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold transition-all">Metafore</button>
-                </div>
-                {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2"><StructuredOutput text={analysis} /></div>}
-              </div>
+            ) : (
+              !isAnalyzing && <div className="flex flex-col items-center justify-center h-36 text-slate-600 space-y-2"><AlertTriangle className="w-8 h-8 opacity-20" /><p className="text-xs text-center">Seleziona una scena e premi Analizza.</p></div>
             )}
           </div>
-        </>
-      )}
+        )}
+
+        {activeTab === 'braindump' && (
+          <div className="space-y-4">
+            <textarea className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-xl p-3 text-xs text-slate-300 focus:outline-none focus:border-blue-500 transition-all resize-none shadow-inner" placeholder="Pensieri sparsi..." value={braindumpInput} onChange={(e) => setBraindumpInput(e.target.value)} />
+            <button onClick={runBraindump} disabled={isAnalyzing || !braindumpInput.trim()} className="w-full py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all"><Zap className="w-3 h-3" />Espandi Idee</button>
+            {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2"><StructuredOutput text={analysis} /></div>}
+          </div>
+        )}
+
+        {activeTab === 'transformer' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-2">
+              {Object.keys(stylePrompts).map(key => (
+                <button key={key} onClick={() => runStyleTransform(key)} disabled={isAnalyzing || plainText.length < 10} className="bg-slate-800 hover:bg-slate-700 disabled:opacity-50 p-3 rounded-lg text-left border border-slate-700 hover:border-blue-500/50 transition-all group">
+                  <div className="text-xs font-bold text-slate-200 group-hover:text-blue-400 transition-colors uppercase">{key}</div>
+                </button>
+              ))}
+            </div>
+            {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in fade-in"><StructuredOutput text={analysis} /></div>}
+          </div>
+        )}
+
+        {activeTab === 'lexicon' && (
+          <div className="space-y-4">
+            <div className="relative">
+              <input className="w-full bg-slate-900/50 border border-slate-700 rounded-xl p-3 pl-10 text-xs text-slate-300 focus:outline-none focus:border-blue-500 transition-all shadow-inner" placeholder="Parola o concetto..." value={lexiconInput} onChange={(e) => setLexiconInput(e.target.value)} />
+              <Compass className="w-4 h-4 text-slate-600 absolute left-3 top-3" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => runLexiconTool('synonyms')} disabled={isAnalyzing || !lexiconInput.trim()} className="py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 rounded-lg text-xs font-bold transition-all border border-slate-700">Sinonimi</button>
+              <button onClick={() => runLexiconTool('metaphors')} disabled={isAnalyzing || !lexiconInput.trim()} className="py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold transition-all">Metafore</button>
+            </div>
+            {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2"><StructuredOutput text={analysis} /></div>}
+          </div>
+        )}
+      </div>
 
       <div className="p-4 border-t border-slate-700">
         <div className="flex items-center space-x-2 text-[10px] text-slate-500 uppercase font-bold">
           <div className={cn("w-2 h-2 rounded-full", isAnalyzing ? "bg-blue-500 animate-pulse" : "bg-green-500")}></div>
-          <span>{aiConfig.provider === 'gemini' ? 'Gemini connected' : 'Groq connected'}</span>
+          <span>Groq connected</span>
         </div>
       </div>
     </div>
