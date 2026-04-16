@@ -388,8 +388,8 @@ export const AISidekick: React.FC = () => {
     const parts = searchOriginal.split(/\.\.\.|…/);
     const gapPattern = '[^a-zA-Z0-9]*';
     let regexStr = parts.map(part => {
-        const words = part.match(/[a-zA-Z0-9]+/g) || [];
-        return words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(gapPattern);
+        const tokens = part.match(/[a-zA-Z0-9]+|[^\s\w]/g) || [];
+        return tokens.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(gapPattern);
     }).filter(p => p).join('(?:.|\\n){0,150}?');
     
     if (!regexStr) {
@@ -416,7 +416,20 @@ export const AISidekick: React.FC = () => {
       const textStart = match.index!;
       const textEnd = textStart + match[0].length - 1;
       const htmlStart = textMap[textStart];
-      const htmlEnd = textMap[textEnd] + charLens[textEnd];
+      let htmlEnd = textMap[textEnd] + charLens[textEnd];
+      
+      // Punctuation Merge: if suggestion ends with a mark and the source also has it, consume it to avoid duplication
+      const terminalPunctuation = ['.', ',', '!', '?', ';', ':', '…'];
+      const lastChar = suggestion.trim().slice(-1);
+      if (terminalPunctuation.includes(lastChar)) {
+        let lookupIdx = htmlEnd;
+        // Skip potential whitespace
+        while (lookupIdx < content.length && /\s/.test(content[lookupIdx])) lookupIdx++;
+        if (content[lookupIdx] === lastChar) {
+          htmlEnd = lookupIdx + 1;
+        }
+      }
+
       const newContent = content.slice(0, htmlStart) + suggestion + content.slice(htmlEnd);
       
       setCurrentSceneContent(newContent);
@@ -487,10 +500,14 @@ REGOLE MANDATORIE:
 1. Inizia IMMEDIATAMENTE con "## Analisi Revisione".
 2. Segui RIGOROSAMENTE l'ordine del testo: analizza il testo dall'alto verso il basso (lineare).
 3. Per ogni problema identificato, usa QUESTO FORMATO (non cambiare mai i simboli):
-   ❌ Frase originale dal testo
+   ❌ Frase originale dal testo (DEVE includere l'eventuale punteggiatura originale)
    ✅ Tua nuova versione migliorata e riscritta
    🏷️ Categoria (es: Verbo, Ritmo, Stile)
    💡 Breve spiegazione del perché la tua versione è migliore
+
+4. REGOLE DI SOSTITUZIONE:
+   - In "❌" devi copiare la frase ESATTAMENTE come appare, includendo virgolette, punti o virgole.
+   - L'applicazione automatica cancellerà TUTTA la frase in "❌" (punteggiatura compresa) per sostituirla con "✅".
 
 4. ESEMPIO DI OUTPUT:
    ❌ Il cielo era scuro e faceva molta paura.
@@ -555,10 +572,14 @@ REGOLE MANDATORIE:
 1. Inizia con "## Analisi Tecnica".
 2. Segui RIGOROSAMENTE l'ordine del testo (alto -> basso).
 3. Usa QUESTO FORMATO:
-   ❌ Errore riscontrato (parola o punteggiatura errata)
+   ❌ Errore riscontrato (COPIA l'errore includendo la punteggiatura adiacente)
    ✅ Versione corretta
    🏷️ Categoria (Ortografia, Punteggiatura, Formattazione)
    💡 Breve regola grammaticale o spiegazione dell'errore
+
+4. REGOLE DI SOSTITUZIONE:
+   - In "❌" devi copiare l'errore ESATTAMENTE come appare nel testo.
+   - Se correggi la punteggiatura, includi il segno errato in "❌" e il segno corretto in "✅".
 
 4. CASI SPECIFICI:
    - Punteggiatura: Controlla spazi prima/dopo virgole e punti.
@@ -688,14 +709,14 @@ Rispondi in italiano. Sii concreto e originale.`;
         </div>
       </div>
 
-      <div className="flex p-2 gap-1">
+      <div className="grid grid-cols-3 gap-1 p-2">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              "flex-1 flex items-center justify-center gap-1 text-[10px] uppercase tracking-tighter py-2 rounded transition-all",
-              activeTab === tab.id ? "bg-slate-700 text-blue-400" : "text-slate-500 hover:text-slate-300"
+              "flex items-center justify-center gap-1 text-[9px] uppercase tracking-tighter py-2 rounded transition-all border border-transparent whitespace-nowrap",
+              activeTab === tab.id ? "bg-slate-700/50 text-blue-400 border-slate-600" : "text-slate-500 hover:text-slate-300 hover:bg-slate-800/50"
             )}
           >
             {tab.icon}
