@@ -172,7 +172,7 @@ export const CharactersView: React.FC = () => {
                 <textarea 
                   className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-2xl p-5 text-sm text-slate-200 focus:outline-none focus:border-blue-500 focus:bg-slate-900/80 transition-all placeholder:opacity-20"
                   placeholder="Describe the character's origin story, personality, and background..."
-                  value={selectedChar.bio}
+                  value={selectedChar.bio || ''}
                   onChange={(e) => updateCharacter(selectedChar.id, { bio: e.target.value })}
                 />
               </section>
@@ -185,7 +185,7 @@ export const CharactersView: React.FC = () => {
                 <textarea 
                   className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-2xl p-5 text-sm text-slate-200 focus:outline-none focus:border-purple-500 focus:bg-slate-900/80 transition-all placeholder:opacity-20"
                   placeholder="What drives them? What are their fears and core beliefs?"
-                  value={selectedChar.psychology}
+                  value={selectedChar.psychology || ''}
                   onChange={(e) => updateCharacter(selectedChar.id, { psychology: e.target.value })}
                 />
               </section>
@@ -198,7 +198,7 @@ export const CharactersView: React.FC = () => {
                 <textarea 
                   className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-2xl p-5 text-sm text-slate-200 focus:outline-none focus:border-orange-500 focus:bg-slate-900/80 transition-all placeholder:opacity-20"
                   placeholder="How does their journey change them from the beginning to the end?"
-                  value={selectedChar.evolution}
+                  value={selectedChar.evolution || ''}
                   onChange={(e) => updateCharacter(selectedChar.id, { evolution: e.target.value })}
                 />
               </section>

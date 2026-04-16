@@ -21,7 +21,7 @@ export const NarrativeView: React.FC = () => {
 
   useEffect(() => {
     if (activeScene) {
-      setCurrentSceneContent(activeScene.content);
+      setCurrentSceneContent(activeScene.content || '');
     } else {
       setCurrentSceneContent('');
     }
@@ -101,7 +101,7 @@ export const NarrativeView: React.FC = () => {
         {activeScene ? (
           <Editor 
             key={activeScene.id} 
-            initialContent={activeScene.content} 
+            initialContent={activeScene.content || ''} 
             onChange={(html) => {
               updateSceneContent(activeScene.id, html);
               useStore.getState().setCurrentSceneContent(html);

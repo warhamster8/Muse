@@ -272,7 +272,7 @@ const NoteModal: React.FC<{ note: Note; onClose: () => void; onSave: (updates: P
       Link.configure({ openOnClick: false }),
       Image,
     ],
-    content: note.content,
+    content: note.content || '',
   });
 
   if (!editor) return null;
