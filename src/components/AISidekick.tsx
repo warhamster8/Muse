@@ -225,6 +225,18 @@ const StructuredOutput: React.FC<{
   return <div className="space-y-1">{elements}</div>;
 };
 
+const MODELS: Record<AIProvider, { id: string; label: string; desc: string }[]> = {
+  groq: [
+    { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B', desc: 'Brain - Molto letterario' },
+    { id: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B', desc: 'Turbo - Velocissimo' },
+    { id: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B', desc: 'Balanced - Equilibrato' }
+  ],
+  gemini: [
+    { id: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash', desc: 'Turbo - Gratis e generoso' },
+    { id: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro', desc: 'Brain - Più profondo' }
+  ]
+};
+
 export const AISidekick: React.FC = () => {
   const { 
     user,
@@ -249,6 +261,7 @@ export const AISidekick: React.FC = () => {
   // Settings Local State
   const [localGeminiKey, setLocalGeminiKey] = React.useState(aiConfig.geminiKey || '');
   const [localProvider, setLocalProvider] = React.useState<AIProvider>(aiConfig.provider);
+  const [localModel, setLocalModel] = React.useState(aiConfig.model);
 
   const analysis = React.useMemo(() => 
     activeSceneId ? sceneAnalysis[activeSceneId] || '' : ''
@@ -276,8 +289,7 @@ export const AISidekick: React.FC = () => {
       const newConfig = { 
         provider: localProvider, 
         geminiKey: localGeminiKey,
-        // Reset model based on provider if needed, or keep current
-        model: localProvider === 'gemini' ? 'gemini-1.5-flash' : 'llama-3.3-70b-versatile'
+        model: localModel
       };
 
       await supabase
@@ -285,7 +297,7 @@ export const AISidekick: React.FC = () => {
         .upsert({
           user_id: user.id,
           gemini_api_key: localGeminiKey,
-          ai_settings: { provider: localProvider, model: newConfig.model }
+          ai_settings: { provider: localProvider, model: localModel }
         });
       
       setAIConfig(newConfig);
@@ -323,7 +335,7 @@ export const AISidekick: React.FC = () => {
                   const entity = html.substring(i, end + 1);
                   textMap.push(i);
                   charLens.push(entity.length);
-                  if (entity === '&nbsp;') textStr += ' ';
+                  if (entity === '&&nbsp;') textStr += ' ';
                   else if (entity === '&lt;') textStr += '<';
                   else if (entity === '&gt;') textStr += '>';
                   else if (entity === '&amp;') textStr += '&';
@@ -585,19 +597,49 @@ Rispondi in italiano. Sii concreto e originale.`;
               </h3>
               <div className="grid grid-cols-2 gap-2">
                 <button 
-                   onClick={() => setLocalProvider('groq')}
+                   onClick={() => { 
+                    setLocalProvider('groq'); 
+                    setLocalModel('llama-3.3-70b-versatile'); 
+                   }}
                    className={cn("p-3 rounded-xl border text-left transition-all", localProvider === 'groq' ? "bg-blue-600/10 border-blue-500 text-blue-100" : "bg-slate-900/50 border-slate-700 text-slate-400")}
                 >
                   <div className="font-bold text-xs">Groq</div>
                   <div className="text-[9px] opacity-60">Llama / Mixtral</div>
                 </button>
                 <button 
-                   onClick={() => setLocalProvider('gemini')}
+                   onClick={() => { 
+                    setLocalProvider('gemini'); 
+                    setLocalModel('gemini-1.5-flash'); 
+                   }}
                    className={cn("p-3 rounded-xl border text-left transition-all", localProvider === 'gemini' ? "bg-purple-600/10 border-purple-500 text-purple-100" : "bg-slate-900/50 border-slate-700 text-slate-400")}
                 >
                   <div className="font-bold text-xs">Gemini</div>
                   <div className="text-[9px] opacity-60">Google AI (Free)</div>
                 </button>
+              </div>
+           </div>
+
+           <div>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
+                <Cpu className="w-3 h-3" /> Modello Specifico
+              </h3>
+              <div className="space-y-2">
+                {MODELS[localProvider].map(m => (
+                  <button 
+                    key={m.id}
+                    onClick={() => setLocalModel(m.id)}
+                    className={cn(
+                      "w-full p-3 rounded-xl border text-left transition-all group", 
+                      localModel === m.id ? "bg-blue-600/10 border-blue-500 text-blue-100" : "bg-slate-900/50 border-slate-700 text-slate-400 hover:border-slate-500"
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="font-bold text-xs">{m.label}</div>
+                      {localModel === m.id && <Check className="w-3 h-3" />}
+                    </div>
+                    <div className="text-[9px] opacity-60">{m.desc}</div>
+                  </button>
+                ))}
               </div>
            </div>
 
@@ -620,25 +662,6 @@ Rispondi in italiano. Sii concreto e originale.`;
                 </div>
              </div>
            )}
-
-           <div>
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
-                <Cpu className="w-3 h-3" /> Prestazioni
-              </h3>
-              <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-3 space-y-3">
-                 <div className="flex items-center justify-between text-xs">
-                   <span className="text-slate-300">Modello Selezionato</span>
-                   <span className="text-blue-400 font-medium">
-                     {localProvider === 'gemini' ? 'Gemini 1.5 Flash' : 'Llama 3.3 70B'}
-                   </span>
-                 </div>
-                 <p className="text-[9px] text-slate-500 leading-relaxed italic">
-                   {localProvider === 'gemini' 
-                     ? "Gemini Flash è estremamente generoso (1M+ parole/giorno) e molto veloce." 
-                     : "Groq 70B è più 'letterario' ma ha limiti giornalieri più restrittivi sul piano free."}
-                 </p>
-              </div>
-           </div>
 
            <button 
               onClick={handleSaveSettings}
@@ -684,7 +707,7 @@ Rispondi in italiano. Sii concreto e originale.`;
                 </div>
                 <div className="bg-blue-900/10 border border-blue-500/20 p-3 rounded-lg flex items-start space-x-3">
                   <BookOpen className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-                  <p className="text-xs text-slate-400">Usi {aiConfig.provider === 'gemini' ? 'Gemini (Limite Alto)' : 'Groq (Limite Basso)'}.</p>
+                  <p className="text-xs text-slate-400">Motore: <span className="text-white font-medium">{MODELS[aiConfig.provider].find(m => m.id === aiConfig.model)?.label || aiConfig.model}</span></p>
                 </div>
                 {analysis ? (
                   <div className="animate-in slide-in-from-bottom-2">
