@@ -1,12 +1,39 @@
 import React from 'react';
 import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
-import { Settings, Cpu, Zap, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { Settings, Cpu, Zap, ShieldCheck, AlertTriangle, Activity, Terminal } from 'lucide-react';
 import { useToast } from '../components/Toast';
+import { geminiService } from '../lib/gemini';
 
 export const ConfigView: React.FC = () => {
   const { user, aiConfig, setAIConfig } = useStore();
   const { addToast } = useToast();
+  const [testResult, setTestResult] = React.useState<any>(null);
+  const [isTesting, setIsTesting] = React.useState(false);
+
+  const handleTestGemini = async () => {
+    if (!aiConfig.geminiKey) {
+      addToast("Inserisci prima una chiave", 'error');
+      return;
+    }
+    
+    setIsTesting(true);
+    setTestResult(null);
+    try {
+      const result = await geminiService.testConnection(aiConfig.geminiKey);
+      setTestResult(result);
+      if (result.ok) {
+        addToast("Connessione Gemini riuscita!", 'success');
+      } else {
+        addToast(`Errore connessione: ${result.status}`, 'error');
+      }
+    } catch (err: any) {
+      setTestResult({ error: err.message });
+      addToast("Errore durante il test", 'error');
+    } finally {
+      setIsTesting(false);
+    }
+  };
 
   const handleProviderChange = async (provider: 'groq' | 'gemini') => {
     setAIConfig({ provider });
@@ -112,19 +139,42 @@ export const ConfigView: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
            <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-2xl">
               <p className="text-[10px] uppercase tracking-tighter text-slate-500 font-bold mb-1">Status Chiave Gemini</p>
-              <div className="flex items-center gap-2">
-                 <div className={`w-2 h-2 rounded-full ${aiConfig.geminiKey ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-                 <span className="font-mono text-sm">
-                    {aiConfig.geminiKey ? 'Configurata nel Database' : 'Non Trovata'}
-                 </span>
-              </div>
-           </div>
-           
-           <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-2xl">
-              <p className="text-[10px] uppercase tracking-tighter text-slate-500 font-bold mb-1">Archiviazione</p>
-              <span className="text-sm text-slate-300">Supabase Cloud Vault</span>
-           </div>
+               <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${aiConfig.geminiKey ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                  <span className="font-mono text-sm">
+                     {aiConfig.geminiKey 
+                        ? `Configurata (${aiConfig.geminiKey.substring(0, 4)}...${aiConfig.geminiKey.slice(-4)})` 
+                        : 'Non Trovata'}
+                  </span>
+               </div>
+            </div>
+            
+            <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-2xl flex items-center justify-between">
+               <div>
+                  <p className="text-[10px] uppercase tracking-tighter text-slate-500 font-bold mb-1">Diagnostica</p>
+                  <span className="text-sm text-slate-300">Testa risposta grezza</span>
+               </div>
+               <button 
+                onClick={handleTestGemini}
+                disabled={isTesting}
+                className="p-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-xl transition-all"
+               >
+                 <Activity className={`w-5 h-5 text-white ${isTesting ? 'animate-spin' : ''}`} />
+               </button>
+            </div>
         </div>
+
+        {testResult && (
+          <div className="p-4 bg-black/40 border border-slate-700 rounded-2xl space-y-3 animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
+              <Terminal className="w-4 h-4" />
+              <span>Risposta Grezza Google</span>
+            </div>
+            <pre className="text-[10px] font-mono bg-black/60 p-4 rounded-xl overflow-x-auto text-slate-300 border border-slate-800/50">
+              {JSON.stringify(testResult, null, 2)}
+            </pre>
+          </div>
+        )}
 
         {!aiConfig.geminiKey && (
           <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-200/80 text-xs">

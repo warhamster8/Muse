@@ -85,4 +85,37 @@ export const geminiService = {
       }
     }
   },
+
+  async testConnection(apiKey: string) {
+    const trimmedKey = apiKey.trim();
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${trimmedKey}`;
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        credentials: 'omit',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': trimmedKey,
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: 'Say hi' }] }]
+        }),
+      });
+
+      const data = await response.json();
+      return {
+        status: response.status,
+        ok: response.ok,
+        data,
+        headers: Array.from(response.headers.entries())
+      };
+    } catch (err: any) {
+      return {
+        status: 0,
+        ok: false,
+        error: err.message
+      };
+    }
+  }
 };
