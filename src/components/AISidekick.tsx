@@ -10,7 +10,8 @@ import {
   BookOpen,
   Languages,
   X,
-  ChevronRight
+  ChevronRight,
+  Quote
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useStore } from '../store/useStore';
@@ -305,6 +306,36 @@ export const AISidekick: React.FC = () => {
       .map(s => s.content);
 
     return [header, ...sortedSuggestions, footer].join('\n').trim();
+  };
+
+  const handleConvertQuotes = async () => {
+    if (!activeSceneId || !content) return;
+    
+    const div = document.createElement('div');
+    div.innerHTML = content;
+    
+    const walk = (node: Node) => {
+      let child = node.firstChild;
+      while (child) {
+        if (child.nodeType === Node.TEXT_NODE) {
+          child.nodeValue = (child.nodeValue || '').replace(/"([^"]+)"/g, '«$1»');
+        } else if (child.nodeType === Node.ELEMENT_NODE) {
+          walk(child);
+        }
+        child = child.nextSibling;
+      }
+    };
+    
+    walk(div);
+    const newContent = div.innerHTML;
+    
+    if (newContent !== content) {
+      setCurrentSceneContent(newContent);
+      await updateSceneContent(activeSceneId, newContent);
+      addToast('Virgolette convertite in « »', 'success');
+    } else {
+      addToast('Nessuna virgoletta " " trovata', 'info');
+    }
   };
 
   const applySuggestion = async (originalText: string, suggestion: string) => {
@@ -664,14 +695,24 @@ Rispondi in italiano. Sii concreto e originale.`;
             </div>
             
             <div className="bg-blue-900/10 border border-blue-500/20 p-3 rounded-lg space-y-2">
-              <div className="flex items-center space-x-3">
-                <BookOpen className="w-4 h-4 text-blue-400 shrink-0" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <BookOpen className="w-4 h-4 text-blue-400 shrink-0" />
+                  <button 
+                    onClick={() => setGlobalTab('config')}
+                    className="text-xs text-slate-400 hover:text-blue-400 transition-colors flex items-center gap-1 group"
+                  >
+                    Motore: <span className="text-white font-medium group-hover:text-blue-400">{aiConfig.provider === 'groq' ? 'Llama 3.3 70B' : 'DeepSeek V3'}</span>
+                    <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all" />
+                  </button>
+                </div>
                 <button 
-                  onClick={() => setGlobalTab('config')}
-                  className="text-xs text-slate-400 hover:text-blue-400 transition-colors flex items-center gap-1 group"
+                  onClick={handleConvertQuotes}
+                  title="Converti \" \" in « »"
+                  className="p-1.5 text-blue-400/60 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-all flex items-center gap-1.5 group"
                 >
-                  Motore: <span className="text-white font-medium group-hover:text-blue-400">{aiConfig.provider === 'groq' ? 'Llama 3.3 70B' : 'DeepSeek V3'}</span>
-                  <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all" />
+                  <Quote className="w-3.5 h-3.5" />
+                  <span className="text-[9px] font-bold uppercase tracking-tight opacity-0 group-hover:opacity-100 transition-all">Fix « »</span>
                 </button>
               </div>
             </div>
