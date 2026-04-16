@@ -15,7 +15,7 @@ import { AlertCircle, Settings, Cloud } from 'lucide-react';
 import { ToastContainer } from './components/Toast';
 
 function App() {
-  const { user, currentProject, activeTab, setUser } = useStore();
+  const { user, currentProject, activeTab, setUser, setAIConfig } = useStore();
   const [showAuth, setShowAuth] = useState(false);
   const ALLOWED_EMAIL = import.meta.env.VITE_ALLOWED_EMAIL;
 
@@ -49,6 +49,24 @@ function App() {
 
     return () => subscription.unsubscribe();
   }, [setUser, ALLOWED_EMAIL]);
+
+  // Caricamento profilo (chiave Gemini)
+  React.useEffect(() => {
+    if (user) {
+      const fetchProfile = async () => {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('gemini_api_key')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (data && !error) {
+          setAIConfig({ geminiKey: data.gemini_api_key });
+        }
+      };
+      fetchProfile();
+    }
+  }, [user, setAIConfig]);
 
   const renderView = () => {
     switch (activeTab) {

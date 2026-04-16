@@ -230,6 +230,7 @@ export const AISidekick: React.FC = () => {
     setLastAnalyzedPhrase,
     sceneAnalysis,
     setSceneAnalysis,
+    aiConfig
   } = useStore();
   
   const { updateSceneContent } = useNarrative();
@@ -251,6 +252,7 @@ export const AISidekick: React.FC = () => {
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
   const [lexiconInput, setLexiconInput] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+  const [isEmergencyMode, setIsEmergencyMode] = React.useState(false);
 
   const sceneIgnoredSuggestions = React.useMemo(() => 
     activeSceneId ? (ignoredSuggestions || {})[activeSceneId] || [] : []
@@ -419,8 +421,12 @@ ${isContinuation ? "NOTA: Stai continuando la revisione. Non ripetere suggerimen
 
 LINGUA: Italiano.`;
 
+      const activeConfig = isEmergencyMode && aiConfig.geminiKey
+        ? { provider: 'gemini' as const, model: 'gemini-flash-latest', geminiKey: aiConfig.geminiKey }
+        : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
+
       await aiService.streamChat(
-        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
+        activeConfig,
         [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Revisiona questa bozza${isContinuation ? " (riprendendo da dove eri rimasto)" : ""}:\n\n${textToAnalyze}` }
@@ -444,8 +450,12 @@ Trasformali in suggestioni narrative concrete.
 CONTESTO SCENA ATTUALE: ${plainText ? plainText.slice(0, 600) : 'Nessuna scena attiva.'}
 Rispondi in italiano. Sii concreto e originale.`;
 
+      const activeConfig = isEmergencyMode && aiConfig.geminiKey
+        ? { provider: 'gemini' as const, model: 'gemini-flash-latest', geminiKey: aiConfig.geminiKey }
+        : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
+
       await aiService.streamChat(
-        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
+        activeConfig,
         [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Braindump: ${braindumpInput}` }
@@ -473,8 +483,12 @@ Rispondi in italiano. Sii concreto e originale.`;
     let textToAnalyze = plainText.length > 3000 ? plainText.substring(0, 3000) : plainText;
 
     try {
+      const activeConfig = isEmergencyMode && aiConfig.geminiKey
+        ? { provider: 'gemini' as const, model: 'gemini-flash-latest', geminiKey: aiConfig.geminiKey }
+        : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
+
       await aiService.streamChat(
-        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
+        activeConfig,
         [
           { role: 'system', content: stylePrompts[style] + " Riscrivi in italiano. Restituisci SOLO il testo riscritto." },
           { role: 'user', content: `Riscrivi questo:\n\n${textToAnalyze}` }
@@ -497,8 +511,12 @@ Rispondi in italiano. Sii concreto e originale.`;
         ? `Trova sinonimi/contrari per: "${lexiconInput}". Formato: S: ..., A: ..., 💎 [Parola]: [spiegazione]`
         : `Trova 5 metafore originali per: "${lexiconInput}". Formato: M: ..., 💡 [spiegazione]`;
 
+      const activeConfig = isEmergencyMode && aiConfig.geminiKey
+        ? { provider: 'gemini' as const, model: 'gemini-flash-latest', geminiKey: aiConfig.geminiKey }
+        : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
+
       await aiService.streamChat(
-        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
+        activeConfig,
         [
           { role: 'system', content: prompt + " Rispondi in italiano." },
           { role: 'user', content: `Concetto: ${lexiconInput}` }
@@ -564,10 +582,34 @@ Rispondi in italiano. Sii concreto e originale.`;
                 </button>
               </div>
             </div>
-            <div className="bg-blue-900/10 border border-blue-500/20 p-3 rounded-lg flex items-start space-x-3">
-              <BookOpen className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-              <p className="text-xs text-slate-400">Motore: <span className="text-white font-medium">Llama 3.3 70B</span></p>
+            
+            <div className="bg-blue-900/10 border border-blue-500/20 p-3 rounded-lg space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <BookOpen className="w-4 h-4 text-blue-400 shrink-0" />
+                  <p className="text-xs text-slate-400">Motore: <span className="text-white font-medium">{isEmergencyMode ? 'Gemini Flash' : 'Llama 3.3 70B'}</span></p>
+                </div>
+                {aiConfig.geminiKey && (
+                  <button 
+                    onClick={() => setIsEmergencyMode(!isEmergencyMode)}
+                    className={cn(
+                      "text-[9px] px-2 py-0.5 rounded border transition-all uppercase font-bold",
+                      isEmergencyMode 
+                        ? "bg-purple-600 border-purple-400 text-white shadow-lg shadow-purple-900/40" 
+                        : "bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300"
+                    )}
+                  >
+                    Backup Gemini
+                  </button>
+                )}
+              </div>
+              {isEmergencyMode && (
+                <p className="text-[9px] text-purple-400 italic animate-pulse">
+                  Modalità emergenza attiva: i limiti di Groq non verranno applicati.
+                </p>
+              )}
             </div>
+
             {analysis ? (
               <div className="animate-in slide-in-from-bottom-2">
                 <StructuredOutput text={analysis} onApply={applySuggestion} onReject={handleReject} appliedSuggestions={appliedSuggestions} rejectedSuggestions={sceneIgnoredSuggestions} />
