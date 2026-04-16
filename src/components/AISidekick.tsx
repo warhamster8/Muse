@@ -9,7 +9,8 @@ import {
   Wand2,
   BookOpen,
   Languages,
-  X
+  X,
+  ChevronRight
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useStore } from '../store/useStore';
@@ -231,7 +232,9 @@ export const AISidekick: React.FC = () => {
     lastAnalyzedPhrase,
     setLastAnalyzedPhrase,
     sceneAnalysis,
-    setSceneAnalysis
+    setSceneAnalysis,
+    aiConfig,
+    setActiveTab
   } = useStore();
   
   const { updateSceneContent } = useNarrative();
@@ -418,7 +421,7 @@ REGOLE MANDATORIE:
 LINGUA: Italiano.`;
 
       await aiService.streamChat(
-        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
+        aiConfig,
         [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Revisiona questa bozza:\n\n${textToAnalyze}` }
@@ -442,7 +445,7 @@ Trasformali in suggestioni narrative concrete.
 Rispondi in italiano. Sii concreto e originale.`;
 
       await aiService.streamChat(
-        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
+        aiConfig,
         [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Braindump: ${braindumpInput}` }
@@ -471,7 +474,7 @@ Rispondi in italiano. Sii concreto e originale.`;
 
     try {
       await aiService.streamChat(
-        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
+        aiConfig,
         [
           { role: 'system', content: stylePrompts[style] + " Riscrivi in italiano. Restituisci SOLO il testo riscritto." },
           { role: 'user', content: `Riscrivi questo:\n\n${textToAnalyze}` }
@@ -495,7 +498,7 @@ Rispondi in italiano. Sii concreto e originale.`;
         : `Trova 5 metafore originali per: "${lexiconInput}". Formato: M: ..., 💡 [spiegazione]`;
 
       await aiService.streamChat(
-        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
+        aiConfig,
         [
           { role: 'system', content: prompt + " Rispondi in italiano." },
           { role: 'user', content: `Concetto: ${lexiconInput}` }
@@ -527,7 +530,7 @@ Rispondi in italiano. Sii concreto e originale.`;
           {isAnalyzing && (
             <div className="flex items-center gap-2 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 animate-pulse">
               <span className="text-[9px] font-bold text-blue-400 uppercase tracking-tighter">
-                Groq Active
+                {aiConfig.provider === 'groq' ? 'Groq Active' : 'Gemini Active'}
               </span>
               <RefreshCw className="w-2.5 h-2.5 animate-spin text-blue-400" />
             </div>
@@ -572,7 +575,13 @@ Rispondi in italiano. Sii concreto e originale.`;
             <div className="bg-blue-900/10 border border-blue-500/20 p-3 rounded-lg space-y-2">
               <div className="flex items-center space-x-3">
                 <BookOpen className="w-4 h-4 text-blue-400 shrink-0" />
-                <p className="text-xs text-slate-400">Motore: <span className="text-white font-medium">Llama 3.3 70B</span></p>
+                <button 
+                  onClick={() => setActiveTab('config')}
+                  className="text-xs text-slate-400 hover:text-blue-400 transition-colors flex items-center gap-1 group"
+                >
+                  Motore: <span className="text-white font-medium group-hover:text-blue-400">{aiConfig.provider === 'groq' ? 'Llama 3.3 70B' : 'Gemini 1.5 Flash'}</span>
+                  <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all" />
+                </button>
               </div>
             </div>
 

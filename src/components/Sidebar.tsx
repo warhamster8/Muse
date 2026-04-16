@@ -26,6 +26,7 @@ const navItems: NavItem[] = [
   { id: 'world', label: 'World Settings', icon: Globe },
   { id: 'notes', label: 'Note', icon: StickyNote },
   { id: 'analysis', label: 'Analysis', icon: BarChart2 },
+  { id: 'config', label: 'AI Settings', icon: Settings },
 ];
 
 export const Sidebar: React.FC = () => {
@@ -82,10 +83,6 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       <div className="p-4 mt-auto border-t border-slate-700/50 space-y-1">
-        <button onClick={() => setActiveTab('config')} className="w-full flex items-center space-x-3 px-4 py-2 hover:bg-slate-800 rounded-lg text-slate-400 transition-colors">
-          <Settings className="w-5 h-5" />
-          <span>Config</span>
-        </button>
         <button 
           onClick={handleLogout}
           className="w-full flex items-center space-x-3 px-4 py-2 hover:bg-red-950/30 hover:text-red-400 rounded-lg text-slate-400 transition-colors"
