@@ -63,8 +63,8 @@ function App() {
         
         if (data && !error) {
           setAIConfig({ 
-            geminiKey: data.gemini_api_key,
-            ...(data.ai_settings || {})
+            ...(data.ai_settings || {}),
+            geminiKey: data.gemini_api_key
           });
         }
       };
