@@ -133,15 +133,13 @@ function App() {
     <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
       <ErrorBoundary>
         <Sidebar />
-        <main className="flex-1 p-6 relative overflow-hidden flex gap-6">
-          <div className="flex-1 min-w-0">
+        <main className="flex-1 h-screen p-6 overflow-hidden flex flex-col">
+          <div className="flex-1 min-h-0">
             {renderView()}
           </div>
-          
-          <aside className="w-[450px] shrink-0 h-full">
-            <AISidekick />
-          </aside>
         </main>
+        
+        {activeTab === 'narrative' && <AISidekick />}
       </ErrorBoundary>
       <ToastContainer />
     </div>
