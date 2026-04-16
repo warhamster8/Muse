@@ -241,16 +241,18 @@ export const AISidekick: React.FC = () => {
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = React.useState<SidekickTab>('revision');
 
-  const analysis = React.useMemo(() => 
-    activeSceneId ? sceneAnalysis[activeSceneId] || '' : ''
-  , [sceneAnalysis, activeSceneId]);
+  const analysis = React.useMemo(() => {
+    if (!activeSceneId) return '';
+    const key = `${activeSceneId}-${activeTab}`;
+    return sceneAnalysis[key] || '';
+  }, [sceneAnalysis, activeSceneId, activeTab]);
 
   const setAnalysis = (val: string | ((prev: string) => string)) => {
     if (!activeSceneId) return;
-    const currentState = useStore.getState();
-    const current = currentState.sceneAnalysis[activeSceneId] || '';
+    const key = `${activeSceneId}-${activeTab}`;
+    const current = sceneAnalysis[key] || '';
     const next = typeof val === 'function' ? val(current) : val;
-    setSceneAnalysis(activeSceneId, next);
+    setSceneAnalysis(activeSceneId, next, activeTab);
   };
 
   const [appliedSuggestions, setAppliedSuggestions] = React.useState<string[]>([]);
@@ -265,7 +267,7 @@ export const AISidekick: React.FC = () => {
   const handleReject = (originalText: string) => {
     if (activeSceneId) {
        addIgnoredSuggestion(activeSceneId, originalText);
-       setLastAnalyzedPhrase(activeSceneId, originalText);
+       setLastAnalyzedPhrase(activeSceneId, originalText, activeTab);
     }
   };
 
@@ -352,7 +354,7 @@ export const AISidekick: React.FC = () => {
       setCurrentSceneContent(newContent);
       await updateSceneContent(activeSceneId, newContent);
       setAppliedSuggestions(prev => [...prev, originalText]);
-      setLastAnalyzedPhrase(activeSceneId, suggestion);
+      setLastAnalyzedPhrase(activeSceneId, suggestion, activeTab);
       addToast('Modifica applicata con successo', 'success');
     } else {
       addToast('Testo originale non trovato, modifica manualmente', 'error');
@@ -374,17 +376,22 @@ export const AISidekick: React.FC = () => {
     setAppliedSuggestions([]);
 
     let textToAnalyze = plainText;
-    const lastPhrase = activeSceneId ? lastAnalyzedPhrase[activeSceneId] : null;
+    const memoryKey = `${activeSceneId}-revision`;
+    const lastPhrase = activeSceneId ? lastAnalyzedPhrase[memoryKey] : null;
 
     if (lastPhrase) {
       let index = plainText.indexOf(lastPhrase);
       if (index === -1) {
-        const pattern = lastPhrase.trim().split(/\s+/).slice(-10).map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+');
-        try {
-          const regex = new RegExp(pattern, 'i');
-          const match = plainText.match(regex);
-          if (match) index = match.index!;
-        } catch(e) {}
+        // Try fallback with word context
+        const words = lastPhrase.trim().split(/\s+/);
+        if (words.length > 5) {
+          const pattern = words.slice(-5).map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+');
+          try {
+            const regex = new RegExp(pattern, 'i');
+            const match = plainText.match(regex);
+            if (match) index = match.index!;
+          } catch(e) {}
+        }
       }
       if (index !== -1) {
         const startIndex = Math.max(0, index + lastPhrase.length);
@@ -397,6 +404,8 @@ export const AISidekick: React.FC = () => {
     if (textToAnalyze.length > 4000) {
       textToAnalyze = textToAnalyze.substring(0, 4000);
     }
+
+    let fullResponse = '';
 
     try {
       const systemPrompt = `Sei un editor letterario senior esperto in narrativa italiana.
@@ -427,8 +436,24 @@ LINGUA: Italiano.`;
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Revisiona questa bozza:\n\n${textToAnalyze}` }
         ],
-        (chunk) => setAnalysis(prev => prev + chunk)
+        (chunk) => {
+          fullResponse += chunk;
+          setAnalysis(prev => prev + chunk);
+        }
       );
+
+      // Automatic checkpointing: find the last ❌ line
+      if (activeSceneId) {
+        const lines = fullResponse.split('\n');
+        const lastErrorLine = lines.reverse().find(l => l.trim().startsWith('❌'));
+        if (lastErrorLine) {
+          const phrase = lastErrorLine.replace(/^❌\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim();
+          if (phrase) {
+            setLastAnalyzedPhrase(activeSceneId, phrase, 'revision');
+          }
+        }
+      }
+
     } catch (err: any) {
       setAnalysis(`❌ Errore AI: ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
@@ -520,6 +545,8 @@ Rispondi in italiano. Sii concreto e originale.`;
     { id: 'lexicon', label: 'Lessico', icon: <Languages className="w-3 h-3" /> },
   ];
 
+  const currentLastPhrase = activeSceneId ? lastAnalyzedPhrase[`${activeSceneId}-${activeTab}`] : null;
+
   return (
     <div className="w-80 h-screen glass border-l border-slate-700 flex flex-col">
       <div className="p-4 border-b border-slate-700 flex items-center justify-between">
@@ -559,16 +586,28 @@ Rispondi in italiano. Sii concreto e originale.`;
         {activeTab === 'revision' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase">Correzione Bozza</span>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-slate-500 uppercase">Correzione Bozza</span>
+                {currentLastPhrase && (
+                  <span className="text-[9px] text-blue-400/60 truncate max-w-[120px] italic">Memoria: {currentLastPhrase.slice(0, 15)}...</span>
+                )}
+              </div>
               <div className="flex items-center gap-2">
-                {activeSceneId && lastAnalyzedPhrase[activeSceneId] && (
-                  <button onClick={() => { setLastAnalyzedPhrase(activeSceneId!, ''); setSceneAnalysis(activeSceneId!, ''); }} className="text-[10px] text-slate-500 hover:text-slate-300 flex items-center gap-1 px-2 py-1">
-                    <RefreshCw className="w-3 h-3" /> Ripristina
+                {activeSceneId && lastAnalyzedPhrase[`${activeSceneId}-revision`] && (
+                  <button 
+                    onClick={() => { 
+                      setLastAnalyzedPhrase(activeSceneId!, '', 'revision'); 
+                      setSceneAnalysis(activeSceneId!, '', 'revision'); 
+                    }} 
+                    title="Reset memory"
+                    className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
                   </button>
                 )}
-                <button onClick={runDraftRevision} disabled={isAnalyzing || plainText.length < 30} className="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-3 py-1.5 rounded-lg text-white flex items-center space-x-1 transition-all">
+                <button onClick={runDraftRevision} disabled={isAnalyzing || plainText.length < 30} className="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-3 py-1.5 rounded-lg text-white flex items-center space-x-1 transition-all shadow-lg shadow-blue-900/30">
                   <Zap className="w-3 h-3" />
-                  <span>{activeSceneId && lastAnalyzedPhrase[activeSceneId] ? 'Continua' : 'Analizza'}</span>
+                  <span>{currentLastPhrase ? 'Continua' : 'Analizza'}</span>
                 </button>
               </div>
             </div>
@@ -599,8 +638,8 @@ Rispondi in italiano. Sii concreto e originale.`;
         {activeTab === 'braindump' && (
           <div className="space-y-4">
             <textarea className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-xl p-3 text-xs text-slate-300 focus:outline-none focus:border-blue-500 transition-all resize-none shadow-inner" placeholder="Pensieri sparsi..." value={braindumpInput} onChange={(e) => setBraindumpInput(e.target.value)} />
-            <button onClick={runBraindump} disabled={isAnalyzing || !braindumpInput.trim()} className="w-full py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all"><Zap className="w-3 h-3" />Espandi Idee</button>
-            {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2"><StructuredOutput text={analysis} /></div>}
+            <button onClick={runBraindump} disabled={isAnalyzing || !braindumpInput.trim()} className="w-full py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/30"><Zap className="w-3 h-3" />Espandi Idee</button>
+            {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2 max-h-[40vh] overflow-y-auto custom-scrollbar"><StructuredOutput text={analysis} /></div>}
           </div>
         )}
 
@@ -613,7 +652,7 @@ Rispondi in italiano. Sii concreto e originale.`;
                 </button>
               ))}
             </div>
-            {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in fade-in"><StructuredOutput text={analysis} /></div>}
+            {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in fade-in max-h-[40vh] overflow-y-auto custom-scrollbar"><StructuredOutput text={analysis} /></div>}
           </div>
         )}
 
@@ -624,9 +663,9 @@ Rispondi in italiano. Sii concreto e originale.`;
             </div>
             <div className="grid grid-cols-2 gap-2">
               <button onClick={() => runLexiconTool('synonyms')} disabled={isAnalyzing || !lexiconInput.trim()} className="py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 rounded-lg text-xs font-bold transition-all border border-slate-700">Sinonimi</button>
-              <button onClick={() => runLexiconTool('metaphors')} disabled={isAnalyzing || !lexiconInput.trim()} className="py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold transition-all">Metafore</button>
+              <button onClick={() => runLexiconTool('metaphors')} disabled={isAnalyzing || !lexiconInput.trim()} className="py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold transition-all shadow-lg shadow-blue-900/30">Metafore</button>
             </div>
-            {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2"><StructuredOutput text={analysis} /></div>}
+            {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2 max-h-[40vh] overflow-y-auto custom-scrollbar"><StructuredOutput text={analysis} /></div>}
           </div>
         )}
       </div>

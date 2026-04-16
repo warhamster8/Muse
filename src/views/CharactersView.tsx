@@ -10,10 +10,52 @@ import { useToast } from '../components/Toast';
 export const CharactersView: React.FC = () => {
   const { characters, addCharacter, updateCharacter, addInterview } = useCharacters();
   const { addToast } = useToast();
-  const [selectedChar, setSelectedChar] = React.useState<Character | null>(null);
+  const [selectedCharId, setSelectedCharId] = React.useState<string | null>(null);
+  const selectedChar = React.useMemo(() => 
+    characters.find(c => c.id === selectedCharId) || null,
+  [characters, selectedCharId]);
+
+  const [localBio, setLocalBio] = React.useState('');
+  const [localPsychology, setLocalPsychology] = React.useState('');
+  const [localEvolution, setLocalEvolution] = React.useState('');
+
   const [isInterviewing, setIsInterviewing] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync local state when selection changes
+  React.useEffect(() => {
+    if (selectedChar) {
+      setLocalBio(selectedChar.bio || '');
+      setLocalPsychology(selectedChar.psychology || '');
+      setLocalEvolution(selectedChar.evolution || '');
+    }
+  }, [selectedChar?.id]);
+
+  // Debounce updates to the store/DB
+  React.useEffect(() => {
+    if (!selectedChar) return;
+    const timer = setTimeout(() => {
+      if (localBio !== selectedChar.bio) updateCharacter(selectedChar.id, { bio: localBio });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [localBio, selectedChar?.id]);
+
+  React.useEffect(() => {
+    if (!selectedChar) return;
+    const timer = setTimeout(() => {
+      if (localPsychology !== selectedChar.psychology) updateCharacter(selectedChar.id, { psychology: localPsychology });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [localPsychology, selectedChar?.id]);
+
+  React.useEffect(() => {
+    if (!selectedChar) return;
+    const timer = setTimeout(() => {
+      if (localEvolution !== selectedChar.evolution) updateCharacter(selectedChar.id, { evolution: localEvolution });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [localEvolution, selectedChar?.id]);
 
   const handleConfirmAdd = (name: string) => {
     addCharacter(name);
@@ -82,10 +124,10 @@ export const CharactersView: React.FC = () => {
           {characters.map(char => (
             <div 
               key={char.id}
-              onClick={() => setSelectedChar(char)}
+              onClick={() => setSelectedCharId(char.id)}
               className={cn(
                 "p-3 rounded-xl border transition-all cursor-pointer flex gap-3 items-center",
-                selectedChar?.id === char.id 
+                selectedCharId === char.id 
                   ? "glass border-blue-500 bg-blue-600/10 shadow-lg shadow-blue-900/10" 
                   : "bg-slate-800/50 border-slate-700 hover:border-slate-500"
               )}
@@ -172,8 +214,8 @@ export const CharactersView: React.FC = () => {
                 <textarea 
                   className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-2xl p-5 text-sm text-slate-200 focus:outline-none focus:border-blue-500 focus:bg-slate-900/80 transition-all placeholder:opacity-20"
                   placeholder="Describe the character's origin story, personality, and background..."
-                  value={selectedChar.bio || ''}
-                  onChange={(e) => updateCharacter(selectedChar.id, { bio: e.target.value })}
+                  value={localBio}
+                  onChange={(e) => setLocalBio(e.target.value)}
                 />
               </section>
 
@@ -185,8 +227,8 @@ export const CharactersView: React.FC = () => {
                 <textarea 
                   className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-2xl p-5 text-sm text-slate-200 focus:outline-none focus:border-purple-500 focus:bg-slate-900/80 transition-all placeholder:opacity-20"
                   placeholder="What drives them? What are their fears and core beliefs?"
-                  value={selectedChar.psychology || ''}
-                  onChange={(e) => updateCharacter(selectedChar.id, { psychology: e.target.value })}
+                  value={localPsychology}
+                  onChange={(e) => setLocalPsychology(e.target.value)}
                 />
               </section>
 
@@ -198,8 +240,8 @@ export const CharactersView: React.FC = () => {
                 <textarea 
                   className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-2xl p-5 text-sm text-slate-200 focus:outline-none focus:border-orange-500 focus:bg-slate-900/80 transition-all placeholder:opacity-20"
                   placeholder="How does their journey change them from the beginning to the end?"
-                  value={selectedChar.evolution || ''}
-                  onChange={(e) => updateCharacter(selectedChar.id, { evolution: e.target.value })}
+                  value={localEvolution}
+                  onChange={(e) => setLocalEvolution(e.target.value)}
                 />
               </section>
             </div>

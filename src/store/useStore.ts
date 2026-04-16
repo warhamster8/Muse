@@ -41,8 +41,8 @@ interface AppState {
   logout: () => void;
   setActiveSuggestions: (suggestions: string[]) => void;
   addIgnoredSuggestion: (sceneId: string, suggestion: string) => void;
-  setLastAnalyzedPhrase: (sceneId: string, phrase: string) => void;
-  setSceneAnalysis: (sceneId: string, analysis: string) => void;
+  setLastAnalyzedPhrase: (sceneId: string, phrase: string, tabId?: string) => void;
+  setSceneAnalysis: (sceneId: string, analysis: string, tabId?: string) => void;
   setAIConfig: (config: Partial<AIConfig>) => void;
 }
 
@@ -59,8 +59,8 @@ export const useStore = create<AppState>()(
       isLoading: false,
       activeSuggestions: [],
       ignoredSuggestions: {},
-      lastAnalyzedPhrase: {},
-      sceneAnalysis: {},
+      lastAnalyzedPhrase: {}, // Key: `${sceneId}-${tabId}`
+      sceneAnalysis: {},      // Key: `${sceneId}-${tabId}`
       aiConfig: {
         provider: 'groq',
         model: 'llama-3.3-70b-versatile',
@@ -83,16 +83,16 @@ export const useStore = create<AppState>()(
           [sceneId]: [...((state.ignoredSuggestions || {})[sceneId] || []), suggestion]
         }
       })),
-      setLastAnalyzedPhrase: (sceneId, phrase) => set((state) => ({
+      setLastAnalyzedPhrase: (sceneId, phrase, tabId = 'revision') => set((state) => ({
         lastAnalyzedPhrase: {
           ...(state.lastAnalyzedPhrase || {}),
-          [sceneId]: phrase
+          [`${sceneId}-${tabId}`]: phrase
         }
       })),
-      setSceneAnalysis: (sceneId, analysis) => set((state) => ({
+      setSceneAnalysis: (sceneId, analysis, tabId = 'revision') => set((state) => ({
         sceneAnalysis: {
           ...(state.sceneAnalysis || {}),
-          [sceneId]: analysis
+          [`${sceneId}-${tabId}`]: analysis
         }
       })),
       setAIConfig: (config) => set((state) => ({

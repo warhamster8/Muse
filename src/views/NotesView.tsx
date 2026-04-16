@@ -266,6 +266,7 @@ const MenuBar: React.FC<{ editor: Editor }> = ({ editor }) => {
 
 const NoteModal: React.FC<{ note: Note; onClose: () => void; onSave: (updates: Partial<Note>) => void }> = ({ note, onClose, onSave }) => {
   const [title, setTitle] = useState(note.title);
+  const [isSaving, setIsSaving] = useState(false);
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -273,13 +274,27 @@ const NoteModal: React.FC<{ note: Note; onClose: () => void; onSave: (updates: P
       Image,
     ],
     content: note.content || '',
+    editorProps: {
+      attributes: {
+        class: 'focus:outline-none min-h-[500px]',
+      },
+    },
   });
 
   if (!editor) return null;
 
-  const handleSave = () => {
-    onSave({ title, content: editor.getHTML() });
-  };
+  // Debounced auto-save
+  React.useEffect(() => {
+    const timer = setTimeout(async () => {
+      const currentContent = editor.getHTML();
+      if (title !== note.title || currentContent !== note.content) {
+        setIsSaving(true);
+        await onSave({ title, content: currentContent });
+        setIsSaving(false);
+      }
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [title, editor.getHTML()]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -298,24 +313,26 @@ const NoteModal: React.FC<{ note: Note; onClose: () => void; onSave: (updates: P
       >
         {/* Header */}
         <div className="p-4 border-b border-slate-700 flex items-center justify-between bg-slate-800/30">
-          <input 
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="bg-transparent text-xl font-display font-bold text-slate-200 focus:outline-none placeholder:opacity-20 flex-1 px-4"
-            placeholder="Titolo della nota..."
-          />
+          <div className="flex-1 flex items-center gap-4">
+            <input 
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="bg-transparent text-xl font-display font-bold text-slate-200 focus:outline-none placeholder:opacity-20 flex-1 px-4"
+              placeholder="Titolo della nota..."
+            />
+            {isSaving && (
+              <div className="flex items-center gap-2 text-blue-400 text-[10px] font-bold uppercase tracking-widest animate-pulse">
+                <RefreshCw className="w-3 h-3 animate-spin" />
+                Salvataggio...
+              </div>
+            )}
+          </div>
           <div className="flex items-center gap-3">
             <button 
               onClick={onClose}
-              className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors"
+              className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg transition-all active:scale-95"
             >
-              Annulla
-            </button>
-            <button 
-              onClick={handleSave}
-              className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-900/40 transition-all active:scale-95"
-            >
-              Salva Cambiamenti
+              Chiudi
             </button>
           </div>
         </div>

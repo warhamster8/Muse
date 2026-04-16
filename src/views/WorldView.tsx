@@ -9,8 +9,32 @@ import { useToast } from '../components/Toast';
 export const WorldView: React.FC = () => {
   const { settings, addSetting, updateSetting } = useWorld();
   const { addToast } = useToast();
-  const [selectedSetting, setSelectedSetting] = React.useState<Setting | null>(null);
+  const [selectedSettingId, setSelectedSettingId] = React.useState<string | null>(null);
+  const selectedSetting = React.useMemo(() => 
+    settings.find(s => s.id === selectedSettingId) || null,
+  [settings, selectedSettingId]);
+
+  const [localDescription, setLocalDescription] = React.useState('');
+
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  // Sync local state when selection changes
+  React.useEffect(() => {
+    if (selectedSetting) {
+      setLocalDescription(selectedSetting.description || '');
+    }
+  }, [selectedSetting?.id]);
+
+  // Debounce updates to the store
+  React.useEffect(() => {
+    if (!selectedSetting) return;
+    const timer = setTimeout(() => {
+      if (localDescription !== selectedSetting.description) {
+        updateSetting(selectedSetting.id, { description: localDescription });
+      }
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [localDescription, selectedSetting?.id]);
 
   const handleConfirmAdd = (name: string) => {
     addSetting(name, 'Primary');
@@ -31,14 +55,14 @@ export const WorldView: React.FC = () => {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+        <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-hide">
           {settings.map(s => (
             <div 
               key={s.id}
-              onClick={() => setSelectedSetting(s)}
+              onClick={() => setSelectedSettingId(s.id)}
               className={cn(
                 "p-4 rounded-xl border transition-all cursor-pointer",
-                selectedSetting?.id === s.id 
+                selectedSettingId === s.id 
                   ? "glass border-emerald-500 bg-emerald-600/10" 
                   : "bg-slate-800/50 border-slate-700 hover:border-slate-500"
               )}
@@ -57,32 +81,32 @@ export const WorldView: React.FC = () => {
       <div className="flex-1 min-w-0 glass rounded-2xl border border-slate-700 flex flex-col overflow-hidden">
         {selectedSetting ? (
           <div className="flex flex-col h-full">
-            <div className="p-6 border-b border-slate-700 flex items-center justify-between">
+            <div className="p-6 border-b border-slate-700 flex items-center justify-between bg-slate-800/20">
               <div>
-                <h2 className="text-2xl font-bold font-serif">{selectedSetting.name}</h2>
+                <h2 className="text-2xl font-bold font-serif text-white">{selectedSetting.name}</h2>
                 <span className="text-xs text-slate-500 uppercase tracking-widest">Location Details</span>
               </div>
               <select 
                 value={selectedSetting.type}
                 onChange={(e) => updateSetting(selectedSetting.id, { type: e.target.value as 'Primary' | 'Secondary' })}
-                className="bg-slate-800 border border-slate-700 text-xs rounded-lg px-3 py-2 outline-none"
+                className="bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 outline-none focus:border-emerald-500 transition-all font-bold"
               >
                 <option value="Primary">Primary Location</option>
                 <option value="Secondary">Secondary Location</option>
               </select>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              <section className="space-y-3">
+            <div className="flex-1 overflow-y-auto p-8 space-y-6 scrollbar-hide">
+              <section className="space-y-4">
                 <div className="flex items-center gap-2 text-emerald-400">
                   <Info className="w-4 h-4" />
-                  <h4 className="text-xs font-bold uppercase tracking-wider">Description & Sensory Details</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-widest">Description & Sensory Details</h4>
                 </div>
                 <textarea 
-                  className="w-full h-64 bg-slate-900/50 border border-slate-700 rounded-xl p-4 text-sm text-slate-300 focus:outline-none focus:border-emerald-500 leading-relaxed"
+                  className="w-full h-80 bg-slate-900/50 border border-slate-700 rounded-2xl p-6 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 focus:bg-slate-900/80 leading-relaxed transition-all placeholder:opacity-20"
                   placeholder="What does it smell like? What are the key features? Is it crowded or silent?"
-                  value={selectedSetting.description}
-                  onChange={(e) => updateSetting(selectedSetting.id, { description: e.target.value })}
+                  value={localDescription}
+                  onChange={(e) => setLocalDescription(e.target.value)}
                 />
               </section>
             </div>
