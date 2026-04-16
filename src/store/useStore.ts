@@ -74,7 +74,7 @@ export const useStore = create<AppState>()(
       setCurrentSceneContent: (content) => set({ currentSceneContent: content }),
       setChapters: (chapters) => set({ chapters }),
       setLocalMode: (enabled) => set({ isLocalMode: enabled, user: null, currentProject: null }),
-      setLoading: (loading) => set({ loading: loading }),
+      setLoading: (loading) => set({ isLoading: loading }),
       logout: () => set({ user: null, currentProject: null, isLocalMode: false }),
       setActiveSuggestions: (suggestions) => set({ activeSuggestions: suggestions }),
       addIgnoredSuggestion: (sceneId, suggestion) => set((state) => ({
