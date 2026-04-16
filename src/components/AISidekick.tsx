@@ -378,35 +378,51 @@ export const AISidekick: React.FC = () => {
     };
 
     const { textStr, textMap, charLens } = buildMapping(content);
-    const normalizeIt = (str: string) => str.replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'").replace(/E['’]/g, 'È').replace(/\u00A0/g, ' ').trim();
-    const removeAccents = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    
+    const normalizeIt = (str: string) => str
+      .replace(/[\u201C\u201D\u201E\u201F«»]/g, '"')
+      .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+      .replace(/[\u2013\u2014]/g, '-')
+      .replace(/E['’]/g, 'È')
+      .replace(/\u00A0/g, ' ')
+      .trim();
 
-    const normalizedOriginal = normalizeIt(originalText);
-    const searchOriginal = removeAccents(normalizedOriginal);
-    const searchStrHtml = removeAccents(textStr);
+    const removeAccents = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    const searchOriginal = removeAccents(normalizeIt(originalText));
+    const searchStrHtml = removeAccents(textStr); // Don't normalize textStr here to keep indices aligned
 
     const parts = searchOriginal.split(/\.\.\.|…/);
-    const gapPattern = '[^a-zA-Z0-9]*';
+    const gapPattern = '[\\s\\W]*'; // Any non-word character or space
+
+    // Stage 1: Strict Match (includes punctuation)
     let regexStr = parts.map(part => {
         const tokens = part.match(/[a-zA-Z0-9]+|[^\s\w]/g) || [];
-        return tokens.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(gapPattern);
+        return tokens.map(t => escapeRegex(t)).join(gapPattern);
     }).filter(p => p).join('(?:.|\\n){0,150}?');
-    
-    if (!regexStr) {
-       addToast('Impossibile elaborare il testo originale.', 'error');
-       return;
-    }
 
     let regex = new RegExp(regexStr, 'i');
     let match = searchStrHtml.match(regex);
 
+    // Stage 2: Fuzzy Word Match (ignore punctuation differences)
+    if (!match) {
+        regexStr = parts.map(part => {
+            const words = part.match(/[a-zA-Z0-9]+/g) || [];
+            return words.map(w => escapeRegex(w)).join('[\\s\\W]*');
+        }).filter(p => p).join('(?:.|\\n){0,200}?');
+        regex = new RegExp(regexStr, 'i');
+        match = searchStrHtml.match(regex);
+    }
+
+    // Stage 3: Anchor Match (First/Last words)
     if (!match) {
         const allWords = searchOriginal.match(/[a-zA-Z0-9]+/g) || [];
-        if (allWords.length > 5) {
-            const first2 = allWords.slice(0, 2).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(gapPattern);
-            const last2 = allWords.slice(-2).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(gapPattern);
-            const maxLen = Math.max(100, normalizedOriginal.length + 50);
-            regexStr = first2 + `(?:.|\\n){0,${maxLen}}?` + last2;
+        if (allWords.length >= 4) {
+            const first = allWords.slice(0, 3).map(w => escapeRegex(w)).join('[\\s\\W]*');
+            const last = allWords.slice(-3).map(w => escapeRegex(w)).join('[\\s\\W]*');
+            const maxLen = Math.max(200, searchOriginal.length * 2);
+            regexStr = `${first}(?:.|\\n){0,${maxLen}}?${last}`;
             regex = new RegExp(regexStr, 'i');
             match = searchStrHtml.match(regex);
         }
@@ -418,12 +434,11 @@ export const AISidekick: React.FC = () => {
       const htmlStart = textMap[textStart];
       let htmlEnd = textMap[textEnd] + charLens[textEnd];
       
-      // Punctuation Merge: if suggestion ends with a mark and the source also has it, consume it to avoid duplication
+      // Punctuation Merge: avoid double punctuation
       const terminalPunctuation = ['.', ',', '!', '?', ';', ':', '…'];
       const lastChar = suggestion.trim().slice(-1);
       if (terminalPunctuation.includes(lastChar)) {
         let lookupIdx = htmlEnd;
-        // Skip potential whitespace
         while (lookupIdx < content.length && /\s/.test(content[lookupIdx])) lookupIdx++;
         if (content[lookupIdx] === lastChar) {
           htmlEnd = lookupIdx + 1;
