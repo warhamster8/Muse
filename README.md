@@ -29,15 +29,17 @@
 - **Detailed Profiles**: Manage character motivations, traits, and narrative arcs.
 - **World-Building**: Organize locations, magic, technology, and the lore of your universe.
 
-### 🧠 AI Sidekick (Powered by Groq)
+### 🧠 AI Sidekick (Powered by Groq & Gemini Flash)
+- **Multi-Provider**: Scegli tra la velocità di **Groq (Llama 3.3)** e l'immensa memoria di **Gemini 1.5 Flash**.
 - **Revisione Intelligente**: Proposte di modifica chirurgiche per migliorare ritmo e stile.
+- **Context Awareness**: Grazie a Gemini, Muse può analizzare interi romanzi (fino a 1M+ token) senza perdere il filo.
 - **Braindump**: Trasforma pensieri sparsi in bozze narrative strutturate.
 - **Transformer**: Riscrivi scene in diversi stili (Viscerale, Atmosferico, Psicologico).
 - **Lessico**: Trova sinonimi ricercati e metafore originali.
+- **Multi-Provider**: Choose between the raw speed of **Groq (Llama 3.3)** and the massive memory of **Gemini 1.5 Flash**.
 - **Smart Revision**: Surgical editing suggestions to improve rhythm and style.
-- **Braindump**: Turn scattered thoughts into structured narrative drafts.
+- **Long Context**: With Gemini, Muse can analyze entire novels (up to 1M+ tokens) with perfect memory.
 - **Transformer**: Rewrite scenes in different styles (Visceral, Atmospheric, Psychological).
-- **Lexicon**: Find sophisticated synonyms and original metaphors.
 
 ### 📊 Note & Analisi / Notes & Analysis
 - **Mappe Mentali**: Collega idee e scene visivamente usando diagrammi di flusso.
@@ -52,7 +54,7 @@
 - **Frontend**: [React 19](https://react.dev/), [Vite](https://vitejs.dev/), [TypeScript](https://www.typescriptlang.org/)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/), [Framer Motion](https://www.framer.com/motion/)
 - **Backend / DB**: [Supabase](https://supabase.com/)
-- **AI Engine**: [GROQ SDK](https://groq.com/) (Llama 3.3 70B)
+- **AI Engines**: [Groq SDK](https://groq.com/), [Google Gemini Flash SDK](https://ai.google.dev/)
 - **Editor**: [Tiptap](https://tiptap.dev/)
 - **Visuals**: [XY Flow](https://reactflow.dev/) (Notes), [Recharts](https://recharts.org/) (Analysis)
 - **State Management**: [Zustand](https://github.com/pmndrs/zustand)
@@ -63,7 +65,7 @@
 
 ### Prerequisiti / Prerequisites
 - Node.js (v18+)
-- Account Supabase & Groq API Key
+- Account Supabase & API Key (Groq e/o Gemini)
 
 ### Installazione / Getting Started
 
@@ -83,10 +85,13 @@
    ```env
    VITE_SUPABASE_URL=your_url
    VITE_SUPABASE_ANON_KEY=your_key
-   VITE_GROQ_API_KEY=your_groq_key
+   VITE_GROQ_API_KEY=your_groq_key (Opzionale se usi Gemini)
    ```
 
-4. **Avvia in locale / Run locally**:
+4. **Configurazione Gemini (Sicurezza)**:
+   Per Gemini, non inserire la chiave nel file `.env`. Accedi alla tua dashboard Supabase ed esegui il comando SQL per salvare la chiave nella tabella `user_profiles`. Questo garantisce che la chiave rimanga privata e non venga inclusa nel bundle del browser.
+
+5. **Avvia in locale / Run locally**:
    ```bash
    npm run dev
    ```
