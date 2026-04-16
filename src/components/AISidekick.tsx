@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { 
   Sparkles, 
   AlertTriangle, 
@@ -165,8 +165,7 @@ export const AISidekick: React.FC = () => {
     activeSceneId, 
     setCurrentSceneContent,
     ignoredSuggestions,
-    addIgnoredSuggestion,
-    setActiveSuggestions
+    addIgnoredSuggestion
   } = useStore();
   const { updateSceneContent } = useNarrative();
   const { addToast } = useToast();
@@ -175,38 +174,10 @@ export const AISidekick: React.FC = () => {
   const [appliedSuggestions, setAppliedSuggestions] = React.useState<string[]>([]);
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
-  const { activeSuggestions: currentStoreActiveSuggestions } = useStore();
 
-  const sceneIgnoredSuggestions = useMemo(() => 
+  const sceneIgnoredSuggestions = React.useMemo(() => 
     activeSceneId ? (ignoredSuggestions || {})[activeSceneId] || [] : []
   , [ignoredSuggestions, activeSceneId]);
-
-  // Parse all originals from the analysis to sync with active suggestions
-  React.useEffect(() => {
-    if (!analysis) {
-        setActiveSuggestions([]);
-        return;
-    }
-    const lines = analysis.split('\n');
-    const originals: string[] = [];
-    lines.forEach(line => {
-      const trimmedLine = line.trim();
-      if (/^(?:\d+\.\s*)?❌/.test(trimmedLine)) {
-        const text = trimmedLine.replace(/^(?:\d+\.\s*)?❌\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim();
-        originals.push(text);
-      }
-    });
-    // Filter out applied or ignored ones
-    const active = originals.filter(o => !appliedSuggestions.includes(o) && !sceneIgnoredSuggestions.includes(o));
-    
-    // Only update if the list has actually changed (content-wise) to avoid infinite loops
-    const areDifferent = active.length !== currentStoreActiveSuggestions.length || 
-                        active.some((val, index) => val !== currentStoreActiveSuggestions[index]);
-    
-    if (areDifferent) {
-      setActiveSuggestions(active);
-    }
-  }, [analysis, appliedSuggestions, sceneIgnoredSuggestions, setActiveSuggestions, currentStoreActiveSuggestions]);
 
   const handleReject = (originalText: string) => {
     if (activeSceneId) {
