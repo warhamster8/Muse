@@ -258,6 +258,7 @@ export const AISidekick: React.FC = () => {
   const [lexiconInput, setLexiconInput] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
   const [isEmergencyMode, setIsEmergencyMode] = React.useState(false);
+  const [isSafeMode, setIsSafeMode] = React.useState(false);
 
   const sceneIgnoredSuggestions = React.useMemo(() => 
     activeSceneId ? (ignoredSuggestions || {})[activeSceneId] || [] : []
@@ -397,9 +398,12 @@ export const AISidekick: React.FC = () => {
       }
     }
 
-    if (textToAnalyze.length > 3000) {
-      textToAnalyze = textToAnalyze.substring(0, 3000);
+    const maxChars = isSafeMode ? 1500 : 3000;
+    if (textToAnalyze.length > maxChars) {
+      textToAnalyze = textToAnalyze.substring(0, maxChars);
     }
+    
+    console.log(`AISidekick: Analisi di ${textToAnalyze.length} caratteri (SafeMode: ${isSafeMode})`);
 
     try {
       const systemPrompt = `Sei un editor letterario senior esperto in narrativa italiana.
@@ -427,7 +431,7 @@ ${isContinuation ? "NOTA: Stai continuando la revisione. Non ripetere suggerimen
 LINGUA: Italiano.`;
 
       const activeConfig = isEmergencyMode
-        ? { provider: 'gemini' as const, model: 'gemini-pro-latest', geminiKey: aiConfig.geminiKey || '' }
+        ? { provider: 'gemini' as const, model: 'gemini-2.0-flash-lite', geminiKey: aiConfig.geminiKey || '' }
         : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
 
       if (isEmergencyMode && !aiConfig.geminiKey) {
@@ -469,7 +473,7 @@ CONTESTO SCENA ATTUALE: ${plainText ? plainText.slice(0, 600) : 'Nessuna scena a
 Rispondi in italiano. Sii concreto e originale.`;
 
       const activeConfig = isEmergencyMode
-        ? { provider: 'gemini' as const, model: 'gemini-pro-latest', geminiKey: aiConfig.geminiKey || '' }
+        ? { provider: 'gemini' as const, model: 'gemini-2.0-flash-lite', geminiKey: aiConfig.geminiKey || '' }
         : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
 
       if (isEmergencyMode && !aiConfig.geminiKey) {
@@ -509,7 +513,7 @@ Rispondi in italiano. Sii concreto e originale.`;
 
     try {
       const activeConfig = isEmergencyMode
-        ? { provider: 'gemini' as const, model: 'gemini-pro-latest', geminiKey: aiConfig.geminiKey || '' }
+        ? { provider: 'gemini' as const, model: 'gemini-2.0-flash-lite', geminiKey: aiConfig.geminiKey || '' }
         : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
 
       await aiService.streamChat(
@@ -643,22 +647,39 @@ Rispondi in italiano. Sii concreto e originale.`;
                   <p className="text-xs text-slate-400">Motore: <span className="text-white font-medium">{isEmergencyMode ? 'Gemini Flash' : 'Llama 3.3 70B'}</span></p>
                 </div>
                 {aiConfig.geminiKey && (
-                  <button 
-                    onClick={() => setIsEmergencyMode(!isEmergencyMode)}
-                    className={cn(
-                      "text-[9px] px-2 py-0.5 rounded border transition-all uppercase font-bold",
-                      isEmergencyMode 
-                        ? "bg-purple-600 border-purple-400 text-white shadow-lg shadow-purple-900/40" 
-                        : "bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300"
+                  <div className="flex flex-col gap-2">
+                    <button 
+                      onClick={() => setIsEmergencyMode(!isEmergencyMode)}
+                      className={cn(
+                        "text-[9px] px-2 py-1 rounded border transition-all uppercase font-bold",
+                        isEmergencyMode 
+                          ? "bg-purple-600 border-purple-400 text-white shadow-lg shadow-purple-900/40" 
+                          : "bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300"
+                      )}
+                    >
+                      Backup Gemini
+                    </button>
+                    {isEmergencyMode && (
+                      <button 
+                        onClick={() => setIsSafeMode(!isSafeMode)}
+                        className={cn(
+                          "text-[9px] px-2 py-1 rounded border transition-all uppercase font-bold flex items-center justify-center gap-1",
+                          isSafeMode 
+                            ? "bg-emerald-600 border-emerald-400 text-white" 
+                            : "bg-slate-800 border-slate-700 text-slate-500"
+                        )}
+                        title="Invia meno testo per evitare i blocchi di quota"
+                      >
+                        <Zap className="w-2 h-2" /> Safe Mode {isSafeMode ? 'ON' : 'OFF'}
+                      </button>
                     )}
-                  >
-                    Backup Gemini
-                  </button>
+                  </div>
                 )}
               </div>
               {isEmergencyMode && (
                 <p className="text-[9px] text-purple-400 italic animate-pulse">
                   Modalità emergenza attiva: i limiti di Groq non verranno applicati.
+                  {isSafeMode && " [Safe Mode: Analisi limitata a 1500 caratteri]"}
                 </p>
               )}
             </div>

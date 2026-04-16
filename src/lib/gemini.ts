@@ -10,18 +10,17 @@ export const geminiService = {
   ) {
     if (!apiKey) throw new Error('Gemini API Key missing');
 
-    // Lista ordinata dei modelli da tentare in caso di errore 429/404
+    // Lista ottimizzata: modelli leggeri -> Gemma -> Pro
     const modelRotation = [
       requestedModel,
+      'gemini-2.0-flash-lite',
       'gemini-flash-latest',
-      'gemini-pro-latest',
-      'gemini-2.0-flash',
-      'gemini-1.5-flash-001'
+      'gemma-3-27b-it',
+      'gemma-3-4b-it',
+      'gemini-pro-latest'
     ];
 
-    // Rimuoviamo duplicati mantenendo l'ordine
     const uniqueModels = [...new Set(modelRotation)];
-
     let lastError: any = null;
 
     for (const modelName of uniqueModels) {
@@ -45,7 +44,7 @@ export const geminiService = {
           history: chatHistory,
           generationConfig: {
             temperature,
-            maxOutputTokens: 4096,
+            maxOutputTokens: 2048, // Ridotto per essere più "leggeri"
           },
           safetySettings: [
             { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -61,6 +60,7 @@ export const geminiService = {
           try {
             const chunkText = chunk.text();
             if (chunkText) {
+              console.log(`GeminiService [${modelName}]: Received chunk`);
               onChunk(chunkText);
             }
           } catch (e) {
@@ -71,7 +71,6 @@ export const geminiService = {
           }
         }
         
-        // Se arriviamo qui, il modello ha risposto con successo (o almeno ha finito lo stream)
         return; 
 
       } catch (err: any) {
@@ -79,17 +78,17 @@ export const geminiService = {
         const errMsg = err?.message || '';
         console.error(`GeminiService: Fallimento con ${modelName}:`, errMsg);
 
-        // Se l'errore NON è di quota (429) o di modello non trovato (404), interrompiamo subito
         if (!errMsg.includes('429') && !errMsg.includes('404') && !errMsg.includes('quota')) {
           throw err;
         }
 
-        // Altrimenti, continua il ciclo proverà il prossimo modello
-        onChunk(`\n\n⚠️ ${modelName} indisponibile (Quota/404). Prossimo tentativo...\n\n`);
+        onChunk(`\n\n⚠️ ${modelName} indisponibile. Raffreddamento 2s e cambio modello...\n\n`);
+        
+        // Pausa di raffreddamento prima del prossimo tentativo
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
 
-    // Se arriviamo qui, tutti i modelli hanno fallito
-    throw lastError || new Error("Tutti i modelli Gemini hanno fallito o sono fuori quota.");
+    throw lastError || new Error("Tutti i modelli (Gemini/Gemma) hanno fallito.");
   }
 };
