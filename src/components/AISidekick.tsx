@@ -44,181 +44,188 @@ function computeDiff(oldStr: string, newStr: string) {
 }
 
 // Renders structured AI output: lines starting with ❌ get red, ✅ green, ## become headers, etc.
-const StructuredOutput: React.FC<{ 
-  text: string; 
-  onApply?: (original: string, suggestion: string) => void;
-  onReject?: (original: string) => void;
-  appliedSuggestions?: string[];
-  rejectedSuggestions?: string[];
-}> = ({ text, onApply, onReject, appliedSuggestions, rejectedSuggestions }) => {
-  const lines = text.split('\n');
-  
-  // Group ❌, ✅, 🏷️, 💡 together into cards
-  const elements: React.ReactNode[] = [];
-  let currentSuggestion: { original?: string; suggestion?: string; reason?: string; category?: string } | null = null;
+47: const StructuredOutput: React.FC<{ 
+48:   text: string; 
+49:   onApply?: (original: string, suggestion: string) => void;
+50:   onReject?: (original: string) => void;
+51:   appliedSuggestions?: string[];
+52:   rejectedSuggestions?: string[];
+53: }> = ({ text, onApply, onReject, appliedSuggestions, rejectedSuggestions }) => {
+54:   const lines = text.split('\n');
+55:   const elements: React.ReactNode[] = [];
+56:   let currentSuggestion: { original?: string; suggestion?: string; reason?: string; category?: string } | null = null;
+57: 
+58:   const renderSuggestionCard = (sug: typeof currentSuggestion, key: string | number, isPending = false) => {
+59:     if (!sug || !sug.original) return null;
+60:     const { original, suggestion, reason, category } = sug;
+61:     
+62:     if (!isPending && (appliedSuggestions?.includes(original) || rejectedSuggestions?.includes(original))) {
+63:       return null;
+64:     }
+65: 
+66:     const { oldParts, newParts } = suggestion ? computeDiff(original, suggestion) : { oldParts: [{ value: original }], newParts: [] };
+67: 
+68:     return (
+69:       <div key={key} className={cn(
+70:         "bg-slate-800/80 border border-slate-700 rounded-xl overflow-hidden mb-4 shadow-lg group transition-all duration-500",
+71:         isPending ? "opacity-70 border-blue-500/30 ring-1 ring-blue-500/10" : "animate-in fade-in zoom-in-95"
+72:       )}>
+73:         <div className="bg-slate-700/50 px-3 py-1.5 flex items-center justify-between border-b border-slate-700">
+74:           <div className="flex items-center gap-2">
+75:             <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
+76:               {category || 'Suggerimento'}
+77:             </span>
+78:             {isPending && <RefreshCw className="w-2.5 h-2.5 animate-spin text-blue-400" />}
+79:           </div>
+80:           {!isPending && (
+81:             <div className="flex items-center gap-2">
+82:               <button 
+83:                 onClick={() => onReject?.(original)}
+84:                 className="text-[10px] bg-slate-600 hover:bg-red-900/40 text-slate-300 hover:text-red-200 px-2 py-0.5 rounded transition-all flex items-center gap-1 border border-transparent hover:border-red-500/30"
+85:               >
+86:                 <X className="w-2.5 h-2.5" /> Ignora
+87:               </button>
+88:               {suggestion && (
+89:                 <button 
+90:                   onClick={() => onApply?.(original, suggestion)}
+91:                   className="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded transition-all flex items-center gap-1 shadow-sm shadow-blue-900/20"
+92:                 >
+93:                   <Zap className="w-2.5 h-2.5" /> Applica
+94:                 </button>
+95:               )}
+96:             </div>
+97:           )}
+98:         </div>
+99:         <div className="p-3 space-y-2">
+100:           <div className="bg-red-950/20 border border-red-500/10 rounded-lg px-3 py-2 text-xs text-red-300/80 opacity-90 leading-relaxed">
+101:             {oldParts.map((part, i) => (
+102:               <span key={i} className={cn(part.removed && "bg-red-500/30 text-red-100 line-through px-0.5 rounded")}>
+103:                 {part.value}
+104:               </span>
+105:             ))}
+106:           </div>
+107:           {suggestion ? (
+108:             <div 
+109:               onClick={() => !isPending && suggestion && onApply?.(original, suggestion)}
+110:               className={cn(
+111:                 "bg-green-600/10 border border-green-500/20 rounded-lg px-3 py-2 text-xs text-green-300 leading-relaxed transition-all",
+112:                 !isPending && "hover:border-green-500/40 hover:bg-green-600/20 cursor-pointer"
+113:               )}
+114:             >
+115:               {newParts.map((part, i) => (
+116:                 <span key={i} className={cn(part.added && "bg-green-500/30 text-white font-bold px-0.5 rounded shadow-sm")}>
+117:                   {part.value}
+118:                 </span>
+119:               ))}
+120:             </div>
+121:           ) : isPending && (
+122:             <div className="h-8 flex items-center px-3 bg-slate-900/40 rounded-lg border border-dashed border-slate-700 animate-pulse">
+123:                <span className="text-[10px] text-slate-500 italic">L'IA sta elaborando la correzione...</span>
+124:             </div>
+125:           )}
+126:           {reason && (
+127:             <p className="text-[10px] text-slate-400 italic px-1 flex items-start gap-1.5 animate-in slide-in-from-left-1">
+128:               <span className="text-blue-400">💡</span>
+129:               <span>{reason}</span>
+130:             </p>
+131:           )}
+132:         </div>
+133:       </div>
+134:     );
+135:   };
+136: 
+137:   const flushCurrent = (keyPrefix: string | number) => {
+138:     if (currentSuggestion) {
+139:       // Solo se abbiamo sia originale che suggerimento lo consideriamo "finito"
+140:       if (currentSuggestion.original && currentSuggestion.suggestion) {
+141:         elements.push(renderSuggestionCard(currentSuggestion, `done-${keyPrefix}`));
+142:         currentSuggestion = null;
+143:       }
+144:     }
+145:   };
+146: 
+147:   const renderChips = (line: string, colorClass: string) => {
+148:     const list = line.split(':')[1]?.split(',').map(w => w.trim()).filter(w => w) || [];
+149:     return (
+150:       <div key={line} className="flex flex-wrap gap-1.5 py-1 px-1 mb-4">
+151:         {list.map((word, idx) => (
+152:           <span 
+153:             key={idx} 
+154:             className={cn(
+155:               "text-[10px] px-2 py-0.5 rounded-full border transition-all cursor-default hover:scale-105",
+156:               colorClass
+157:             )}
+158:           >
+159:             {word}
+160:           </span>
+161:         ))}
+162:       </div>
+163:     );
+164:   };
+165: 
+166:   lines.forEach((line, i) => {
+167:     const trimmedLine = line.trim();
+168:     if (!trimmedLine) return;
+169: 
+170:     if (/^(?:\d+\.\s*)?❌/.test(trimmedLine)) {
+171:       flushCurrent(i);
+172:       currentSuggestion = { 
+173:         original: trimmedLine.replace(/^(?:\d+\.\s*)?❌\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim() 
+174:       };
+175:     } else if (/^(?:\d+\.\s*)?✅/.test(trimmedLine)) {
+176:       if (currentSuggestion) {
+177:         currentSuggestion.suggestion = trimmedLine.replace(/^(?:\d+\.\s*)?✅\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim();
+178:       }
+179:     } else if (/^(?:\d+\.\s*)?💡/.test(trimmedLine)) {
+180:       if (currentSuggestion) {
+181:         currentSuggestion.reason = trimmedLine.replace(/^(?:\d+\.\s*)?💡\s*/, '').trim();
+182:       } else {
+183:         elements.push(
+184:           <p key={i} className="text-[10px] text-slate-400 italic px-1 bg-slate-800/30 p-2 rounded-lg mb-4 border-l-2 border-blue-500/30">
+185:             {trimmedLine.replace(/^💡\s*/, '')}
+186:           </p>
+187:         );
+188:       }
+189:     } else if (/^(?:\d+\.\s*)?🏷️/.test(trimmedLine)) {
+190:       if (currentSuggestion) {
+191:         currentSuggestion.category = trimmedLine.replace(/^(?:\d+\.\s*)?🏷️\s*/, '').trim();
+192:       }
+193:     } else if (trimmedLine.startsWith('S:')) {
+194:       flushCurrent(i);
+195:       elements.push(renderChips(trimmedLine, "bg-blue-500/10 text-blue-300 border-blue-500/20 hover:bg-blue-500/20"));
+196:     } else if (trimmedLine.startsWith('A:')) {
+197:       flushCurrent(i);
+198:       elements.push(renderChips(trimmedLine, "bg-slate-700/50 text-slate-400 border-slate-600/50 hover:bg-slate-700"));
+199:     } else if (trimmedLine.startsWith('M:')) {
+200:       flushCurrent(i);
+201:       elements.push(
+202:         <div key={i} className="bg-blue-900/10 border border-blue-500/10 rounded-xl p-3 mb-4">
+203:           <p className="text-xs text-blue-100 font-medium leading-relaxed">{trimmedLine.replace(/^M:\s*/, '')}</p>
+204:         </div>
+205:       );
+206:     } else if (trimmedLine.startsWith('##')) {
+207:       flushCurrent(i);
+208:       elements.push(
+209:         <h3 key={i} className="text-[10px] uppercase tracking-widest font-bold text-blue-400 pt-4 pb-2 border-b border-blue-500/20 mb-3">
+210:           {trimmedLine.replace(/^#+\s*/, '')}
+211:         </h3>
+212:       );
+213:     } else if (trimmedLine) {
+214:       // Se non abbiamo un tag, lo renderizziamo come testo semplice a meno che non stiamo costruendo un suggerimento
+215:       if (!currentSuggestion) {
+216:         elements.push(<p key={i} className="text-slate-300 text-xs px-1 leading-relaxed mb-2">{trimmedLine}</p>);
+217:       }
+218:     }
+219:   });
+220: 
+221:   // Se l'IA sta ancora scrivendo l'ultima parte, mostriamo il box in stato "pending"
+222:   if (currentSuggestion) {
+223:     elements.push(renderSuggestionCard(currentSuggestion, "pending-last", true));
+224:   }
+225: 
+226:   return <div className="space-y-1">{elements}</div>;
+227: };
 
-  const flushSuggestion = (key: number) => {
-    if (currentSuggestion && currentSuggestion.original && currentSuggestion.suggestion) {
-      const { original, suggestion, reason, category } = currentSuggestion;
-      
-      // Skip if already applied or ignored
-      if (appliedSuggestions?.includes(original) || rejectedSuggestions?.includes(original)) {
-        currentSuggestion = null;
-        return;
-      }
-
-      const { oldParts, newParts } = computeDiff(original, suggestion);
-
-      elements.push(
-        <div key={`sug-${key}`} className="bg-slate-800/80 border border-slate-700 rounded-xl overflow-hidden mb-4 shadow-lg group animate-in fade-in zoom-in-95 duration-300">
-          <div className="bg-slate-700/50 px-3 py-1.5 flex items-center justify-between border-b border-slate-700">
-            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
-              {category || 'Suggerimento'}
-            </span>
-            <div className="flex items-center gap-2">
-              {onReject && (
-                <button 
-                  onClick={() => onReject?.(original)}
-                  className="text-[10px] bg-slate-600 hover:bg-red-900/40 text-slate-300 hover:text-red-200 px-2 py-0.5 rounded transition-all flex items-center gap-1 border border-transparent hover:border-red-500/30"
-                  title="Rifiuta"
-                >
-                  <X className="w-2.5 h-2.5" />
-                  Ignora
-                </button>
-              )}
-              {onApply && (
-                <button 
-                  onClick={() => onApply?.(original, suggestion)}
-                  className="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded transition-all flex items-center gap-1 shadow-sm shadow-blue-900/20"
-                >
-                  <Zap className="w-2.5 h-2.5" />
-                  Applica
-                </button>
-              )}
-            </div>
-          </div>
-          <div className="p-3 space-y-2">
-            <div className="bg-red-950/20 border border-red-500/10 rounded-lg px-3 py-2 text-xs text-red-300/80 opacity-90 leading-relaxed">
-              {oldParts.map((part, i) => (
-                <span key={i} className={cn(part.removed && "bg-red-500/30 text-red-100 line-through px-0.5 rounded")}>
-                  {part.value}
-                </span>
-              ))}
-            </div>
-            <div 
-              onClick={() => onApply?.(original, suggestion)}
-              className="bg-green-600/10 border border-green-500/20 hover:border-green-500/40 rounded-lg px-3 py-2 text-xs text-green-300 cursor-pointer transition-all hover:bg-green-600/20 group/sug leading-relaxed"
-            >
-              {newParts.map((part, i) => (
-                <span key={i} className={cn(part.added && "bg-green-500/30 text-white font-bold px-0.5 rounded shadow-sm")}>
-                  {part.value}
-                </span>
-              ))}
-            </div>
-            {reason && (
-              <p className="text-[10px] text-slate-400 italic px-1 flex items-start gap-1.5">
-                <span className="text-blue-400">💡</span>
-                <span>{reason}</span>
-              </p>
-            )}
-          </div>
-        </div>
-      );
-      currentSuggestion = null;
-    }
-  };
-
-  const renderChips = (line: string, colorClass: string) => {
-    const list = line.split(':')[1]?.split(',').map(w => w.trim()).filter(w => w) || [];
-    return (
-      <div className="flex flex-wrap gap-1.5 py-1 px-1 mb-4">
-        {list.map((word, idx) => (
-          <span 
-            key={idx} 
-            className={cn(
-              "text-[10px] px-2 py-0.5 rounded-full border transition-all cursor-default hover:scale-105",
-              colorClass
-            )}
-          >
-            {word}
-          </span>
-        ))}
-      </div>
-    );
-  };
-
-  lines.forEach((line, i) => {
-    const trimmedLine = line.trim();
-    if (/^(?:\d+\.\s*)?❌/.test(trimmedLine)) {
-      flushSuggestion(i);
-      currentSuggestion = { 
-        original: trimmedLine.replace(/^(?:\d+\.\s*)?❌\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim() 
-      };
-    } else if (/^(?:\d+\.\s*)?✅/.test(trimmedLine)) {
-      if (currentSuggestion) {
-        currentSuggestion.suggestion = trimmedLine.replace(/^(?:\d+\.\s*)?✅\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim();
-      }
-    } else if (/^(?:\d+\.\s*)?💡/.test(trimmedLine)) {
-      if (currentSuggestion) {
-        currentSuggestion.reason = trimmedLine.replace(/^(?:\d+\.\s*)?💡\s*/, '').trim();
-      } else {
-        // Simple info line
-        elements.push(
-          <p key={i} className="text-[10px] text-slate-400 italic px-1 bg-slate-800/30 p-2 rounded-lg mb-4 border-l-2 border-blue-500/30">
-            {trimmedLine.replace(/^💡\s*/, '')}
-          </p>
-        );
-      }
-    } else if (/^(?:\d+\.\s*)?🏷️/.test(trimmedLine)) {
-      if (currentSuggestion) {
-        currentSuggestion.category = trimmedLine.replace(/^(?:\d+\.\s*)?🏷️\s*/, '').trim();
-      }
-    } else if (trimmedLine.startsWith('S:')) {
-      flushSuggestion(i);
-      elements.push(renderChips(trimmedLine, "bg-blue-500/10 text-blue-300 border-blue-500/20 hover:bg-blue-500/20"));
-    } else if (trimmedLine.startsWith('A:')) {
-      flushSuggestion(i);
-      elements.push(renderChips(trimmedLine, "bg-slate-700/50 text-slate-400 border-slate-600/50 hover:bg-slate-700"));
-    } else if (trimmedLine.startsWith('M:')) {
-      flushSuggestion(i);
-      elements.push(
-        <div key={i} className="bg-blue-900/10 border border-blue-500/10 rounded-xl p-3 mb-4 shadow-lg group">
-          <div className="flex items-center gap-2 mb-1.5 font-bold text-blue-400 text-[10px] uppercase tracking-tighter">
-            <span className="opacity-50">✨ Metafora sugerita</span>
-          </div>
-          <p className="text-xs text-blue-100 font-medium leading-relaxed">{trimmedLine.replace(/^M:\s*/, '')}</p>
-        </div>
-      );
-    } else if (trimmedLine.startsWith('💎')) {
-      flushSuggestion(i);
-      elements.push(
-        <div key={i} className="bg-gradient-to-br from-amber-900/20 to-slate-900 border border-amber-500/20 rounded-xl p-3 mb-4 shadow-lg shadow-amber-900/10 group scroll-mt-20">
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="p-1 bg-amber-500/20 rounded text-amber-400">
-               <Star className="w-3 h-3 fill-amber-500/50" />
-            </div>
-            <span className="text-[10px] font-bold text-amber-500 uppercase tracking-tighter">Termine Prezioso</span>
-          </div>
-          <p className="text-xs font-bold text-slate-100 mb-1">{trimmedLine.replace(/^💎\s*/, '').split(':')[0]}</p>
-          <p className="text-[10px] text-slate-400 leading-relaxed italic opacity-80">{trimmedLine.split(':')[1]?.trim()}</p>
-        </div>
-      );
-    } else if (trimmedLine.startsWith('##')) {
-      flushSuggestion(i);
-      elements.push(
-        <h3 key={i} className="text-[10px] uppercase tracking-widest font-bold text-blue-400 pt-4 pb-2 border-b border-blue-500/20 mb-3">
-          {trimmedLine.replace(/^#+\s*/, '')}
-        </h3>
-      );
-    } else if (trimmedLine) {
-      flushSuggestion(i);
-      elements.push(<p key={i} className="text-slate-300 text-xs px-1 leading-relaxed mb-2">{trimmedLine}</p>);
-    }
-  });
-  flushSuggestion(lines.length);
-
-  return <div className="space-y-1">{elements}</div>;
-};
 
 export const AISidekick: React.FC = () => {
   const { 
@@ -422,34 +429,30 @@ export const AISidekick: React.FC = () => {
     }
 
     try {
-      const systemPrompt = `Sei un editor letterario senior specializzato in narrativa italiana contemporanea.
-Il tuo compito è revisionare la bozza fornita dall'utente con precisione chirurgica.
+425:       const systemPrompt = `Sei un editor letterario senior esperto in narrativa italiana.
+426: Revisiona la bozza fornita con precisione.
+427: 
+428: REGOLE MANDATORIE:
+429: 1. Inizia IMMEDIATAMENTE con "## Analisi Revisione".
+430: 2. Per ogni problema, usa RIGOROSAMENTE questo formato:
+431:    ❌ [COPIA ESATTA della frase dal testo]
+432:    ✅ [tua versione migliorata]
+433:    🏷️ [Categoria: Verbo, Avverbio, Ritmo, ecc.]
+434:    💡 [spiegazione ultra-breve]
+435: 
+436: 3. NON scrivere introduzioni, saluti o commenti fuori dai tag.
+437: 4. Identifica max 5-7 interventi prioritari.
+438: 5. Concludi con "## Note Generali" (2 righe di sintesi).
+439: 
+440: OBIETTIVI:
+441: - Rendere il testo dinamico e viscerale.
+442: - Sostituire verbi deboli ("c'era", "aveva") con verbi d'azione.
+443: - Tagliare avverbi inutili e ridondanze.
+444: 
+445: ${isContinuation ? "NOTA: Stai continuando la revisione. Non ripetere suggerimenti già dati." : ""}
+446: 
+447: LINGUA: Italiano.`;
 
-${isContinuation ? "NOTA: Quella che segue è la PARTE SUCCESSIVA del testo che hai già iniziato a leggere. Non ripetere suggerimenti già dati sulla parte precedente." : ""}
-
-OBIETTIVO: Rendere il testo più SCORREVOLE, DINAMICO e COINVOLGENTE.
-
-METODOLOGIA — Per ogni problema trovato, usa questo formato esatto. Le CATEGORIE devono includere specificamente Verbi, Avverbi, Ridondanze se presenti:
-❌ [COPIA ESATTA E LETTERALE della frase dal testo. NON MODIFICARE UNA VIRGOLA E NON TRONCARE CON I PUNTINI (...)]
-✅ [proposta di revisione migliorata]
-🏷️ [Categoria: Es. Verbo, Avverbio, Ridondanza, Ritmo, ecc.]
-💡 [brevissima spiegazione del motivo]
-
-CRITERI DI REVISIONE (applica tutti):
-1. RITMO — Spezza periodi troppo lunghi. Alterna frasi brevi e incisive a quelle più distese.
-2. VERBI ATTIVI — Sostituisci costruzioni passive o deboli ("c'era", "si trovava", "sembrava che") con verbi forti e diretti. Sii spietato con i verbi generici.
-3. ELIMINAZIONE AVVERBI — Rimuovi avverbi ridondanti (molto, abbastanza, davvero). Trova il verbo o aggettivo più preciso.
-4. RIDONDANZE — Elimina ripetizioni ed espressioni superflue.
-5. SHOW DON'T TELL — Ogni emozione deve essere mostrata attraverso un'azione o sensazione fisica, non dichiarata.
-6. FLUIDITÀ DIALOGO — I dialoghi devono suonare naturali, non letterari. Usa incisi di movimento, non solo "disse".
-7. PAROLE RIPETUTE — Segnala e sostituisci le stesse parole usate in prossimità.
-8. APERTURA SCENA — L'incipit deve essere un gancio immediato. Se è debole, proponi un'alternativa.
-
-Inizia con: ## Analisi Revisione
-Poi elenca max 5-7 interventi prioritari nel formato sopra.
-Concludi con: ## Note Generali (2-3 osservazioni sintetiche sullo stile complessivo).
-
-LINGUA: Rispondi sempre in italiano. Sii preciso, non generico.`;
 
       await groqService.streamChatCompletion(
         [
