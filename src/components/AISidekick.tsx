@@ -10,6 +10,7 @@ import {
   BookOpen,
   Languages,
   Compass,
+  Star,
   X
 } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -75,27 +76,29 @@ const StructuredOutput: React.FC<{
               {category || 'Suggerimento'}
             </span>
             <div className="flex items-center gap-2">
-              <button 
-                onClick={() => onReject?.(original)}
-                className="text-[10px] bg-slate-600 hover:bg-red-900/40 text-slate-300 hover:text-red-200 px-2 py-0.5 rounded transition-all flex items-center gap-1 border border-transparent hover:border-red-500/30"
-                title="Rifiuta"
-              >
-                <X className="w-2.5 h-2.5" />
-                Ignora
-              </button>
-              <button 
-                onClick={() => onApply?.(original, suggestion)}
-                className="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded transition-all flex items-center gap-1 shadow-sm shadow-blue-900/20"
-              >
-                <Zap className="w-2.5 h-2.5" />
-                Applica
-              </button>
+              {onReject && (
+                <button 
+                  onClick={() => onReject?.(original)}
+                  className="text-[10px] bg-slate-600 hover:bg-red-900/40 text-slate-300 hover:text-red-200 px-2 py-0.5 rounded transition-all flex items-center gap-1 border border-transparent hover:border-red-500/30"
+                  title="Rifiuta"
+                >
+                  <X className="w-2.5 h-2.5" />
+                  Ignora
+                </button>
+              )}
+              {onApply && (
+                <button 
+                  onClick={() => onApply?.(original, suggestion)}
+                  className="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded transition-all flex items-center gap-1 shadow-sm shadow-blue-900/20"
+                >
+                  <Zap className="w-2.5 h-2.5" />
+                  Applica
+                </button>
+              )}
             </div>
           </div>
           <div className="p-3 space-y-2">
-            <div 
-              className="bg-red-950/20 border border-red-500/10 rounded-lg px-3 py-2 text-xs text-red-300/80 opacity-90 leading-relaxed"
-            >
+            <div className="bg-red-950/20 border border-red-500/10 rounded-lg px-3 py-2 text-xs text-red-300/80 opacity-90 leading-relaxed">
               {oldParts.map((part, i) => (
                 <span key={i} className={cn(part.removed && "bg-red-500/30 text-red-100 line-through px-0.5 rounded")}>
                   {part.value}
@@ -125,6 +128,25 @@ const StructuredOutput: React.FC<{
     }
   };
 
+  const renderChips = (line: string, colorClass: string) => {
+    const list = line.split(':')[1]?.split(',').map(w => w.trim()).filter(w => w) || [];
+    return (
+      <div className="flex flex-wrap gap-1.5 py-1 px-1 mb-4">
+        {list.map((word, idx) => (
+          <span 
+            key={idx} 
+            className={cn(
+              "text-[10px] px-2 py-0.5 rounded-full border transition-all cursor-default hover:scale-105",
+              colorClass
+            )}
+          >
+            {word}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
   lines.forEach((line, i) => {
     const trimmedLine = line.trim();
     if (/^(?:\d+\.\s*)?❌/.test(trimmedLine)) {
@@ -139,11 +161,38 @@ const StructuredOutput: React.FC<{
     } else if (/^(?:\d+\.\s*)?💡/.test(trimmedLine)) {
       if (currentSuggestion) {
         currentSuggestion.reason = trimmedLine.replace(/^(?:\d+\.\s*)?💡\s*/, '').trim();
+      } else {
+        // Simple info line
+        elements.push(
+          <p key={i} className="text-[10px] text-slate-400 italic px-1 bg-slate-800/30 p-2 rounded-lg mb-4 border-l-2 border-blue-500/30">
+            {trimmedLine.replace(/^💡\s*/, '')}
+          </p>
+        );
       }
     } else if (/^(?:\d+\.\s*)?🏷️/.test(trimmedLine)) {
       if (currentSuggestion) {
         currentSuggestion.category = trimmedLine.replace(/^(?:\d+\.\s*)?🏷️\s*/, '').trim();
       }
+    } else if (trimmedLine.startsWith('S:')) {
+      flushSuggestion(i);
+      elements.push(renderChips(trimmedLine, "bg-blue-500/10 text-blue-300 border-blue-500/20 hover:bg-blue-500/20"));
+    } else if (trimmedLine.startsWith('A:')) {
+      flushSuggestion(i);
+      elements.push(renderChips(trimmedLine, "bg-slate-700/50 text-slate-400 border-slate-600/50 hover:bg-slate-700"));
+    } else if (trimmedLine.startsWith('💎')) {
+      flushSuggestion(i);
+      elements.push(
+        <div key={i} className="bg-gradient-to-br from-amber-900/20 to-slate-900 border border-amber-500/20 rounded-xl p-3 mb-4 shadow-lg shadow-amber-900/10 group scroll-mt-20">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="p-1 bg-amber-500/20 rounded text-amber-400">
+               <Star className="w-3 h-3 fill-amber-500/50" />
+            </div>
+            <span className="text-[10px] font-bold text-amber-500 uppercase tracking-tighter">Termine Prezioso</span>
+          </div>
+          <p className="text-xs font-bold text-slate-100 mb-1">{trimmedLine.replace(/^💎\s*/, '').split(':')[0]}</p>
+          <p className="text-[10px] text-slate-400 leading-relaxed italic opacity-80">{trimmedLine.split(':')[1]?.trim()}</p>
+        </div>
+      );
     } else if (trimmedLine.startsWith('##')) {
       flushSuggestion(i);
       elements.push(
@@ -153,7 +202,7 @@ const StructuredOutput: React.FC<{
       );
     } else if (trimmedLine) {
       flushSuggestion(i);
-      elements.push(<p key={i} className="text-slate-300 text-xs px-1 leading-relaxed">{trimmedLine}</p>);
+      elements.push(<p key={i} className="text-slate-300 text-xs px-1 leading-relaxed mb-2">{trimmedLine}</p>);
     }
   });
   flushSuggestion(lines.length);
@@ -493,18 +542,26 @@ Riscrivi in italiano. Restituisci SOLO il testo riscritto.`,
       const prompts = {
         synonyms: `Sei un esperto di semantica e lessicografia italiana. 
 L'utente cerca sinonimi e contrari per la parola: "${lexiconInput}".
-REGOLE:
-- Fornisci una lista di sinonimi divisi per sfumatura di significato (es: formali, colloquiali, intensi).
-- Fornisci una lista di contrari.
-- Suggerisci 2-3 termini rari o letterari che potrebbero nobilitare il testo.
+
+REGOLE DI FORMATTAZIONE:
+1. Usa "## [Categoria]" per i titoli delle sezioni.
+2. Per i sinonimi, usa "S: [lista parole separate da virgola]". Esempio: "S: timore, apprensione, soggezione"
+3. Per i contrari, usa "A: [lista parole separate da virgola]".
+4. Per i termini rari/nobilitanti, usa "💎 [Parola]: [breve spiegazione]".
+5. Non usare elenchi puntati classici, usa solo i marker sopra.
+
 Rispondi in italiano con un tono professionale ma d'ispirazione.`,
         metaphors: `Sei un consulente creativo per scrittori di narrativa.
 L'utente cerca immagini evocative per il concetto: "${lexiconInput}".
-REGOLE:
-- Genera 5 metafore o similitudini originali (evita i cliché).
-- Le immagini devono essere legate alla sensazione fisica, all'ambiente o ad elementi naturali.
-- Ogni metafora deve essere accompagnata da una breve spiegazione del sotto-testo emotivo.
-Rispondi con una lista puntata, in italiano.`
+
+REGOLE DI FORMATTAZIONE:
+1. Per ogni metafora, usa questo blocco:
+   ❌ [Immagine metaforica/similitudine]
+   💡 [breve spiegazione del sotto-testo emotivo]
+2. Genera esattamente 5 metafore originali (evita i cliché).
+3. Le immagini devono essere legate alla sensazione fisica, all'ambiente o ad elementi naturali.
+
+Rispondi in italiano.`
       };
 
       await groqService.streamChatCompletion(
