@@ -7,7 +7,9 @@ import {
   RefreshCw,
   PenLine,
   Wand2,
-  BookOpen
+  BookOpen,
+  Trash2,
+  X
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { groqService } from '../lib/groq';
@@ -17,12 +19,36 @@ import { useToast } from './Toast';
 
 type SidekickTab = 'revision' | 'braindump' | 'transformer';
 
+// Simple word-level diffing utility
+type DiffPart = { value: string; added?: boolean; removed?: boolean };
+
+function computeDiff(oldStr: string, newStr: string) {
+  const oldWords = oldStr.split(/(\s+)/);
+  const newWords = newStr.split(/(\s+)/);
+  
+  // Basic LCS-style word matching for split view
+  // We'll mark words that don't exist in the other string
+  const oldParts: DiffPart[] = oldWords.map(word => ({
+    value: word,
+    removed: word.trim() && !newStr.includes(word.trim())
+  }));
+  
+  const newParts: DiffPart[] = newWords.map(word => ({
+    value: word,
+    added: word.trim() && !oldStr.includes(word.trim())
+  }));
+
+  return { oldParts, newParts };
+}
+
 // Renders structured AI output: lines starting with ❌ get red, ✅ green, ## become headers, etc.
 const StructuredOutput: React.FC<{ 
   text: string; 
   onApply?: (original: string, suggestion: string) => void;
+  onReject?: (original: string) => void;
   appliedSuggestions?: string[];
-}> = ({ text, onApply, appliedSuggestions }) => {
+  rejectedSuggestions?: string[];
+}> = ({ text, onApply, onReject, appliedSuggestions, rejectedSuggestions }) => {
   const lines = text.split('\n');
   
   // Group ❌, ✅, 🏷️, 💡 together into cards
@@ -33,43 +59,62 @@ const StructuredOutput: React.FC<{
     if (currentSuggestion && currentSuggestion.original && currentSuggestion.suggestion) {
       const { original, suggestion, reason, category } = currentSuggestion;
       
-      // Skip if already applied
-      if (appliedSuggestions?.includes(original)) {
+      // Skip if already applied or rejected
+      if (appliedSuggestions?.includes(original) || rejectedSuggestions?.includes(original)) {
         currentSuggestion = null;
         return;
       }
 
+      const { oldParts, newParts } = computeDiff(original, suggestion);
+
       elements.push(
         <div key={`sug-${key}`} className="bg-slate-800/80 border border-slate-700 rounded-xl overflow-hidden mb-4 shadow-lg group animate-in fade-in zoom-in-95 duration-300">
-          {category && (
-            <div className="bg-slate-700/50 px-3 py-1 flex items-center justify-between border-b border-slate-700">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
-                {category}
-              </span>
+          <div className="bg-slate-700/50 px-3 py-1.5 flex items-center justify-between border-b border-slate-700">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
+              {category || 'Suggerimento'}
+            </span>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => onReject?.(original)}
+                className="text-[10px] bg-slate-600 hover:bg-red-900/40 text-slate-300 hover:text-red-200 px-2 py-0.5 rounded transition-all flex items-center gap-1 border border-transparent hover:border-red-500/30"
+                title="Rifiuta"
+              >
+                <X className="w-2.5 h-2.5" />
+                Scarta
+              </button>
               <button 
                 onClick={() => onApply?.(original, suggestion)}
-                className="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded transition-colors flex items-center gap-1"
+                className="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded transition-all flex items-center gap-1 shadow-sm shadow-blue-900/20"
               >
                 <Zap className="w-2.5 h-2.5" />
                 Applica
               </button>
             </div>
-          )}
+          </div>
           <div className="p-3 space-y-2">
             <div 
-              className="bg-red-950/20 border border-red-500/20 rounded-lg px-3 py-2 text-xs text-red-300 line-through opacity-70 cursor-not-allowed"
+              className="bg-red-950/20 border border-red-500/10 rounded-lg px-3 py-2 text-xs text-red-300/80 opacity-90 leading-relaxed"
             >
-              {original}
+              {oldParts.map((part, i) => (
+                <span key={i} className={cn(part.removed && "bg-red-500/30 text-red-100 line-through px-0.5 rounded")}>
+                  {part.value}
+                </span>
+              ))}
             </div>
             <div 
               onClick={() => onApply?.(original, suggestion)}
-              className="bg-green-600/10 border border-green-500/30 hover:border-green-500/60 rounded-lg px-3 py-2 text-xs text-green-300 cursor-pointer transition-all hover:bg-green-600/20 active:scale-[0.98] group-hover:ring-1 ring-green-500/50"
+              className="bg-green-600/10 border border-green-500/20 hover:border-green-500/40 rounded-lg px-3 py-2 text-xs text-green-300 cursor-pointer transition-all hover:bg-green-600/20 group/sug leading-relaxed"
             >
-              {suggestion}
+              {newParts.map((part, i) => (
+                <span key={i} className={cn(part.added && "bg-green-500/30 text-white font-bold px-0.5 rounded shadow-sm")}>
+                  {part.value}
+                </span>
+              ))}
             </div>
             {reason && (
-              <p className="text-[10px] text-slate-400 italic px-1">
-                💡 {reason}
+              <p className="text-[10px] text-slate-400 italic px-1 flex items-start gap-1.5">
+                <span className="text-blue-400">💡</span>
+                <span>{reason}</span>
               </p>
             )}
           </div>
@@ -122,8 +167,13 @@ export const AISidekick: React.FC = () => {
   const [activeTab, setActiveTab] = React.useState<SidekickTab>('revision');
   const [analysis, setAnalysis] = React.useState<string>('');
   const [appliedSuggestions, setAppliedSuggestions] = React.useState<string[]>([]);
+  const [rejectedSuggestions, setRejectedSuggestions] = React.useState<string[]>([]);
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+
+  const handleReject = (originalText: string) => {
+    setRejectedSuggestions(prev => [...prev, originalText]);
+  };
 
   const applySuggestion = async (originalText: string, suggestion: string) => {
     if (!activeSceneId || !content) return;
@@ -252,6 +302,7 @@ export const AISidekick: React.FC = () => {
     setIsAnalyzing(true);
     setAnalysis('');
     setAppliedSuggestions([]);
+    setRejectedSuggestions([]);
     try {
       const systemPrompt = `Sei un editor letterario senior specializzato in narrativa italiana contemporanea.
 Il tuo compito è revisionare la bozza fornita dall'utente con precisione chirurgica.
@@ -465,7 +516,9 @@ Riscrivi in italiano. Restituisci SOLO il testo riscritto.`,
                 <StructuredOutput 
                   text={analysis} 
                   onApply={applySuggestion} 
+                  onReject={handleReject}
                   appliedSuggestions={appliedSuggestions}
+                  rejectedSuggestions={rejectedSuggestions}
                 />
               </div>
             ) : (
