@@ -55,10 +55,25 @@ export const geminiService = {
 
       for await (const chunk of result.stream) {
         try {
+          // Se il chunk è bloccato per sicurezza, chunk.text() potrebbe fallire o essere vuoto
+          const candidates = chunk.candidates || [];
+          const firstCandidate = candidates[0];
+          
+          if (firstCandidate?.finishReason === 'SAFETY') {
+            onChunk("\n\n⚠️ [Contenuto rimosso dai filtri di sicurezza di Google] ⚠️\n\n");
+            continue;
+          }
+
           const chunkText = chunk.text();
-          onChunk(chunkText);
+          if (chunkText) {
+            onChunk(chunkText);
+          }
         } catch (e) {
           console.warn("Gemini: Could not parse chunk", e);
+          const feedback = (chunk as any).promptFeedback;
+          if (feedback?.blockReason) {
+             onChunk(`\n\n❌ Blocco Sicurezza: ${feedback.blockReason}\n\n`);
+          }
         }
       }
     } catch (err: any) {

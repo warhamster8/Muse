@@ -421,9 +421,15 @@ ${isContinuation ? "NOTA: Stai continuando la revisione. Non ripetere suggerimen
 
 LINGUA: Italiano.`;
 
-      const activeConfig = isEmergencyMode && aiConfig.geminiKey
-        ? { provider: 'gemini' as const, model: 'gemini-flash-latest', geminiKey: aiConfig.geminiKey }
+      const activeConfig = isEmergencyMode
+        ? { provider: 'gemini' as const, model: 'gemini-1.5-flash', geminiKey: aiConfig.geminiKey || '' }
         : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
+
+      if (isEmergencyMode && !aiConfig.geminiKey) {
+        setAnalysis("❌ Errore: Modalità Emergenza attiva ma Chiave Gemini non trovata su Supabase.");
+        setIsAnalyzing(false);
+        return;
+      }
 
       await aiService.streamChat(
         activeConfig,
@@ -434,7 +440,8 @@ LINGUA: Italiano.`;
         (chunk) => setAnalysis(prev => prev + chunk)
       );
     } catch (err: any) {
-      setAnalysis(`❌ Errore AI: ${err?.message || 'Errore Sconosciuto'}`);
+      const provider = isEmergencyMode ? 'GEMINI' : 'GROQ';
+      setAnalysis(`❌ Errore AI (${provider}): ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -450,9 +457,15 @@ Trasformali in suggestioni narrative concrete.
 CONTESTO SCENA ATTUALE: ${plainText ? plainText.slice(0, 600) : 'Nessuna scena attiva.'}
 Rispondi in italiano. Sii concreto e originale.`;
 
-      const activeConfig = isEmergencyMode && aiConfig.geminiKey
-        ? { provider: 'gemini' as const, model: 'gemini-flash-latest', geminiKey: aiConfig.geminiKey }
+      const activeConfig = isEmergencyMode
+        ? { provider: 'gemini' as const, model: 'gemini-1.5-flash', geminiKey: aiConfig.geminiKey || '' }
         : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
+
+      if (isEmergencyMode && !aiConfig.geminiKey) {
+        setAnalysis("❌ Errore: Modalità Emergenza attiva ma Chiave Gemini non trovata.");
+        setIsAnalyzing(false);
+        return;
+      }
 
       await aiService.streamChat(
         activeConfig,
@@ -463,7 +476,8 @@ Rispondi in italiano. Sii concreto e originale.`;
         (chunk) => setAnalysis(prev => prev + chunk)
       );
     } catch (err: any) {
-      setAnalysis(`❌ Errore Braindump: ${err?.message || 'Errore Sconosciuto'}`);
+      const provider = isEmergencyMode ? 'GEMINI' : 'GROQ';
+      setAnalysis(`❌ Errore Braindump (${provider}): ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -483,8 +497,8 @@ Rispondi in italiano. Sii concreto e originale.`;
     let textToAnalyze = plainText.length > 3000 ? plainText.substring(0, 3000) : plainText;
 
     try {
-      const activeConfig = isEmergencyMode && aiConfig.geminiKey
-        ? { provider: 'gemini' as const, model: 'gemini-flash-latest', geminiKey: aiConfig.geminiKey }
+      const activeConfig = isEmergencyMode
+        ? { provider: 'gemini' as const, model: 'gemini-1.5-flash', geminiKey: aiConfig.geminiKey || '' }
         : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
 
       await aiService.streamChat(
@@ -496,7 +510,8 @@ Rispondi in italiano. Sii concreto e originale.`;
         (chunk) => setAnalysis(prev => prev + chunk)
       );
     } catch (err: any) {
-      setAnalysis(`❌ Errore Stile: ${err?.message || 'Errore Sconosciuto'}`);
+      const provider = isEmergencyMode ? 'GEMINI' : 'GROQ';
+      setAnalysis(`❌ Errore Stile (${provider}): ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -545,7 +560,14 @@ Rispondi in italiano. Sii concreto e originale.`;
           <h2 className="font-semibold text-slate-200">AI Sidekick</h2>
         </div>
         <div className="flex items-center gap-2">
-          {isAnalyzing && <RefreshCw className="w-4 h-4 animate-spin text-blue-400" />}
+          {isAnalyzing && (
+            <div className="flex items-center gap-2 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 animate-pulse">
+              <span className="text-[9px] font-bold text-blue-400 uppercase tracking-tighter">
+                {isEmergencyMode ? 'Gemini Active' : 'Groq Active'}
+              </span>
+              <RefreshCw className="w-2.5 h-2.5 animate-spin text-blue-400" />
+            </div>
+          )}
         </div>
       </div>
 
