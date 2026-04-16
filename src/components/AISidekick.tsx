@@ -179,6 +179,16 @@ const StructuredOutput: React.FC<{
     } else if (trimmedLine.startsWith('A:')) {
       flushSuggestion(i);
       elements.push(renderChips(trimmedLine, "bg-slate-700/50 text-slate-400 border-slate-600/50 hover:bg-slate-700"));
+    } else if (trimmedLine.startsWith('M:')) {
+      flushSuggestion(i);
+      elements.push(
+        <div key={i} className="bg-blue-900/10 border border-blue-500/10 rounded-xl p-3 mb-4 shadow-lg group">
+          <div className="flex items-center gap-2 mb-1.5 font-bold text-blue-400 text-[10px] uppercase tracking-tighter">
+            <span className="opacity-50">✨ Metafora sugerita</span>
+          </div>
+          <p className="text-xs text-blue-100 font-medium leading-relaxed">{trimmedLine.replace(/^M:\s*/, '')}</p>
+        </div>
+      );
     } else if (trimmedLine.startsWith('💎')) {
       flushSuggestion(i);
       elements.push(
@@ -556,7 +566,7 @@ L'utente cerca immagini evocative per il concetto: "${lexiconInput}".
 
 REGOLE DI FORMATTAZIONE:
 1. Per ogni metafora, usa questo blocco:
-   ❌ [Immagine metaforica/similitudine]
+   M: [Immagine metaforica/similitudine]
    💡 [breve spiegazione del sotto-testo emotivo]
 2. Genera esattamente 5 metafore originali (evita i cliché).
 3. Le immagini devono essere legate alla sensazione fisica, all'ambiente o ad elementi naturali.
