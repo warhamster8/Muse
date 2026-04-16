@@ -392,8 +392,8 @@ export const AISidekick: React.FC = () => {
       }
     }
 
-    if (textToAnalyze.length > 4000) {
-      textToAnalyze = textToAnalyze.substring(0, 4000);
+    if (textToAnalyze.length > 3000) {
+      textToAnalyze = textToAnalyze.substring(0, 3000);
     }
 
     try {
@@ -447,7 +447,7 @@ LINGUA: Italiano.`;
     } catch (err: any) {
       console.error("AISidekick: Errore Critico", err);
       const provider = isEmergencyMode ? 'GEMINI' : 'GROQ';
-      setAnalysis(`❌ Errore AI (${provider}): ${err?.message || 'Errore Sconosciuto'}`);
+      setAnalysis(prev => prev + `\n\n❌ Errore Finale (${provider}): ${err?.message || 'Errore Sconosciuto'}\n\nNota: Se ricevi ancora 429, Google AI Studio potrebbe richiedere una verifica manuale del tuo account.`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -483,7 +483,7 @@ Rispondi in italiano. Sii concreto e originale.`;
       );
     } catch (err: any) {
       const provider = isEmergencyMode ? 'GEMINI' : 'GROQ';
-      setAnalysis(`❌ Errore Braindump (${provider}): ${err?.message || 'Errore Sconosciuto'}`);
+      setAnalysis(prev => prev + `\n\n❌ Errore Braindump (${provider}): ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -517,7 +517,7 @@ Rispondi in italiano. Sii concreto e originale.`;
       );
     } catch (err: any) {
       const provider = isEmergencyMode ? 'GEMINI' : 'GROQ';
-      setAnalysis(`❌ Errore Stile (${provider}): ${err?.message || 'Errore Sconosciuto'}`);
+      setAnalysis(prev => prev + `\n\n❌ Errore Stile (${provider}): ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
     }

@@ -4,92 +4,92 @@ export const geminiService = {
   async streamChatCompletion(
     apiKey: string,
     messages: any[],
-    modelName = 'gemini-pro-latest',
+    requestedModel = 'gemini-2.0-flash-lite',
     onChunk: (text: string) => void,
     temperature = 0.7
   ) {
     if (!apiKey) throw new Error('Gemini API Key missing');
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const systemInstruction = messages.find(m => m.role === 'system')?.content || '';
-    const model = genAI.getGenerativeModel({ model: modelName, systemInstruction });
+    // Lista ordinata dei modelli da tentare in caso di errore 429/404
+    const modelRotation = [
+      requestedModel,
+      'gemini-flash-latest',
+      'gemini-pro-latest',
+      'gemini-2.0-flash',
+      'gemini-1.5-flash-001'
+    ];
 
-    // Map OpenAI-style messages to Gemini format
-    const chatHistory = messages
-      .filter(m => m.role !== 'system')
-      .slice(0, -1)
-      .map(m => ({
-        role: m.role === 'user' ? 'user' : 'model',
-        parts: [{ text: m.content }]
-      }));
-    const lastMessage = messages[messages.length - 1].content;
+    // Rimuoviamo duplicati mantenendo l'ordine
+    const uniqueModels = [...new Set(modelRotation)];
 
-    const chat = model.startChat({
-      history: chatHistory,
-      generationConfig: {
-        temperature,
-        maxOutputTokens: 4096,
-      },
-      safetySettings: [
-        {
-          category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-          threshold: HarmBlockThreshold.BLOCK_NONE,
-        },
-        {
-          category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-          threshold: HarmBlockThreshold.BLOCK_NONE,
-        },
-        {
-          category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-          threshold: HarmBlockThreshold.BLOCK_NONE,
-        },
-        {
-          category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-          threshold: HarmBlockThreshold.BLOCK_NONE,
-        },
-      ],
-    });
+    let lastError: any = null;
 
-    try {
-      const result = await chat.sendMessageStream(lastMessage);
+    for (const modelName of uniqueModels) {
+      console.log(`GeminiService: Tentativo con modello ${modelName}...`);
+      
+      try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const systemInstruction = messages.find(m => m.role === 'system')?.content || '';
+        const model = genAI.getGenerativeModel({ model: modelName, systemInstruction });
 
-      for await (const chunk of result.stream) {
-        try {
-          // Se il chunk è bloccato per sicurezza, chunk.text() potrebbe fallire o essere vuoto
-          const candidates = chunk.candidates || [];
-          const firstCandidate = candidates[0];
-          
-          if (firstCandidate?.finishReason === 'SAFETY') {
-            onChunk("\n\n⚠️ [Contenuto rimosso dai filtri di sicurezza di Google] ⚠️\n\n");
-            continue;
-          }
+        const chatHistory = messages
+          .filter(m => m.role !== 'system')
+          .slice(0, -1)
+          .map(m => ({
+            role: m.role === 'user' ? 'user' : 'model',
+            parts: [{ text: m.content }]
+          }));
+        const lastMessage = messages[messages.length - 1].content;
 
-          const chunkText = chunk.text();
-          if (chunkText) {
-            console.log("GeminiService: Text chunk received", chunkText.substring(0, 30) + "...");
-            onChunk(chunkText);
-          }
-        } catch (e) {
-          console.error("GeminiService: Error parsing chunk", e);
-          const feedback = (chunk as any).promptFeedback;
-          if (feedback?.blockReason) {
-             console.error("GeminiService: SAFETY BLOCK REASON", feedback.blockReason);
-             onChunk(`\n\n❌ Blocco Sicurezza: ${feedback.blockReason}\n\n`);
+        const chat = model.startChat({
+          history: chatHistory,
+          generationConfig: {
+            temperature,
+            maxOutputTokens: 4096,
+          },
+          safetySettings: [
+            { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+            { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+            { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+            { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+          ],
+        });
+
+        const result = await chat.sendMessageStream(lastMessage);
+
+        for await (const chunk of result.stream) {
+          try {
+            const chunkText = chunk.text();
+            if (chunkText) {
+              onChunk(chunkText);
+            }
+          } catch (e) {
+            const feedback = (chunk as any).promptFeedback;
+            if (feedback?.blockReason) {
+               onChunk(`\n\n❌ Blocco Sicurezza (${modelName}): ${feedback.blockReason}\n\n`);
+            }
           }
         }
-      }
-    } catch (err: any) {
-      if (err?.message?.includes('Failed to parse stream') || err?.message?.includes('fetch')) {
-         console.warn("Stream failed, attempting non-streaming fallback...");
-         try {
-           const fallbackResult = await chat.sendMessage(lastMessage);
-           onChunk(fallbackResult.response.text());
-         } catch (fallbackErr: any) {
-           throw new Error(fallbackErr?.message || "Errore di connessione irreversibile.");
-         }
-      } else {
-         throw err;
+        
+        // Se arriviamo qui, il modello ha risposto con successo (o almeno ha finito lo stream)
+        return; 
+
+      } catch (err: any) {
+        lastError = err;
+        const errMsg = err?.message || '';
+        console.error(`GeminiService: Fallimento con ${modelName}:`, errMsg);
+
+        // Se l'errore NON è di quota (429) o di modello non trovato (404), interrompiamo subito
+        if (!errMsg.includes('429') && !errMsg.includes('404') && !errMsg.includes('quota')) {
+          throw err;
+        }
+
+        // Altrimenti, continua il ciclo proverà il prossimo modello
+        onChunk(`\n\n⚠️ ${modelName} indisponibile (Quota/404). Prossimo tentativo...\n\n`);
       }
     }
+
+    // Se arriviamo qui, tutti i modelli hanno fallito
+    throw lastError || new Error("Tutti i modelli Gemini hanno fallito o sono fuori quota.");
   }
 };
