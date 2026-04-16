@@ -2,11 +2,11 @@ import React from 'react';
 import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
 import { Settings, Cpu, Zap, ShieldCheck, AlertTriangle } from 'lucide-react';
-import { toast } from '../components/Toast';
+import { useToast } from '../components/Toast';
 
 export const ConfigView: React.FC = () => {
   const { user, aiConfig, setAIConfig } = useStore();
-  const [saving, setSaving] = React.useState(false);
+  const { addToast } = useToast();
 
   const handleProviderChange = async (provider: 'groq' | 'gemini') => {
     setAIConfig({ provider });
@@ -25,9 +25,13 @@ export const ConfigView: React.FC = () => {
           .eq('user_id', user.id);
           
         if (error) throw error;
+        addToast(`Provider aggiornato a ${provider}`, 'success');
       } catch (err) {
         console.error("Errore salvataggio config:", err);
+        addToast("Errore durante il salvataggio", 'error');
       }
+    } else {
+      addToast(`Provider impostato a ${provider} (Sola lettura)`, 'info');
     }
   };
 

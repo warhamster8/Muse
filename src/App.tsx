@@ -12,7 +12,7 @@ import { AuthView } from './views/AuthView';
 import { ProjectSelector } from './views/ProjectSelector';
 import { AnalysisView } from './views/AnalysisView';
 import { ConfigView } from './views/ConfigView';
-import { AlertCircle, Settings, Cloud } from 'lucide-react';
+import { AlertCircle, Cloud } from 'lucide-react';
 import { ToastContainer } from './components/Toast';
 
 function App() {
