@@ -200,16 +200,21 @@ const StructuredOutput: React.FC<{
     } else if (trimmedLine.startsWith('##')) {
       flushCurrent(i);
       elements.push(
-        <h3 key={i} className="text-[10px] uppercase tracking-widest font-bold text-blue-400 pt-4 pb-2 border-b border-blue-500/20 mb-3">
-          {trimmedLine.replace(/^#+\s*/, '')}
-        </h3>
+        <div key={i} className="pt-6 pb-2 mb-4 border-b border-slate-700/50 flex items-center justify-between">
+          <h3 className="text-[10px] uppercase tracking-[0.2em] font-black text-blue-400">
+            {trimmedLine.replace(/^#+\s*/, '')}
+          </h3>
+          <div className="h-[1px] flex-1 bg-gradient-to-r from-blue-500/30 to-transparent ml-4" />
+        </div>
       );
     } else if (trimmedLine) {
       if (!currentSuggestion) {
         elements.push(
-          <p key={i} className="text-slate-300 text-xs px-1 leading-relaxed mb-3 whitespace-pre-wrap break-words">
-            {trimmedLine}
-          </p>
+          <div key={i} className="px-3 py-2 bg-slate-800/20 border-l-2 border-slate-700 rounded-r-lg mb-4 ml-1">
+            <p className="text-slate-400 text-[11px] leading-relaxed italic">
+              {trimmedLine}
+            </p>
+          </div>
         );
       }
     }
@@ -217,6 +222,15 @@ const StructuredOutput: React.FC<{
 
   if (currentSuggestion) {
     elements.push(renderSuggestionCard(currentSuggestion, "pending-last", true));
+  } else if (text.endsWith('\n') || text.length === 0) {
+    // Show a subtle pulse if we just finished a line and might be waiting for the next
+    elements.push(
+      <div key="typing" className="flex items-center gap-1.5 px-3 py-2 opacity-40">
+        <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+        <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '200ms' }} />
+        <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '400ms' }} />
+      </div>
+    );
   }
 
   return <div className="space-y-1">{elements}</div>;
@@ -249,10 +263,7 @@ export const AISidekick: React.FC = () => {
 
   const setAnalysis = (val: string | ((prev: string) => string)) => {
     if (!activeSceneId) return;
-    const key = `${activeSceneId}-${activeTab}`;
-    const current = sceneAnalysis[key] || '';
-    const next = typeof val === 'function' ? val(current) : val;
-    setSceneAnalysis(activeSceneId, next, activeTab);
+    setSceneAnalysis(activeSceneId, val, activeTab);
   };
 
   const [appliedSuggestions, setAppliedSuggestions] = React.useState<string[]>([]);

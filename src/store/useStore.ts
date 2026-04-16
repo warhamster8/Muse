@@ -41,8 +41,8 @@ interface AppState {
   logout: () => void;
   setActiveSuggestions: (suggestions: string[]) => void;
   addIgnoredSuggestion: (sceneId: string, suggestion: string) => void;
-  setLastAnalyzedPhrase: (sceneId: string, phrase: string, tabId?: string) => void;
-  setSceneAnalysis: (sceneId: string, analysis: string, tabId?: string) => void;
+  setLastAnalyzedPhrase: (sceneId: string, phrase: string | ((prev: string) => string), tabId?: string) => void;
+  setSceneAnalysis: (sceneId: string, analysis: string | ((prev: string) => string), tabId?: string) => void;
   setAIConfig: (config: Partial<AIConfig>) => void;
 }
 
@@ -74,7 +74,7 @@ export const useStore = create<AppState>()(
       setCurrentSceneContent: (content) => set({ currentSceneContent: content }),
       setChapters: (chapters) => set({ chapters }),
       setLocalMode: (enabled) => set({ isLocalMode: enabled, user: null, currentProject: null }),
-      setLoading: (loading) => set({ isLoading: loading }),
+      setLoading: (loading) => set({ loading: loading }),
       logout: () => set({ user: null, currentProject: null, isLocalMode: false }),
       setActiveSuggestions: (suggestions) => set({ activeSuggestions: suggestions }),
       addIgnoredSuggestion: (sceneId, suggestion) => set((state) => ({
@@ -83,18 +83,28 @@ export const useStore = create<AppState>()(
           [sceneId]: [...((state.ignoredSuggestions || {})[sceneId] || []), suggestion]
         }
       })),
-      setLastAnalyzedPhrase: (sceneId, phrase, tabId = 'revision') => set((state) => ({
-        lastAnalyzedPhrase: {
-          ...(state.lastAnalyzedPhrase || {}),
-          [`${sceneId}-${tabId}`]: phrase
-        }
-      })),
-      setSceneAnalysis: (sceneId, analysis, tabId = 'revision') => set((state) => ({
-        sceneAnalysis: {
-          ...(state.sceneAnalysis || {}),
-          [`${sceneId}-${tabId}`]: analysis
-        }
-      })),
+      setLastAnalyzedPhrase: (sceneId, phrase, tabId = 'revision') => set((state) => {
+        const key = `${sceneId}-${tabId}`;
+        const current = state.lastAnalyzedPhrase?.[key] || '';
+        const next = typeof phrase === 'function' ? phrase(current) : phrase;
+        return {
+          lastAnalyzedPhrase: {
+            ...(state.lastAnalyzedPhrase || {}),
+            [key]: next
+          }
+        };
+      }),
+      setSceneAnalysis: (sceneId, analysis, tabId = 'revision') => set((state) => {
+        const key = `${sceneId}-${tabId}`;
+        const current = state.sceneAnalysis?.[key] || '';
+        const next = typeof analysis === 'function' ? analysis(current) : analysis;
+        return {
+          sceneAnalysis: {
+            ...(state.sceneAnalysis || {}),
+            [key]: next
+          }
+        };
+      }),
       setAIConfig: (config) => set((state) => ({
         aiConfig: { ...state.aiConfig, ...config }
       })),
