@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
 import { Settings, Cpu, Zap, ShieldCheck, AlertTriangle, Activity, Terminal } from 'lucide-react';
 import { useToast } from '../components/Toast';
-import { geminiService } from '../lib/gemini';
+import { deepseekService } from '../lib/deepseek';
 
 export const ConfigView: React.FC = () => {
   const { user, aiConfig, setAIConfig } = useStore();
@@ -11,8 +11,8 @@ export const ConfigView: React.FC = () => {
   const [testResult, setTestResult] = React.useState<any>(null);
   const [isTesting, setIsTesting] = React.useState(false);
 
-  const handleTestGemini = async () => {
-    if (!aiConfig.geminiKey) {
+  const handleTestDeepSeek = async () => {
+    if (!aiConfig.deepseekKey) {
       addToast("Inserisci prima una chiave", 'error');
       return;
     }
@@ -20,10 +20,10 @@ export const ConfigView: React.FC = () => {
     setIsTesting(true);
     setTestResult(null);
     try {
-      const result = await geminiService.testConnection(aiConfig.geminiKey);
+      const result = await deepseekService.testConnection(aiConfig.deepseekKey);
       setTestResult(result);
       if (result.ok) {
-        addToast("Connessione Gemini riuscita!", 'success');
+        addToast("Connessione DeepSeek riuscita!", 'success');
       } else {
         addToast(`Errore connessione: ${result.status}`, 'error');
       }
@@ -35,7 +35,7 @@ export const ConfigView: React.FC = () => {
     }
   };
 
-  const handleProviderChange = async (provider: 'groq' | 'gemini') => {
+  const handleProviderChange = async (provider: 'groq' | 'deepseek') => {
     setAIConfig({ provider });
     
     // Salvataggio automatico nel profilo Supabase
@@ -102,30 +102,30 @@ export const ConfigView: React.FC = () => {
           </div>
         </button>
 
-        {/* Gemini Card */}
+        {/* DeepSeek Card */}
         <button
-          onClick={() => handleProviderChange('gemini')}
+          onClick={() => handleProviderChange('deepseek')}
           className={`relative p-6 rounded-3xl border text-left transition-all duration-300 overflow-hidden group ${
-            aiConfig.provider === 'gemini' 
-              ? 'bg-purple-600/10 border-purple-500 shadow-lg shadow-purple-900/20' 
+            aiConfig.provider === 'deepseek' 
+              ? 'bg-emerald-600/10 border-emerald-500 shadow-lg shadow-emerald-900/20' 
               : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'
           }`}
         >
           <div className="flex items-start justify-between mb-4">
-            <div className={`p-3 rounded-xl ${aiConfig.provider === 'gemini' ? 'bg-purple-500 text-white' : 'bg-slate-800 text-slate-400'}`}>
+            <div className={`p-3 rounded-xl ${aiConfig.provider === 'deepseek' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-400'}`}>
               <Cpu className="w-6 h-6" />
             </div>
-            {aiConfig.provider === 'gemini' && (
-              <span className="text-[10px] font-black uppercase tracking-widest bg-purple-500 text-white px-2 py-1 rounded-md">Attivo</span>
+            {aiConfig.provider === 'deepseek' && (
+              <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-2 py-1 rounded-md">Attivo</span>
             )}
           </div>
-          <h3 className="text-xl font-bold mb-2">Gemini 1.5 Flash</h3>
+          <h3 className="text-xl font-bold mb-2">DeepSeek V3</h3>
           <p className="text-sm text-slate-400 leading-relaxed">
-            Finestra di contesto enorme (1M+ token). Perfetto per analizzare interi romanzi e mantenere la coerenza.
+            Potenza incredibile e ragionamento avanzato. Il miglior rapporto qualità/prezzo per l'editing creativo.
           </p>
           <div className="mt-4 flex gap-2">
-            <span className="text-[10px] px-2 py-1 bg-slate-800 rounded text-slate-500 border border-slate-700">Long Context</span>
-            <span className="text-[10px] px-2 py-1 bg-slate-800 rounded text-slate-500 border border-slate-700">Multimodal</span>
+            <span className="text-[10px] px-2 py-1 bg-slate-800 rounded text-slate-500 border border-slate-700">671B Total Parameters</span>
+            <span className="text-[10px] px-2 py-1 bg-slate-800 rounded text-slate-500 border border-slate-700">OpenAI Compatible</span>
           </div>
         </button>
       </div>
@@ -138,12 +138,12 @@ export const ConfigView: React.FC = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
            <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-2xl">
-              <p className="text-[10px] uppercase tracking-tighter text-slate-500 font-bold mb-1">Status Chiave Gemini</p>
+              <p className="text-[10px] uppercase tracking-tighter text-slate-500 font-bold mb-1">Status Chiave DeepSeek</p>
                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${aiConfig.geminiKey ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                  <div className={`w-2 h-2 rounded-full ${aiConfig.deepseekKey ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
                   <span className="font-mono text-sm">
-                     {aiConfig.geminiKey 
-                        ? `Configurata (${aiConfig.geminiKey.substring(0, 4)}...${aiConfig.geminiKey.slice(-4)})` 
+                     {aiConfig.deepseekKey 
+                        ? `Configurata (${aiConfig.deepseekKey.substring(0, 4)}...${aiConfig.deepseekKey.slice(-4)})` 
                         : 'Non Trovata'}
                   </span>
                </div>
@@ -155,7 +155,7 @@ export const ConfigView: React.FC = () => {
                   <span className="text-sm text-slate-300">Testa risposta grezza</span>
                </div>
                <button 
-                onClick={handleTestGemini}
+                onClick={handleTestDeepSeek}
                 disabled={isTesting}
                 className="p-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-xl transition-all"
                >
@@ -176,11 +176,11 @@ export const ConfigView: React.FC = () => {
           </div>
         )}
 
-        {!aiConfig.geminiKey && (
+        {!aiConfig.deepseekKey && (
           <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-200/80 text-xs">
             <AlertTriangle className="w-5 h-5 shrink-0" />
             <p>
-              Non è stata rilevata una chiave Gemini nel tuo profilo. Per attivarla, esegui il comando SQL fornito dall'assistente nel tuo dashboard Supabase.
+              Non è stata rilevata una chiave DeepSeek nel tuo profilo. Per attivarla, esegui il comando SQL fornito dall'assistente nel tuo dashboard Supabase.
             </p>
           </div>
         )}

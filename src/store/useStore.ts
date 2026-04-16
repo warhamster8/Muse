@@ -64,7 +64,7 @@ export const useStore = create<AppState>()(
       aiConfig: {
         provider: 'groq',
         model: 'llama-3.3-70b-versatile',
-        geminiKey: ''
+        deepseekKey: ''
       },
       
       setUser: (user) => set({ user }),

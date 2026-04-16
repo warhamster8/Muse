@@ -1,12 +1,12 @@
 import { groqService } from './groq';
-import { geminiService } from './gemini';
+import { deepseekService } from './deepseek';
 
-export type AIProvider = 'groq' | 'gemini';
+export type AIProvider = 'groq' | 'deepseek';
 
 export interface AIConfig {
   provider: AIProvider;
   model: string;
-  geminiKey?: string;
+  deepseekKey?: string;
 }
 
 export const aiService = {
@@ -16,11 +16,11 @@ export const aiService = {
     onChunk: (text: string) => void,
     options?: { temperature?: number }
   ) {
-    if (config.provider === 'gemini') {
-      if (!config.geminiKey) throw new Error('Chiave Gemini non trovata nel profilo');
+    if (config.provider === 'deepseek') {
+      if (!config.deepseekKey) throw new Error('Chiave DeepSeek non trovata nel profilo');
       
-      return geminiService.streamChatCompletion(
-        config.geminiKey,
+      return deepseekService.streamChatCompletion(
+        config.deepseekKey,
         messages,
         onChunk,
         options?.temperature

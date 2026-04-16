@@ -530,7 +530,7 @@ Rispondi in italiano. Sii concreto e originale.`;
           {isAnalyzing && (
             <div className="flex items-center gap-2 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 animate-pulse">
               <span className="text-[9px] font-bold text-blue-400 uppercase tracking-tighter">
-                {aiConfig.provider === 'groq' ? 'Groq Active' : 'Gemini Active'}
+                {aiConfig.provider === 'groq' ? 'Groq Active' : 'DeepSeek Active'}
               </span>
               <RefreshCw className="w-2.5 h-2.5 animate-spin text-blue-400" />
             </div>
@@ -579,7 +579,7 @@ Rispondi in italiano. Sii concreto e originale.`;
                   onClick={() => setGlobalTab('config')}
                   className="text-xs text-slate-400 hover:text-blue-400 transition-colors flex items-center gap-1 group"
                 >
-                  Motore: <span className="text-white font-medium group-hover:text-blue-400">{aiConfig.provider === 'groq' ? 'Llama 3.3 70B' : 'Gemini 1.5 Flash'}</span>
+                  Motore: <span className="text-white font-medium group-hover:text-blue-400">{aiConfig.provider === 'groq' ? 'Llama 3.3 70B' : 'DeepSeek V3'}</span>
                   <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all" />
                 </button>
               </div>
