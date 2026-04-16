@@ -422,7 +422,7 @@ ${isContinuation ? "NOTA: Stai continuando la revisione. Non ripetere suggerimen
 LINGUA: Italiano.`;
 
       const activeConfig = isEmergencyMode
-        ? { provider: 'gemini' as const, model: 'gemini-2.0-flash-lite', geminiKey: aiConfig.geminiKey || '' }
+        ? { provider: 'gemini' as const, model: 'gemini-pro-latest', geminiKey: aiConfig.geminiKey || '' }
         : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
 
       if (isEmergencyMode && !aiConfig.geminiKey) {
@@ -458,7 +458,7 @@ CONTESTO SCENA ATTUALE: ${plainText ? plainText.slice(0, 600) : 'Nessuna scena a
 Rispondi in italiano. Sii concreto e originale.`;
 
       const activeConfig = isEmergencyMode
-        ? { provider: 'gemini' as const, model: 'gemini-2.0-flash-lite', geminiKey: aiConfig.geminiKey || '' }
+        ? { provider: 'gemini' as const, model: 'gemini-pro-latest', geminiKey: aiConfig.geminiKey || '' }
         : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
 
       if (isEmergencyMode && !aiConfig.geminiKey) {
@@ -498,7 +498,7 @@ Rispondi in italiano. Sii concreto e originale.`;
 
     try {
       const activeConfig = isEmergencyMode
-        ? { provider: 'gemini' as const, model: 'gemini-2.0-flash-lite', geminiKey: aiConfig.geminiKey || '' }
+        ? { provider: 'gemini' as const, model: 'gemini-pro-latest', geminiKey: aiConfig.geminiKey || '' }
         : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
 
       await aiService.streamChat(
@@ -527,7 +527,7 @@ Rispondi in italiano. Sii concreto e originale.`;
         : `Trova 5 metafore originali per: "${lexiconInput}". Formato: M: ..., 💡 [spiegazione]`;
 
       const activeConfig = isEmergencyMode && aiConfig.geminiKey
-        ? { provider: 'gemini' as const, model: 'gemini-1.5-flash-001', geminiKey: aiConfig.geminiKey }
+        ? { provider: 'gemini' as const, model: 'gemini-pro-latest', geminiKey: aiConfig.geminiKey }
         : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
 
       await aiService.streamChat(
