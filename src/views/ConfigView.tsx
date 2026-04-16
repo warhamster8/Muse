@@ -10,6 +10,39 @@ export const ConfigView: React.FC = () => {
   const { addToast } = useToast();
   const [testResult, setTestResult] = React.useState<any>(null);
   const [isTesting, setIsTesting] = React.useState(false);
+  const [keyInput, setKeyInput] = React.useState('');
+  const [isSaving, setIsSaving] = React.useState(false);
+
+  const handleSaveKey = async () => {
+    if (!keyInput.trim()) {
+      addToast("Inserisci una chiave valida", 'warning');
+      return;
+    }
+    
+    if (!user) {
+      addToast("Devi essere loggato per salvare la chiave", 'error');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({ deepseek_api_key: keyInput.trim() })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      setAIConfig({ deepseekKey: keyInput.trim() });
+      addToast("Chiave salvata correttamente", 'success');
+      setKeyInput('');
+    } catch (err: any) {
+      console.error(err);
+      addToast("Errore durante il salvataggio", 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleTestDeepSeek = async () => {
     if (!aiConfig.deepseekKey) {
@@ -177,11 +210,30 @@ export const ConfigView: React.FC = () => {
         )}
 
         {!aiConfig.deepseekKey && (
-          <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-200/80 text-xs">
-            <AlertTriangle className="w-5 h-5 shrink-0" />
-            <p>
-              Non è stata rilevata una chiave DeepSeek nel tuo profilo. Per attivarla, esegui il comando SQL fornito dall'assistente nel tuo dashboard Supabase.
-            </p>
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-200/80 text-xs">
+              <AlertTriangle className="w-5 h-5 shrink-0" />
+              <p>
+                Non è stata rilevata una chiave DeepSeek nel tuo profilo. Incollala qui sotto per attivarla.
+              </p>
+            </div>
+            
+            <div className="flex gap-2">
+              <input 
+                type="password"
+                value={keyInput}
+                onChange={(e) => setKeyInput(e.target.value)}
+                placeholder="Incolla qui la tua chiave sk-..."
+                className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:border-blue-500 outline-none transition-all"
+              />
+              <button
+                onClick={handleSaveKey}
+                disabled={isSaving || !keyInput}
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-xl text-sm font-bold text-white transition-all shadow-lg shadow-blue-900/40"
+              >
+                {isSaving ? 'Salvataggio...' : 'Salva Chiave'}
+              </button>
+            </div>
           </div>
         )}
       </div>
