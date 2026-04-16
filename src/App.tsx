@@ -10,6 +10,7 @@ import { NotesView } from './views/NotesView';
 import { WorldView } from './views/WorldView';
 import { AuthView } from './views/AuthView';
 import { ProjectSelector } from './views/ProjectSelector';
+import { AnalysisView } from './views/AnalysisView';
 import { AlertCircle, Settings, Cloud, Zap } from 'lucide-react';
 import { ToastContainer } from './components/Toast';
 
@@ -59,11 +60,7 @@ function App() {
           </div>
         );
       case 'analysis':
-        return (
-          <div className="h-full flex items-center justify-center glass rounded-xl border border-slate-700">
-             <p className="text-sm italic text-slate-500">Analysis dashboard implementation coming soon...</p>
-          </div>
-        );
+        return <AnalysisView />;
       default:
         return <NarrativeView />;
     }
