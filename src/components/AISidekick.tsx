@@ -228,12 +228,24 @@ export const AISidekick: React.FC = () => {
     ignoredSuggestions,
     addIgnoredSuggestion,
     lastAnalyzedPhrase,
-    setLastAnalyzedPhrase
+    setLastAnalyzedPhrase,
+    sceneAnalysis,
+    setSceneAnalysis
   } = useStore();
   const { updateSceneContent } = useNarrative();
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = React.useState<SidekickTab>('revision');
-  const [analysis, setAnalysis] = React.useState<string>('');
+  
+  const analysis = React.useMemo(() => 
+    activeSceneId ? sceneAnalysis[activeSceneId] || '' : ''
+  , [sceneAnalysis, activeSceneId]);
+
+  const setAnalysis = (val: string | ((prev: string) => string)) => {
+    if (!activeSceneId) return;
+    const current = sceneAnalysis[activeSceneId] || '';
+    const next = typeof val === 'function' ? val(current) : val;
+    setSceneAnalysis(activeSceneId, next);
+  };
   const [appliedSuggestions, setAppliedSuggestions] = React.useState<string[]>([]);
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
   const [lexiconInput, setLexiconInput] = React.useState<string>('');
@@ -386,7 +398,19 @@ export const AISidekick: React.FC = () => {
     let isContinuation = false;
 
     if (lastPhrase) {
-      const index = plainText.indexOf(lastPhrase);
+      // Robust matching: exact or normalized (ignoring whitespace/newlines)
+      let index = plainText.indexOf(lastPhrase);
+      
+      if (index === -1) {
+        // Fallback: try whitespace-insensitive regex
+        const pattern = lastPhrase.trim().split(/\s+/).slice(-10).map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+');
+        try {
+          const regex = new RegExp(pattern, 'i');
+          const match = plainText.match(regex);
+          if (match) index = match.index!;
+        } catch(e) {}
+      }
+
       if (index !== -1) {
         // We start analyzing after the last phrase
         const startIndex = Math.max(0, index + lastPhrase.length);
@@ -612,7 +636,7 @@ Rispondi in italiano.`
         {tabs.map(tab => (
           <button
             key={tab.id}
-            onClick={() => { setActiveTab(tab.id); setAnalysis(''); }}
+            onClick={() => { setActiveTab(tab.id); }}
             className={cn(
               "flex-1 flex items-center justify-center gap-1 text-[10px] uppercase tracking-tighter py-2 rounded transition-all",
               activeTab === tab.id ? "bg-slate-700 text-blue-400" : "text-slate-500 hover:text-slate-300"
@@ -635,7 +659,10 @@ Rispondi in italiano.`
               <div className="flex items-center gap-2">
                 {activeSceneId && lastAnalyzedPhrase[activeSceneId] && (
                   <button
-                    onClick={() => setLastAnalyzedPhrase(activeSceneId, '')}
+                    onClick={() => {
+                      setLastAnalyzedPhrase(activeSceneId, '');
+                      setSceneAnalysis(activeSceneId, '');
+                    }}
                     className="text-[10px] text-slate-500 hover:text-slate-300 flex items-center gap-1 px-2 py-1"
                     title="Ricomincia dall'inizio del testo"
                   >

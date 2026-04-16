@@ -26,6 +26,7 @@ interface AppState {
   activeSuggestions: string[];
   ignoredSuggestions: Record<string, string[]>;
   lastAnalyzedPhrase: Record<string, string>;
+  sceneAnalysis: Record<string, string>;
   
   setUser: (user: User | null) => void;
   setCurrentProject: (project: Project | null) => void;
@@ -39,6 +40,7 @@ interface AppState {
   setActiveSuggestions: (suggestions: string[]) => void;
   addIgnoredSuggestion: (sceneId: string, suggestion: string) => void;
   setLastAnalyzedPhrase: (sceneId: string, phrase: string) => void;
+  setSceneAnalysis: (sceneId: string, analysis: string) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -55,6 +57,7 @@ export const useStore = create<AppState>()(
       activeSuggestions: [],
       ignoredSuggestions: {},
       lastAnalyzedPhrase: {},
+      sceneAnalysis: {},
       
       setUser: (user) => set({ user }),
       setCurrentProject: (project) => set({ currentProject: project }),
@@ -78,6 +81,12 @@ export const useStore = create<AppState>()(
           [sceneId]: phrase
         }
       })),
+      setSceneAnalysis: (sceneId, analysis) => set((state) => ({
+        sceneAnalysis: {
+          ...(state.sceneAnalysis || {}),
+          [sceneId]: analysis
+        }
+      })),
     }),
     {
       name: 'muse-storage',
@@ -87,7 +96,8 @@ export const useStore = create<AppState>()(
         isLocalMode: state.isLocalMode,
         activeTab: state.activeTab,
         ignoredSuggestions: state.ignoredSuggestions || {},
-        lastAnalyzedPhrase: state.lastAnalyzedPhrase || {}
+        lastAnalyzedPhrase: state.lastAnalyzedPhrase || {},
+        sceneAnalysis: state.sceneAnalysis || {}
       }),
     }
   )
