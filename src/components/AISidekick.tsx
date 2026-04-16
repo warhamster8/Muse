@@ -335,7 +335,7 @@ export const AISidekick: React.FC = () => {
                   const entity = html.substring(i, end + 1);
                   textMap.push(i);
                   charLens.push(entity.length);
-                  if (entity === '&&nbsp;') textStr += ' ';
+                  if (entity === '&nbsp;') textStr += ' ';
                   else if (entity === '&lt;') textStr += '<';
                   else if (entity === '&gt;') textStr += '>';
                   else if (entity === '&amp;') textStr += '&';
@@ -448,24 +448,24 @@ export const AISidekick: React.FC = () => {
 
     try {
       const systemPrompt = `Sei un editor letterario senior esperto in narrativa italiana.
-Revisiona la bozza fornita con precisione.
+Revisiona la bozza fornita con precisione e profondità.
 
 REGOLE MANDATORIE:
 1. Inizia IMMEDIATAMENTE con "## Analisi Revisione".
-2. Per ogni problema, usa RIGOROSAMENTE questo formato:
-   ❌ [COPIA ESATTA della frase dal testo]
-   ✅ [tua versione migliorata]
-   🏷️ [Categoria: Verbo, Avverbio, Ritmo, ecc.]
-   💡 [spiegazione ultra-breve]
+2. Per ogni problema identificato, usa QUESTO FORMATO (non cambiare mai i simboli):
+   ❌ Frase originale dal testo
+   ✅ Tua nuova versione migliorata e riscritta
+   🏷️ Categoria (es: Verbo, Ritmo, Stile)
+   💡 Breve spiegazione del perché la tua versione è migliore
 
-3. NON scrivere introduzioni, saluti o commenti fuori dai tag.
-4. Identifica max 5-7 interventi prioritari.
+3. ESEMPIO DI OUTPUT:
+   ❌ Il cielo era scuro e faceva molta paura.
+   ✅ Nubi plumbee schiacciavano l'orizzonte, cariche di una minaccia silenziosa.
+   🏷️ Atmosfera
+   💡 Sostituzione di verbi generici con immagini viscerali.
+
+4. NON scrivere introduzioni o commenti extra. Identifica 5-7 punti chiave.
 5. Concludi con "## Note Generali" (2 righe di sintesi).
-
-OBIETTIVI:
-- Rendere il testo dinamico e viscerale.
-- Sostituire verbi deboli con verbi d'azione.
-- Tagliare avverbi inutili e ridondanze.
 
 ${isContinuation ? "NOTA: Stai continuando la revisione. Non ripetere suggerimenti già dati." : ""}
 

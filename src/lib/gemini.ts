@@ -11,10 +11,10 @@ export const geminiService = {
     if (!apiKey) throw new Error('Gemini API Key missing');
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: modelName });
+    const systemInstruction = messages.find(m => m.role === 'system')?.content || '';
+    const model = genAI.getGenerativeModel({ model: modelName, systemInstruction });
 
     // Map OpenAI-style messages to Gemini format
-    const systemInstruction = messages.find(m => m.role === 'system')?.content || '';
     const chatHistory = messages
       .filter(m => m.role !== 'system')
       .slice(0, -1)
@@ -28,9 +28,8 @@ export const geminiService = {
       history: chatHistory,
       generationConfig: {
         temperature,
-        maxOutputTokens: 2048,
+        maxOutputTokens: 4096,
       },
-      systemInstruction,
     });
 
     const result = await chat.sendMessageStream(lastMessage);
