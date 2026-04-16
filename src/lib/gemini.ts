@@ -4,7 +4,7 @@ export const geminiService = {
   async streamChatCompletion(
     apiKey: string,
     messages: any[],
-    modelName = 'gemini-2.0-flash',
+    modelName = 'gemini-2.0-flash-lite',
     onChunk: (text: string) => void,
     temperature = 0.7
   ) {
