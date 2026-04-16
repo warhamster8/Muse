@@ -44,188 +44,184 @@ function computeDiff(oldStr: string, newStr: string) {
 }
 
 // Renders structured AI output: lines starting with ❌ get red, ✅ green, ## become headers, etc.
-47: const StructuredOutput: React.FC<{ 
-48:   text: string; 
-49:   onApply?: (original: string, suggestion: string) => void;
-50:   onReject?: (original: string) => void;
-51:   appliedSuggestions?: string[];
-52:   rejectedSuggestions?: string[];
-53: }> = ({ text, onApply, onReject, appliedSuggestions, rejectedSuggestions }) => {
-54:   const lines = text.split('\n');
-55:   const elements: React.ReactNode[] = [];
-56:   let currentSuggestion: { original?: string; suggestion?: string; reason?: string; category?: string } | null = null;
-57: 
-58:   const renderSuggestionCard = (sug: typeof currentSuggestion, key: string | number, isPending = false) => {
-59:     if (!sug || !sug.original) return null;
-60:     const { original, suggestion, reason, category } = sug;
-61:     
-62:     if (!isPending && (appliedSuggestions?.includes(original) || rejectedSuggestions?.includes(original))) {
-63:       return null;
-64:     }
-65: 
-66:     const { oldParts, newParts } = suggestion ? computeDiff(original, suggestion) : { oldParts: [{ value: original }], newParts: [] };
-67: 
-68:     return (
-69:       <div key={key} className={cn(
-70:         "bg-slate-800/80 border border-slate-700 rounded-xl overflow-hidden mb-4 shadow-lg group transition-all duration-500",
-71:         isPending ? "opacity-70 border-blue-500/30 ring-1 ring-blue-500/10" : "animate-in fade-in zoom-in-95"
-72:       )}>
-73:         <div className="bg-slate-700/50 px-3 py-1.5 flex items-center justify-between border-b border-slate-700">
-74:           <div className="flex items-center gap-2">
-75:             <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
-76:               {category || 'Suggerimento'}
-77:             </span>
-78:             {isPending && <RefreshCw className="w-2.5 h-2.5 animate-spin text-blue-400" />}
-79:           </div>
-80:           {!isPending && (
-81:             <div className="flex items-center gap-2">
-82:               <button 
-83:                 onClick={() => onReject?.(original)}
-84:                 className="text-[10px] bg-slate-600 hover:bg-red-900/40 text-slate-300 hover:text-red-200 px-2 py-0.5 rounded transition-all flex items-center gap-1 border border-transparent hover:border-red-500/30"
-85:               >
-86:                 <X className="w-2.5 h-2.5" /> Ignora
-87:               </button>
-88:               {suggestion && (
-89:                 <button 
-90:                   onClick={() => onApply?.(original, suggestion)}
-91:                   className="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded transition-all flex items-center gap-1 shadow-sm shadow-blue-900/20"
-92:                 >
-93:                   <Zap className="w-2.5 h-2.5" /> Applica
-94:                 </button>
-95:               )}
-96:             </div>
-97:           )}
-98:         </div>
-99:         <div className="p-3 space-y-2">
-100:           <div className="bg-red-950/20 border border-red-500/10 rounded-lg px-3 py-2 text-xs text-red-300/80 opacity-90 leading-relaxed">
-101:             {oldParts.map((part, i) => (
-102:               <span key={i} className={cn(part.removed && "bg-red-500/30 text-red-100 line-through px-0.5 rounded")}>
-103:                 {part.value}
-104:               </span>
-105:             ))}
-106:           </div>
-107:           {suggestion ? (
-108:             <div 
-109:               onClick={() => !isPending && suggestion && onApply?.(original, suggestion)}
-110:               className={cn(
-111:                 "bg-green-600/10 border border-green-500/20 rounded-lg px-3 py-2 text-xs text-green-300 leading-relaxed transition-all",
-112:                 !isPending && "hover:border-green-500/40 hover:bg-green-600/20 cursor-pointer"
-113:               )}
-114:             >
-115:               {newParts.map((part, i) => (
-116:                 <span key={i} className={cn(part.added && "bg-green-500/30 text-white font-bold px-0.5 rounded shadow-sm")}>
-117:                   {part.value}
-118:                 </span>
-119:               ))}
-120:             </div>
-121:           ) : isPending && (
-122:             <div className="h-8 flex items-center px-3 bg-slate-900/40 rounded-lg border border-dashed border-slate-700 animate-pulse">
-123:                <span className="text-[10px] text-slate-500 italic">L'IA sta elaborando la correzione...</span>
-124:             </div>
-125:           )}
-126:           {reason && (
-127:             <p className="text-[10px] text-slate-400 italic px-1 flex items-start gap-1.5 animate-in slide-in-from-left-1">
-128:               <span className="text-blue-400">💡</span>
-129:               <span>{reason}</span>
-130:             </p>
-131:           )}
-132:         </div>
-133:       </div>
-134:     );
-135:   };
-136: 
-137:   const flushCurrent = (keyPrefix: string | number) => {
-138:     if (currentSuggestion) {
-139:       // Solo se abbiamo sia originale che suggerimento lo consideriamo "finito"
-140:       if (currentSuggestion.original && currentSuggestion.suggestion) {
-141:         elements.push(renderSuggestionCard(currentSuggestion, `done-${keyPrefix}`));
-142:         currentSuggestion = null;
-143:       }
-144:     }
-145:   };
-146: 
-147:   const renderChips = (line: string, colorClass: string) => {
-148:     const list = line.split(':')[1]?.split(',').map(w => w.trim()).filter(w => w) || [];
-149:     return (
-150:       <div key={line} className="flex flex-wrap gap-1.5 py-1 px-1 mb-4">
-151:         {list.map((word, idx) => (
-152:           <span 
-153:             key={idx} 
-154:             className={cn(
-155:               "text-[10px] px-2 py-0.5 rounded-full border transition-all cursor-default hover:scale-105",
-156:               colorClass
-157:             )}
-158:           >
-159:             {word}
-160:           </span>
-161:         ))}
-162:       </div>
-163:     );
-164:   };
-165: 
-166:   lines.forEach((line, i) => {
-167:     const trimmedLine = line.trim();
-168:     if (!trimmedLine) return;
-169: 
-170:     if (/^(?:\d+\.\s*)?❌/.test(trimmedLine)) {
-171:       flushCurrent(i);
-172:       currentSuggestion = { 
-173:         original: trimmedLine.replace(/^(?:\d+\.\s*)?❌\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim() 
-174:       };
-175:     } else if (/^(?:\d+\.\s*)?✅/.test(trimmedLine)) {
-176:       if (currentSuggestion) {
-177:         currentSuggestion.suggestion = trimmedLine.replace(/^(?:\d+\.\s*)?✅\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim();
-178:       }
-179:     } else if (/^(?:\d+\.\s*)?💡/.test(trimmedLine)) {
-180:       if (currentSuggestion) {
-181:         currentSuggestion.reason = trimmedLine.replace(/^(?:\d+\.\s*)?💡\s*/, '').trim();
-182:       } else {
-183:         elements.push(
-184:           <p key={i} className="text-[10px] text-slate-400 italic px-1 bg-slate-800/30 p-2 rounded-lg mb-4 border-l-2 border-blue-500/30">
-185:             {trimmedLine.replace(/^💡\s*/, '')}
-186:           </p>
-187:         );
-188:       }
-189:     } else if (/^(?:\d+\.\s*)?🏷️/.test(trimmedLine)) {
-190:       if (currentSuggestion) {
-191:         currentSuggestion.category = trimmedLine.replace(/^(?:\d+\.\s*)?🏷️\s*/, '').trim();
-192:       }
-193:     } else if (trimmedLine.startsWith('S:')) {
-194:       flushCurrent(i);
-195:       elements.push(renderChips(trimmedLine, "bg-blue-500/10 text-blue-300 border-blue-500/20 hover:bg-blue-500/20"));
-196:     } else if (trimmedLine.startsWith('A:')) {
-197:       flushCurrent(i);
-198:       elements.push(renderChips(trimmedLine, "bg-slate-700/50 text-slate-400 border-slate-600/50 hover:bg-slate-700"));
-199:     } else if (trimmedLine.startsWith('M:')) {
-200:       flushCurrent(i);
-201:       elements.push(
-202:         <div key={i} className="bg-blue-900/10 border border-blue-500/10 rounded-xl p-3 mb-4">
-203:           <p className="text-xs text-blue-100 font-medium leading-relaxed">{trimmedLine.replace(/^M:\s*/, '')}</p>
-204:         </div>
-205:       );
-206:     } else if (trimmedLine.startsWith('##')) {
-207:       flushCurrent(i);
-208:       elements.push(
-209:         <h3 key={i} className="text-[10px] uppercase tracking-widest font-bold text-blue-400 pt-4 pb-2 border-b border-blue-500/20 mb-3">
-210:           {trimmedLine.replace(/^#+\s*/, '')}
-211:         </h3>
-212:       );
-213:     } else if (trimmedLine) {
-214:       // Se non abbiamo un tag, lo renderizziamo come testo semplice a meno che non stiamo costruendo un suggerimento
-215:       if (!currentSuggestion) {
-216:         elements.push(<p key={i} className="text-slate-300 text-xs px-1 leading-relaxed mb-2">{trimmedLine}</p>);
-217:       }
-218:     }
-219:   });
-220: 
-221:   // Se l'IA sta ancora scrivendo l'ultima parte, mostriamo il box in stato "pending"
-222:   if (currentSuggestion) {
-223:     elements.push(renderSuggestionCard(currentSuggestion, "pending-last", true));
-224:   }
-225: 
-226:   return <div className="space-y-1">{elements}</div>;
-227: };
+const StructuredOutput: React.FC<{ 
+  text: string; 
+  onApply?: (original: string, suggestion: string) => void;
+  onReject?: (original: string) => void;
+  appliedSuggestions?: string[];
+  rejectedSuggestions?: string[];
+}> = ({ text, onApply, onReject, appliedSuggestions, rejectedSuggestions }) => {
+  const lines = text.split('\n');
+  const elements: React.ReactNode[] = [];
+  let currentSuggestion: { original?: string; suggestion?: string; reason?: string; category?: string } | null = null;
 
+  const renderSuggestionCard = (sug: typeof currentSuggestion, key: string | number, isPending = false) => {
+    if (!sug || !sug.original) return null;
+    const { original, suggestion, reason, category } = sug;
+    
+    if (!isPending && (appliedSuggestions?.includes(original) || rejectedSuggestions?.includes(original))) {
+      return null;
+    }
+
+    const { oldParts, newParts } = suggestion ? computeDiff(original, suggestion) : { oldParts: [{ value: original }], newParts: [] };
+
+    return (
+      <div key={key} className={cn(
+        "bg-slate-800/80 border border-slate-700 rounded-xl overflow-hidden mb-4 shadow-lg group transition-all duration-500",
+        isPending ? "opacity-70 border-blue-500/30 ring-1 ring-blue-500/10" : "animate-in fade-in zoom-in-95"
+      )}>
+        <div className="bg-slate-700/50 px-3 py-1.5 flex items-center justify-between border-b border-slate-700">
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
+              {category || 'Suggerimento'}
+            </span>
+            {isPending && <RefreshCw className="w-2.5 h-2.5 animate-spin text-blue-400" />}
+          </div>
+          {!isPending && (
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => onReject?.(original)}
+                className="text-[10px] bg-slate-600 hover:bg-red-900/40 text-slate-300 hover:text-red-200 px-2 py-0.5 rounded transition-all flex items-center gap-1 border border-transparent hover:border-red-500/30"
+              >
+                <X className="w-2.5 h-2.5" /> Ignora
+              </button>
+              {suggestion && (
+                <button 
+                  onClick={() => onApply?.(original, suggestion)}
+                  className="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded transition-all flex items-center gap-1 shadow-sm shadow-blue-900/20"
+                >
+                  <Zap className="w-2.5 h-2.5" /> Applica
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="p-3 space-y-2">
+          <div className="bg-red-950/20 border border-red-500/10 rounded-lg px-3 py-2 text-xs text-red-300/80 opacity-90 leading-relaxed">
+            {oldParts.map((part, i) => (
+              <span key={i} className={cn(part.removed && "bg-red-500/30 text-red-100 line-through px-0.5 rounded")}>
+                {part.value}
+              </span>
+            ))}
+          </div>
+          {suggestion ? (
+            <div 
+              onClick={() => !isPending && suggestion && onApply?.(original, suggestion)}
+              className={cn(
+                "bg-green-600/10 border border-green-500/20 rounded-lg px-3 py-2 text-xs text-green-300 leading-relaxed transition-all",
+                !isPending && "hover:border-green-500/40 hover:bg-green-600/20 cursor-pointer"
+              )}
+            >
+              {newParts.map((part, i) => (
+                <span key={i} className={cn(part.added && "bg-green-500/30 text-white font-bold px-0.5 rounded shadow-sm")}>
+                  {part.value}
+                </span>
+              ))}
+            </div>
+          ) : isPending && (
+            <div className="h-8 flex items-center px-3 bg-slate-900/40 rounded-lg border border-dashed border-slate-700 animate-pulse">
+               <span className="text-[10px] text-slate-500 italic">L'IA sta elaborando la correzione...</span>
+            </div>
+          )}
+          {reason && (
+            <p className="text-[10px] text-slate-400 italic px-1 flex items-start gap-1.5 animate-in slide-in-from-left-1">
+              <span className="text-blue-400">💡</span>
+              <span>{reason}</span>
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const flushCurrent = (keyPrefix: string | number) => {
+    if (currentSuggestion) {
+      if (currentSuggestion.original && currentSuggestion.suggestion) {
+        elements.push(renderSuggestionCard(currentSuggestion, `done-${keyPrefix}`));
+        currentSuggestion = null;
+      }
+    }
+  };
+
+  const renderChips = (line: string, colorClass: string) => {
+    const list = line.split(':')[1]?.split(',').map(w => w.trim()).filter(w => w) || [];
+    return (
+      <div key={line} className="flex flex-wrap gap-1.5 py-1 px-1 mb-4">
+        {list.map((word, idx) => (
+          <span 
+            key={idx} 
+            className={cn(
+              "text-[10px] px-2 py-0.5 rounded-full border transition-all cursor-default hover:scale-105",
+              colorClass
+            )}
+          >
+            {word}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+  lines.forEach((line, i) => {
+    const trimmedLine = line.trim();
+    if (!trimmedLine) return;
+
+    if (/^(?:\d+\.\s*)?❌/.test(trimmedLine)) {
+      flushCurrent(i);
+      currentSuggestion = { 
+        original: trimmedLine.replace(/^(?:\d+\.\s*)?❌\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim() 
+      };
+    } else if (/^(?:\d+\.\s*)?✅/.test(trimmedLine)) {
+      if (currentSuggestion) {
+        currentSuggestion.suggestion = trimmedLine.replace(/^(?:\d+\.\s*)?✅\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim();
+      }
+    } else if (/^(?:\d+\.\s*)?💡/.test(trimmedLine)) {
+      if (currentSuggestion) {
+        currentSuggestion.reason = trimmedLine.replace(/^(?:\d+\.\s*)?💡\s*/, '').trim();
+      } else {
+        elements.push(
+          <p key={i} className="text-[10px] text-slate-400 italic px-1 bg-slate-800/30 p-2 rounded-lg mb-4 border-l-2 border-blue-500/30">
+            {trimmedLine.replace(/^💡\s*/, '')}
+          </p>
+        );
+      }
+    } else if (/^(?:\d+\.\s*)?🏷️/.test(trimmedLine)) {
+      if (currentSuggestion) {
+        currentSuggestion.category = trimmedLine.replace(/^(?:\d+\.\s*)?🏷️\s*/, '').trim();
+      }
+    } else if (trimmedLine.startsWith('S:')) {
+      flushCurrent(i);
+      elements.push(renderChips(trimmedLine, "bg-blue-500/10 text-blue-300 border-blue-500/20 hover:bg-blue-500/20"));
+    } else if (trimmedLine.startsWith('A:')) {
+      flushCurrent(i);
+      elements.push(renderChips(trimmedLine, "bg-slate-700/50 text-slate-400 border-slate-600/50 hover:bg-slate-700"));
+    } else if (trimmedLine.startsWith('M:')) {
+      flushCurrent(i);
+      elements.push(
+        <div key={i} className="bg-blue-900/10 border border-blue-500/10 rounded-xl p-3 mb-4">
+          <p className="text-xs text-blue-100 font-medium leading-relaxed">{trimmedLine.replace(/^M:\s*/, '')}</p>
+        </div>
+      );
+    } else if (trimmedLine.startsWith('##')) {
+      flushCurrent(i);
+      elements.push(
+        <h3 key={i} className="text-[10px] uppercase tracking-widest font-bold text-blue-400 pt-4 pb-2 border-b border-blue-500/20 mb-3">
+          {trimmedLine.replace(/^#+\s*/, '')}
+        </h3>
+      );
+    } else if (trimmedLine) {
+      if (!currentSuggestion) {
+        elements.push(<p key={i} className="text-slate-300 text-xs px-1 leading-relaxed mb-2">{trimmedLine}</p>);
+      }
+    }
+  });
+
+  if (currentSuggestion) {
+    elements.push(renderSuggestionCard(currentSuggestion, "pending-last", true));
+  }
+
+  return <div className="space-y-1">{elements}</div>;
+};
 
 export const AISidekick: React.FC = () => {
   const { 
@@ -272,7 +268,6 @@ export const AISidekick: React.FC = () => {
   const applySuggestion = async (originalText: string, suggestion: string) => {
     if (!activeSceneId || !content) return;
 
-    // 1. Costruiamo una mappa millimetrica: Text -> HTML
     const buildMapping = (html: string) => {
       const textMap: number[] = [];
       const charLens: number[] = [];
@@ -290,7 +285,6 @@ export const AISidekick: React.FC = () => {
                   const entity = html.substring(i, end + 1);
                   textMap.push(i);
                   charLens.push(entity.length);
-                  // Riduciamo le entità a spazi per la ricerca (Tiptap usa &nbsp;)
                   if (entity === '&nbsp;') textStr += ' ';
                   else if (entity === '&lt;') textStr += '<';
                   else if (entity === '&gt;') textStr += '>';
@@ -311,7 +305,6 @@ export const AISidekick: React.FC = () => {
 
     const { textStr, textMap, charLens } = buildMapping(content);
 
-    // 2. Normalizziamo la base per gestire la creatività dell'IA
     const normalizeIt = (str: string) => str
       .replace(/[\u201C\u201D]/g, '"')
       .replace(/[\u2018\u2019]/g, "'")
@@ -319,18 +312,15 @@ export const AISidekick: React.FC = () => {
       .replace(/\u00A0/g, ' ')
       .trim();
 
-    // Rimuoviamo gli accenti per non far fallire la ricerca (es. "e'" vs "è")
     const removeAccents = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
     const normalizedOriginal = normalizeIt(originalText);
     const searchOriginal = removeAccents(normalizedOriginal);
     const searchStrHtml = removeAccents(textStr);
 
-    // 3. Creiamo la regex flessibile solo sul TS (Plain Text Mappato)
     const parts = searchOriginal.split(/\.\.\.|…/);
     const gapPattern = '[^a-zA-Z0-9]*';
     
-    // Pattern principale: trova tutte le parole
     let regexStr = parts.map(part => {
         const words = part.match(/[a-zA-Z0-9]+/g) || [];
         return words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(gapPattern);
@@ -344,13 +334,11 @@ export const AISidekick: React.FC = () => {
     let regex = new RegExp(regexStr, 'i');
     let match = searchStrHtml.match(regex);
 
-    // FALLBACK: L'IA ha aggiunto/tolto una parola o ha sbagliato ortografia a metà frase
     if (!match) {
         const allWords = searchOriginal.match(/[a-zA-Z0-9]+/g) || [];
-        if (allWords.length > 5) { // Funziona in sicurezza solo con frasi medio-lunghe
+        if (allWords.length > 5) {
             const first2 = allWords.slice(0, 2).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(gapPattern);
             const last2 = allWords.slice(-2).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(gapPattern);
-            // Limitiamo la tolleranza al doppio della frase originale per non assorbire troppi paragrafi
             const maxLen = Math.max(100, normalizedOriginal.length + 50);
             regexStr = first2 + `(?:.|\\n){0,${maxLen}}?` + last2;
             regex = new RegExp(regexStr, 'i');
@@ -358,7 +346,6 @@ export const AISidekick: React.FC = () => {
         }
     }
 
-    // 4. Risolviamo indici ed iniettiamo!
     if (match) {
       const textStart = match.index!;
       const textEnd = textStart + match[0].length - 1;
@@ -368,22 +355,17 @@ export const AISidekick: React.FC = () => {
       
       const newContent = content.slice(0, htmlStart) + suggestion + content.slice(htmlEnd);
       
-      // Update global store
       setCurrentSceneContent(newContent);
-      // Persist to DB
       await updateSceneContent(activeSceneId, newContent);
-      // Clean UI
       setAppliedSuggestions(prev => [...prev, originalText]);
-      // Update reading progress
       setLastAnalyzedPhrase(activeSceneId, suggestion);
       addToast('Modifica applicata con successo', 'success');
     } else {
-      console.warn("Could not find original text. Clean HTML Search used:", searchStrHtml, "Regex:", regexStr);
+      console.warn("Could not find original text.", searchStrHtml, "Regex:", regexStr);
       addToast('Impossibile trovare il testo originale, modificalo manualmente', 'error');
     }
   };
 
-  // Strip HTML tags to get plain text for AI analysis
   const getPlainText = (html: string) => {
     const div = document.createElement('div');
     div.innerHTML = html;
@@ -392,24 +374,20 @@ export const AISidekick: React.FC = () => {
 
   const plainText = getPlainText(content || '');
 
-  // ─── TAB: REVISIONE BOZZA ───────────────────────────────────────────────────
   const runDraftRevision = async () => {
     if (!plainText || plainText.length < 30) return;
     setIsAnalyzing(true);
     setAnalysis('');
     setAppliedSuggestions([]);
 
-    // Logic: find where we left off
     let textToAnalyze = plainText;
     const lastPhrase = activeSceneId ? lastAnalyzedPhrase[activeSceneId] : null;
     let isContinuation = false;
 
     if (lastPhrase) {
-      // Robust matching: exact or normalized (ignoring whitespace/newlines)
       let index = plainText.indexOf(lastPhrase);
       
       if (index === -1) {
-        // Fallback: try whitespace-insensitive regex
         const pattern = lastPhrase.trim().split(/\s+/).slice(-10).map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+');
         try {
           const regex = new RegExp(pattern, 'i');
@@ -419,7 +397,6 @@ export const AISidekick: React.FC = () => {
       }
 
       if (index !== -1) {
-        // We start analyzing after the last phrase
         const startIndex = Math.max(0, index + lastPhrase.length);
         if (startIndex < plainText.length - 20) {
            textToAnalyze = plainText.substring(startIndex);
@@ -429,30 +406,29 @@ export const AISidekick: React.FC = () => {
     }
 
     try {
-425:       const systemPrompt = `Sei un editor letterario senior esperto in narrativa italiana.
-426: Revisiona la bozza fornita con precisione.
-427: 
-428: REGOLE MANDATORIE:
-429: 1. Inizia IMMEDIATAMENTE con "## Analisi Revisione".
-430: 2. Per ogni problema, usa RIGOROSAMENTE questo formato:
-431:    ❌ [COPIA ESATTA della frase dal testo]
-432:    ✅ [tua versione migliorata]
-433:    🏷️ [Categoria: Verbo, Avverbio, Ritmo, ecc.]
-434:    💡 [spiegazione ultra-breve]
-435: 
-436: 3. NON scrivere introduzioni, saluti o commenti fuori dai tag.
-437: 4. Identifica max 5-7 interventi prioritari.
-438: 5. Concludi con "## Note Generali" (2 righe di sintesi).
-439: 
-440: OBIETTIVI:
-441: - Rendere il testo dinamico e viscerale.
-442: - Sostituire verbi deboli ("c'era", "aveva") con verbi d'azione.
-443: - Tagliare avverbi inutili e ridondanze.
-444: 
-445: ${isContinuation ? "NOTA: Stai continuando la revisione. Non ripetere suggerimenti già dati." : ""}
-446: 
-447: LINGUA: Italiano.`;
+      const systemPrompt = `Sei un editor letterario senior esperto in narrativa italiana.
+Revisiona la bozza fornita con precisione.
 
+REGOLE MANDATORIE:
+1. Inizia IMMEDIATAMENTE con "## Analisi Revisione".
+2. Per ogni problema, usa RIGOROSAMENTE questo formato:
+   ❌ [COPIA ESATTA della frase dal testo]
+   ✅ [tua versione migliorata]
+   🏷️ [Categoria: Verbo, Avverbio, Ritmo, ecc.]
+   💡 [spiegazione ultra-breve]
+
+3. NON scrivere introduzioni, saluti o commenti fuori dai tag.
+4. Identifica max 5-7 interventi prioritari.
+5. Concludi con "## Note Generali" (2 righe di sintesi).
+
+OBIETTIVI:
+- Rendere il testo dinamico e viscerale.
+- Sostituire verbi deboli ("c'era", "aveva") con verbi d'azione.
+- Tagliare avverbi inutili e ridondanze.
+
+${isContinuation ? "NOTA: Stai continuando la revisione. Non ripetere suggerimenti già dati." : ""}
+
+LINGUA: Italiano.`;
 
       await groqService.streamChatCompletion(
         [
@@ -469,7 +445,6 @@ export const AISidekick: React.FC = () => {
     }
   };
 
-  // ─── TAB: BRAINDUMP ─────────────────────────────────────────────────────────
   const runBraindump = async () => {
     if (!braindumpInput.trim()) return;
     setIsAnalyzing(true);
@@ -511,7 +486,6 @@ Rispondi in italiano. Sii concreto e originale.`;
     }
   };
 
-  // ─── TAB: TRANSFORMER ───────────────────────────────────────────────────────
   const stylePrompts: Record<string, string> = {
     visceral: `Sei un editor esperto di narrativa corporea e sensoriale.
 Riscrivi il testo dato usando ESCLUSIVAMENTE sensazioni fisiche, tattili, olfattive, gustative, propriocettive.
@@ -625,7 +599,6 @@ Rispondi in italiano.`
 
   return (
     <div className="w-80 h-screen glass border-l border-slate-700 flex flex-col">
-      {/* Header */}
       <div className="p-4 border-b border-slate-700 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Sparkles className="w-5 h-5 text-blue-400" />
@@ -634,7 +607,6 @@ Rispondi in italiano.`
         {isAnalyzing && <RefreshCw className="w-4 h-4 animate-spin text-blue-400" />}
       </div>
 
-      {/* Tabs */}
       <div className="flex p-2 gap-1">
         {tabs.map(tab => (
           <button
@@ -651,10 +623,7 @@ Rispondi in italiano.`
         ))}
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-
-        {/* ── REVISIONE ── */}
         {activeTab === 'revision' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -716,7 +685,6 @@ Rispondi in italiano.`
           </div>
         )}
 
-        {/* ── BRAINDUMP ── */}
         {activeTab === 'braindump' && (
           <div className="space-y-4">
             <p className="text-xs text-slate-500">Scarica qui i tuoi pensieri. L'IA li trasformerà in direzioni narrative concrete.</p>
@@ -750,7 +718,6 @@ Rispondi in italiano.`
           </div>
         )}
 
-        {/* ── TRANSFORMER ── */}
         {activeTab === 'transformer' && (
           <div className="space-y-4">
             <p className="text-xs text-slate-500">Riscrivi la tua scena in uno stile narrativo specifico.</p>
@@ -788,7 +755,6 @@ Rispondi in italiano.`
           </div>
         )}
 
-        {/* ── LESSICO ── */}
         {activeTab === 'lexicon' && (
           <div className="space-y-4">
             <p className="text-xs text-slate-500">Trova la parola perfetta o un'immagine indimenticabile.</p>
@@ -835,7 +801,6 @@ Rispondi in italiano.`
         )}
       </div>
 
-      {/* Footer */}
       <div className="p-4 border-t border-slate-700 space-y-3">
         <div className="flex items-center space-x-2 text-[10px] text-slate-500 uppercase font-bold">
           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
