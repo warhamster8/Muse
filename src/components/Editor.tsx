@@ -26,8 +26,8 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   // Sync content if it changes externally (e.g. via AI Sidekick "Applica")
   React.useEffect(() => {
     if (editor && initialContent !== editor.getHTML()) {
-      // The false parameter prevents emitting an update event, breaking the infinite loop
-      editor.commands.setContent(initialContent, false);
+      // The emitUpdate option prevents emitting an update event, breaking the infinite loop
+      editor.commands.setContent(initialContent, { emitUpdate: false });
     }
   }, [initialContent, editor]);
 
