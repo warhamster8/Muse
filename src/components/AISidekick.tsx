@@ -545,6 +545,26 @@ Rispondi in italiano. Sii concreto e originale.`;
     }
   };
 
+  const runDiagnostics = async () => {
+    if (!aiConfig.geminiKey) return;
+    setIsAnalyzing(true);
+    setAnalysis('🔍 Interrogazione Google AI Studio in corso...');
+    try {
+      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${aiConfig.geminiKey}`);
+      const data = await resp.json();
+      if (data.models) {
+        const list = data.models.map((m: any) => `- ${m.name.replace('models/', '')}`).join('\n');
+        setAnalysis(`✅ Connessione Gemini OK!\n\nModelli disponibili per la tua chiave:\n${list}\n\nPer favore, incolla questa lista nella chat così so quale impostare!`);
+      } else {
+        setAnalysis(`❌ Risposta inattesa da Google: ${JSON.stringify(data)}`);
+      }
+    } catch (err: any) {
+      setAnalysis(`❌ Errore di connessione: ${err.message}`);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const tabs: { id: SidekickTab; label: string; icon: React.ReactNode }[] = [
     { id: 'revision', label: 'Revisione', icon: <PenLine className="w-3 h-3" /> },
     { id: 'braindump', label: 'Braindump', icon: <Lightbulb className="w-3 h-3" /> },
@@ -678,11 +698,21 @@ Rispondi in italiano. Sii concreto e originale.`;
         )}
       </div>
 
-      <div className="p-4 border-t border-slate-700">
+      <div className="p-4 border-t border-slate-700 flex items-center justify-between">
         <div className="flex items-center space-x-2 text-[10px] text-slate-500 uppercase font-bold">
           <div className={cn("w-2 h-2 rounded-full", isAnalyzing ? "bg-blue-500 animate-pulse" : "bg-green-500")}></div>
-          <span>Groq connected</span>
+          <span>API Connected</span>
         </div>
+        {aiConfig.geminiKey && (
+          <button 
+            onClick={runDiagnostics}
+            disabled={isAnalyzing}
+            className="text-[9px] text-slate-500 hover:text-blue-400 flex items-center gap-1 transition-colors"
+            title="Verifica quali modelli Gemini puoi usare"
+          >
+            <Compass className="w-3 h-3" /> Diagnostica
+          </button>
+        )}
       </div>
     </div>
   );
