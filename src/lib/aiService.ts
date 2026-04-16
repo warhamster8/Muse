@@ -1,4 +1,5 @@
 import { groqService } from './groq';
+import { geminiService } from './gemini';
 
 export type AIProvider = 'groq' | 'gemini';
 
@@ -10,12 +11,23 @@ export interface AIConfig {
 
 export const aiService = {
   async streamChat(
-    _config: AIConfig,
+    config: AIConfig,
     messages: any[],
     onChunk: (text: string) => void,
     options?: { temperature?: number }
   ) {
-    // Ripristinato all'originale: ignoriamo Gemini e usiamo solo Groq
+    if (config.provider === 'gemini') {
+      if (!config.geminiKey) throw new Error('Chiave Gemini non trovata nel profilo');
+      
+      return geminiService.streamChatCompletion(
+        config.geminiKey,
+        messages,
+        onChunk,
+        options?.temperature
+      );
+    }
+
+    // Default: Groq
     return groqService.streamChatCompletion(
       messages,
       'llama-3.3-70b-versatile',

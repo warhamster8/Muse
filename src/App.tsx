@@ -11,6 +11,7 @@ import { WorldView } from './views/WorldView';
 import { AuthView } from './views/AuthView';
 import { ProjectSelector } from './views/ProjectSelector';
 import { AnalysisView } from './views/AnalysisView';
+import { ConfigView } from './views/ConfigView';
 import { AlertCircle, Settings, Cloud } from 'lucide-react';
 import { ToastContainer } from './components/Toast';
 
@@ -50,18 +51,21 @@ function App() {
     return () => subscription.unsubscribe();
   }, [setUser, ALLOWED_EMAIL]);
 
-  // Caricamento profilo (chiave Gemini)
+  // Caricamento profilo (chiave Gemini e Impostazioni AI)
   React.useEffect(() => {
     if (user) {
       const fetchProfile = async () => {
         const { data, error } = await supabase
           .from('user_profiles')
-          .select('gemini_api_key')
+          .select('gemini_api_key, ai_settings')
           .eq('user_id', user.id)
           .single();
         
         if (data && !error) {
-          setAIConfig({ geminiKey: data.gemini_api_key });
+          setAIConfig({ 
+            geminiKey: data.gemini_api_key,
+            ...(data.ai_settings || {})
+          });
         }
       };
       fetchProfile();
@@ -79,12 +83,7 @@ function App() {
       case 'notes':
         return <NotesView />;
       case 'config':
-        return (
-          <div className="h-full flex flex-col items-center justify-center glass rounded-xl border border-slate-700 space-y-4">
-            <Settings className="w-16 h-16 opacity-10" />
-            <p className="text-sm italic text-slate-500">Global Configuration settings coming soon...</p>
-          </div>
-        );
+        return <ConfigView />;
       case 'analysis':
         return <AnalysisView />;
       default:
