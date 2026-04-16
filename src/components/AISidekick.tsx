@@ -9,7 +9,6 @@ import {
   Wand2,
   BookOpen,
   Languages,
-  Compass,
   X
 } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -20,7 +19,6 @@ import { aiService } from '../lib/aiService';
 
 type SidekickTab = 'revision' | 'braindump' | 'transformer' | 'lexicon';
 
-// Simple word-level diffing utility
 type DiffPart = { value: string; added?: boolean; removed?: boolean };
 
 function computeDiff(oldStr: string, newStr: string) {
@@ -207,7 +205,6 @@ const StructuredOutput: React.FC<{
       );
     } else if (trimmedLine) {
       if (!currentSuggestion) {
-        // Se la linea non è strutturata, la mostriamo come paragrafo pulito
         elements.push(
           <p key={i} className="text-slate-300 text-xs px-1 leading-relaxed mb-3 whitespace-pre-wrap break-words">
             {trimmedLine}
@@ -234,8 +231,7 @@ export const AISidekick: React.FC = () => {
     lastAnalyzedPhrase,
     setLastAnalyzedPhrase,
     sceneAnalysis,
-    setSceneAnalysis,
-    aiConfig
+    setSceneAnalysis
   } = useStore();
   
   const { updateSceneContent } = useNarrative();
@@ -257,8 +253,6 @@ export const AISidekick: React.FC = () => {
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
   const [lexiconInput, setLexiconInput] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
-  const [isEmergencyMode, setIsEmergencyMode] = React.useState(false);
-  const [isSafeMode, setIsSafeMode] = React.useState(false);
 
   const sceneIgnoredSuggestions = React.useMemo(() => 
     activeSceneId ? (ignoredSuggestions || {})[activeSceneId] || [] : []
@@ -377,7 +371,6 @@ export const AISidekick: React.FC = () => {
 
     let textToAnalyze = plainText;
     const lastPhrase = activeSceneId ? lastAnalyzedPhrase[activeSceneId] : null;
-    let isContinuation = false;
 
     if (lastPhrase) {
       let index = plainText.indexOf(lastPhrase);
@@ -393,17 +386,13 @@ export const AISidekick: React.FC = () => {
         const startIndex = Math.max(0, index + lastPhrase.length);
         if (startIndex < plainText.length - 20) {
            textToAnalyze = plainText.substring(startIndex);
-           isContinuation = true;
         }
       }
     }
 
-    const maxChars = isSafeMode ? 1500 : 3000;
-    if (textToAnalyze.length > maxChars) {
-      textToAnalyze = textToAnalyze.substring(0, maxChars);
+    if (textToAnalyze.length > 4000) {
+      textToAnalyze = textToAnalyze.substring(0, 4000);
     }
-    
-    console.log(`AISidekick: Analisi di ${textToAnalyze.length} caratteri (SafeMode: ${isSafeMode})`);
 
     try {
       const systemPrompt = `Sei un editor letterario senior esperto in narrativa italiana.
@@ -426,37 +415,18 @@ REGOLE MANDATORIE:
 4. NON scrivere introduzioni o commenti extra. Identifica 5-7 punti chiave.
 5. Concludi con "## Note Generali" (2 righe di sintesi).
 
-${isContinuation ? "NOTA: Stai continuando la revisione. Non ripetere suggerimenti già dati." : ""}
-
 LINGUA: Italiano.`;
 
-      const activeConfig = isEmergencyMode
-        ? { provider: 'gemini' as const, model: 'gemini-2.0-flash-lite', geminiKey: aiConfig.geminiKey || '' }
-        : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
-
-      if (isEmergencyMode && !aiConfig.geminiKey) {
-        setAnalysis("❌ Errore: Modalità Emergenza attiva ma Chiave Gemini non trovata su Supabase.");
-        setIsAnalyzing(false);
-        return;
-      }
-
-      console.log("AISidekick: Avvio Revisione con", activeConfig.provider, activeConfig.model);
-      
       await aiService.streamChat(
-        activeConfig,
+        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
         [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Revisiona questa bozza${isContinuation ? " (riprendendo da dove eri rimasto)" : ""}:\n\n${textToAnalyze}` }
+          { role: 'user', content: `Revisiona questa bozza:\n\n${textToAnalyze}` }
         ],
-        (chunk) => {
-          console.log("AISidekick: Ricevuto chunk Gemini", chunk.length, "bytes");
-          setAnalysis(prev => prev + chunk);
-        }
+        (chunk) => setAnalysis(prev => prev + chunk)
       );
     } catch (err: any) {
-      console.error("AISidekick: Errore Critico", err);
-      const provider = isEmergencyMode ? 'GEMINI' : 'GROQ';
-      setAnalysis(prev => prev + `\n\n❌ Errore Finale (${provider}): ${err?.message || 'Errore Sconosciuto'}\n\nNota: Se ricevi ancora 429, Google AI Studio potrebbe richiedere una verifica manuale del tuo account.`);
+      setAnalysis(`❌ Errore AI: ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -469,21 +439,10 @@ LINGUA: Italiano.`;
     try {
       const systemPrompt = `Sei un assistente alla scrittura creativa. L'utente ha inserito dei pensieri sparsi (Braindump).
 Trasformali in suggestioni narrative concrete.
-CONTESTO SCENA ATTUALE: ${plainText ? plainText.slice(0, 600) : 'Nessuna scena attiva.'}
 Rispondi in italiano. Sii concreto e originale.`;
 
-      const activeConfig = isEmergencyMode
-        ? { provider: 'gemini' as const, model: 'gemini-2.0-flash-lite', geminiKey: aiConfig.geminiKey || '' }
-        : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
-
-      if (isEmergencyMode && !aiConfig.geminiKey) {
-        setAnalysis("❌ Errore: Modalità Emergenza attiva ma Chiave Gemini non trovata.");
-        setIsAnalyzing(false);
-        return;
-      }
-
       await aiService.streamChat(
-        activeConfig,
+        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
         [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Braindump: ${braindumpInput}` }
@@ -491,8 +450,7 @@ Rispondi in italiano. Sii concreto e originale.`;
         (chunk) => setAnalysis(prev => prev + chunk)
       );
     } catch (err: any) {
-      const provider = isEmergencyMode ? 'GEMINI' : 'GROQ';
-      setAnalysis(prev => prev + `\n\n❌ Errore Braindump (${provider}): ${err?.message || 'Errore Sconosciuto'}`);
+      setAnalysis(`❌ Errore: ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -512,12 +470,8 @@ Rispondi in italiano. Sii concreto e originale.`;
     let textToAnalyze = plainText.length > 3000 ? plainText.substring(0, 3000) : plainText;
 
     try {
-      const activeConfig = isEmergencyMode
-        ? { provider: 'gemini' as const, model: 'gemini-2.0-flash-lite', geminiKey: aiConfig.geminiKey || '' }
-        : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
-
       await aiService.streamChat(
-        activeConfig,
+        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
         [
           { role: 'system', content: stylePrompts[style] + " Riscrivi in italiano. Restituisci SOLO il testo riscritto." },
           { role: 'user', content: `Riscrivi questo:\n\n${textToAnalyze}` }
@@ -525,8 +479,7 @@ Rispondi in italiano. Sii concreto e originale.`;
         (chunk) => setAnalysis(prev => prev + chunk)
       );
     } catch (err: any) {
-      const provider = isEmergencyMode ? 'GEMINI' : 'GROQ';
-      setAnalysis(prev => prev + `\n\n❌ Errore Stile (${provider}): ${err?.message || 'Errore Sconosciuto'}`);
+      setAnalysis(`❌ Errore: ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -541,12 +494,8 @@ Rispondi in italiano. Sii concreto e originale.`;
         ? `Trova sinonimi/contrari per: "${lexiconInput}". Formato: S: ..., A: ..., 💎 [Parola]: [spiegazione]`
         : `Trova 5 metafore originali per: "${lexiconInput}". Formato: M: ..., 💡 [spiegazione]`;
 
-      const activeConfig = isEmergencyMode && aiConfig.geminiKey
-        ? { provider: 'gemini' as const, model: 'gemini-pro-latest', geminiKey: aiConfig.geminiKey }
-        : { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
-
       await aiService.streamChat(
-        activeConfig,
+        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
         [
           { role: 'system', content: prompt + " Rispondi in italiano." },
           { role: 'user', content: `Concetto: ${lexiconInput}` }
@@ -554,27 +503,7 @@ Rispondi in italiano. Sii concreto e originale.`;
         (chunk) => setAnalysis(prev => prev + chunk)
       );
     } catch (err: any) {
-      setAnalysis(`❌ Errore Lessico: ${err?.message || 'Errore Sconosciuto'}`);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const runDiagnostics = async () => {
-    if (!aiConfig.geminiKey) return;
-    setIsAnalyzing(true);
-    setAnalysis('🔍 Interrogazione Google AI Studio in corso...');
-    try {
-      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${aiConfig.geminiKey}`);
-      const data = await resp.json();
-      if (data.models) {
-        const list = data.models.map((m: any) => `- ${m.name.replace('models/', '')}`).join('\n');
-        setAnalysis(`✅ Connessione Gemini OK!\n\nModelli disponibili per la tua chiave:\n${list}\n\nPer favore, incolla questa lista nella chat così so quale impostare!`);
-      } else {
-        setAnalysis(`❌ Risposta inattesa da Google: ${JSON.stringify(data)}`);
-      }
-    } catch (err: any) {
-      setAnalysis(`❌ Errore di connessione: ${err.message}`);
+      setAnalysis(`❌ Errore: ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -598,7 +527,7 @@ Rispondi in italiano. Sii concreto e originale.`;
           {isAnalyzing && (
             <div className="flex items-center gap-2 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 animate-pulse">
               <span className="text-[9px] font-bold text-blue-400 uppercase tracking-tighter">
-                {isEmergencyMode ? 'Gemini Active' : 'Groq Active'}
+                Groq Active
               </span>
               <RefreshCw className="w-2.5 h-2.5 animate-spin text-blue-400" />
             </div>
@@ -641,47 +570,10 @@ Rispondi in italiano. Sii concreto e originale.`;
             </div>
             
             <div className="bg-blue-900/10 border border-blue-500/20 p-3 rounded-lg space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <BookOpen className="w-4 h-4 text-blue-400 shrink-0" />
-                  <p className="text-xs text-slate-400">Motore: <span className="text-white font-medium">{isEmergencyMode ? 'Gemini Flash' : 'Llama 3.3 70B'}</span></p>
-                </div>
-                {aiConfig.geminiKey && (
-                  <div className="flex flex-col gap-2">
-                    <button 
-                      onClick={() => setIsEmergencyMode(!isEmergencyMode)}
-                      className={cn(
-                        "text-[9px] px-2 py-1 rounded border transition-all uppercase font-bold",
-                        isEmergencyMode 
-                          ? "bg-purple-600 border-purple-400 text-white shadow-lg shadow-purple-900/40" 
-                          : "bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300"
-                      )}
-                    >
-                      Backup Gemini
-                    </button>
-                    {isEmergencyMode && (
-                      <button 
-                        onClick={() => setIsSafeMode(!isSafeMode)}
-                        className={cn(
-                          "text-[9px] px-2 py-1 rounded border transition-all uppercase font-bold flex items-center justify-center gap-1",
-                          isSafeMode 
-                            ? "bg-emerald-600 border-emerald-400 text-white" 
-                            : "bg-slate-800 border-slate-700 text-slate-500"
-                        )}
-                        title="Invia meno testo per evitare i blocchi di quota"
-                      >
-                        <Zap className="w-2 h-2" /> Safe Mode {isSafeMode ? 'ON' : 'OFF'}
-                      </button>
-                    )}
-                  </div>
-                )}
+              <div className="flex items-center space-x-3">
+                <BookOpen className="w-4 h-4 text-blue-400 shrink-0" />
+                <p className="text-xs text-slate-400">Motore: <span className="text-white font-medium">Llama 3.3 70B</span></p>
               </div>
-              {isEmergencyMode && (
-                <p className="text-[9px] text-purple-400 italic animate-pulse">
-                  Modalità emergenza attiva: i limiti di Groq non verranno applicati.
-                  {isSafeMode && " [Safe Mode: Analisi limitata a 1500 caratteri]"}
-                </p>
-              )}
             </div>
 
             {analysis ? (
@@ -719,7 +611,6 @@ Rispondi in italiano. Sii concreto e originale.`;
           <div className="space-y-4">
             <div className="relative">
               <input className="w-full bg-slate-900/50 border border-slate-700 rounded-xl p-3 pl-10 text-xs text-slate-300 focus:outline-none focus:border-blue-500 transition-all shadow-inner" placeholder="Parola o concetto..." value={lexiconInput} onChange={(e) => setLexiconInput(e.target.value)} />
-              <Compass className="w-4 h-4 text-slate-600 absolute left-3 top-3" />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <button onClick={() => runLexiconTool('synonyms')} disabled={isAnalyzing || !lexiconInput.trim()} className="py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 rounded-lg text-xs font-bold transition-all border border-slate-700">Sinonimi</button>
@@ -735,16 +626,6 @@ Rispondi in italiano. Sii concreto e originale.`;
           <div className={cn("w-2 h-2 rounded-full", isAnalyzing ? "bg-blue-500 animate-pulse" : "bg-green-500")}></div>
           <span>API Connected</span>
         </div>
-        {aiConfig.geminiKey && (
-          <button 
-            onClick={runDiagnostics}
-            disabled={isAnalyzing}
-            className="text-[9px] text-slate-500 hover:text-blue-400 flex items-center gap-1 transition-colors"
-            title="Verifica quali modelli Gemini puoi usare"
-          >
-            <Compass className="w-3 h-3" /> Diagnostica
-          </button>
-        )}
       </div>
     </div>
   );
