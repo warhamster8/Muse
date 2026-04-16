@@ -1,7 +1,6 @@
 import React from 'react';
 import { Plus, Map, Info, Home, Landmark } from 'lucide-react';
 import { useWorld } from '../hooks/useWorld';
-import type { Setting } from '../hooks/useWorld';
 import { cn } from '../lib/utils';
 import { CreationModal } from '../components/CreationModal';
 import { useToast } from '../components/Toast';

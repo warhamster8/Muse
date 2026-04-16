@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { Plus, User, FileText, Brain, TrendingUp, MessageSquare, Camera, Trash2 } from 'lucide-react';
 import { useCharacters } from '../hooks/useCharacters';
-import type { Character } from '../hooks/useCharacters';
 import { cn } from '../lib/utils';
 import { groqService } from '../lib/groq';
 import { CreationModal } from '../components/CreationModal';

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Plus, Search, Trash2, Image as ImageIcon, Maximize2,
   Bold, Italic, List, ListOrdered, Quote, Undo, Redo, Code as CodeIcon,
-  Strikethrough, Heading1, Heading2, Link as LinkIcon
+  Strikethrough, Heading1, Heading2, Link as LinkIcon, RefreshCw
 } from 'lucide-react';
 import type { Note } from '../hooks/useNotes';
 import { useNotes } from '../hooks/useNotes';
