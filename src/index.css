@@ -42,7 +42,7 @@
 }
 
 .ProseMirror p {
-    @apply mb-6;
+    @apply mb-0;
 }
 
 .ProseMirror h1 {
