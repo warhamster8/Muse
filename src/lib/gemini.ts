@@ -45,6 +45,7 @@ export const geminiService = {
       headers: {
         'Content-Type': 'application/json',
         'x-goog-api-key': trimmedKey,
+        'Authorization': '', // Nulliamo esplicitamente per evitare conflitti con token esistenti
       },
       body: JSON.stringify(payload),
     });
