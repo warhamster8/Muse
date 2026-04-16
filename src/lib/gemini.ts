@@ -66,12 +66,14 @@ export const geminiService = {
 
           const chunkText = chunk.text();
           if (chunkText) {
+            console.log("GeminiService: Text chunk received", chunkText.substring(0, 30) + "...");
             onChunk(chunkText);
           }
         } catch (e) {
-          console.warn("Gemini: Could not parse chunk", e);
+          console.error("GeminiService: Error parsing chunk", e);
           const feedback = (chunk as any).promptFeedback;
           if (feedback?.blockReason) {
+             console.error("GeminiService: SAFETY BLOCK REASON", feedback.blockReason);
              onChunk(`\n\n❌ Blocco Sicurezza: ${feedback.blockReason}\n\n`);
           }
         }

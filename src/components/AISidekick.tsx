@@ -431,15 +431,21 @@ LINGUA: Italiano.`;
         return;
       }
 
+      console.log("AISidekick: Avvio Revisione con", activeConfig.provider, activeConfig.model);
+      
       await aiService.streamChat(
         activeConfig,
         [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Revisiona questa bozza${isContinuation ? " (riprendendo da dove eri rimasto)" : ""}:\n\n${textToAnalyze}` }
         ],
-        (chunk) => setAnalysis(prev => prev + chunk)
+        (chunk) => {
+          console.log("AISidekick: Ricevuto chunk Gemini", chunk.length, "bytes");
+          setAnalysis(prev => prev + chunk);
+        }
       );
     } catch (err: any) {
+      console.error("AISidekick: Errore Critico", err);
       const provider = isEmergencyMode ? 'GEMINI' : 'GROQ';
       setAnalysis(`❌ Errore AI (${provider}): ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
