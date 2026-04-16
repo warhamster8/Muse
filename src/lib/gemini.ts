@@ -37,15 +37,13 @@ export const geminiService = {
 
     const trimmedKey = apiKey.trim();
     console.log(`[DEBUG] Chiamata Gemini con chiave: ${trimmedKey.substring(0, 4)}...${trimmedKey.slice(-4)}`);
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${trimmedKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${trimmedKey}`;
 
     const response = await fetch(url, {
       method: 'POST',
       credentials: 'omit',
       headers: {
         'Content-Type': 'application/json',
-        'x-goog-api-key': trimmedKey,
-        'Authorization': '', // Nulliamo esplicitamente per evitare conflitti con token esistenti
       },
       body: JSON.stringify(payload),
     });
