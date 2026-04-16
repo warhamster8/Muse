@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 
 export const Editor: React.FC<{ initialContent: string; onChange: (content: string) => void }> = ({ initialContent, onChange }) => {
+  const isExternallyUpdating = React.useRef(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -19,15 +21,23 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
     ],
     content: initialContent,
     onUpdate: ({ editor }) => {
+      // Don't emit changes back to the parent if we're currently syncing from the parent
+      if (isExternallyUpdating.current) return;
       onChange(editor.getHTML());
     },
   });
 
   // Sync content if it changes externally (e.g. via AI Sidekick "Applica")
   React.useEffect(() => {
-    if (editor && initialContent !== editor.getHTML()) {
+    if (editor && initialContent.trim() !== editor.getHTML().trim()) {
+      isExternallyUpdating.current = true;
       // The emitUpdate option prevents emitting an update event, breaking the infinite loop
       editor.commands.setContent(initialContent, { emitUpdate: false });
+      
+      // Release the lock in the next frame to allow user changes again
+      setTimeout(() => {
+        isExternallyUpdating.current = false;
+      }, 0);
     }
   }, [initialContent, editor]);
 

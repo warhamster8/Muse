@@ -165,7 +165,9 @@ export const AISidekick: React.FC = () => {
     activeSceneId, 
     setCurrentSceneContent,
     ignoredSuggestions,
-    addIgnoredSuggestion
+    addIgnoredSuggestion,
+    lastAnalyzedPhrase,
+    setLastAnalyzedPhrase
   } = useStore();
   const { updateSceneContent } = useNarrative();
   const { addToast } = useToast();
@@ -182,6 +184,7 @@ export const AISidekick: React.FC = () => {
   const handleReject = (originalText: string) => {
     if (activeSceneId) {
        addIgnoredSuggestion(activeSceneId, originalText);
+       setLastAnalyzedPhrase(activeSceneId, originalText);
     }
   };
 
@@ -290,6 +293,8 @@ export const AISidekick: React.FC = () => {
       await updateSceneContent(activeSceneId, newContent);
       // Clean UI
       setAppliedSuggestions(prev => [...prev, originalText]);
+      // Update reading progress
+      setLastAnalyzedPhrase(activeSceneId, suggestion);
       addToast('Modifica applicata con successo', 'success');
     } else {
       console.warn("Could not find original text. Clean HTML Search used:", searchStrHtml, "Regex:", regexStr);
@@ -312,9 +317,29 @@ export const AISidekick: React.FC = () => {
     setIsAnalyzing(true);
     setAnalysis('');
     setAppliedSuggestions([]);
+
+    // Logic: find where we left off
+    let textToAnalyze = plainText;
+    const lastPhrase = activeSceneId ? lastAnalyzedPhrase[activeSceneId] : null;
+    let isContinuation = false;
+
+    if (lastPhrase) {
+      const index = plainText.indexOf(lastPhrase);
+      if (index !== -1) {
+        // We start analyzing after the last phrase
+        const startIndex = Math.max(0, index + lastPhrase.length);
+        if (startIndex < plainText.length - 20) {
+           textToAnalyze = plainText.substring(startIndex);
+           isContinuation = true;
+        }
+      }
+    }
+
     try {
       const systemPrompt = `Sei un editor letterario senior specializzato in narrativa italiana contemporanea.
 Il tuo compito è revisionare la bozza fornita dall'utente con precisione chirurgica.
+
+${isContinuation ? "NOTA: Quella che segue è la PARTE SUCCESSIVA del testo che hai già iniziato a leggere. Non ripetere suggerimenti già dati sulla parte precedente." : ""}
 
 OBIETTIVO: Rendere il testo più SCORREVOLE, DINAMICO e COINVOLGENTE.
 
@@ -343,7 +368,7 @@ LINGUA: Rispondi sempre in italiano. Sii preciso, non generico.`;
       await groqService.streamChatCompletion(
         [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Revisiona questa bozza:\n\n${plainText}` }
+          { role: 'user', content: `Revisiona questa bozza${isContinuation ? " (riprendendo da dove eri rimasto)" : ""}:\n\n${textToAnalyze}` }
         ],
         'llama-3.3-70b-versatile',
         (chunk) => setAnalysis(prev => prev + chunk)
@@ -499,14 +524,26 @@ Riscrivi in italiano. Restituisci SOLO il testo riscritto.`,
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500 uppercase">Correzione Bozza</span>
-              <button
-                onClick={runDraftRevision}
-                disabled={isAnalyzing || plainText.length < 30}
-                className="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-3 py-1.5 rounded-lg text-white flex items-center space-x-1 transition-all"
-              >
-                <Zap className="w-3 h-3" />
-                <span>Analizza</span>
-              </button>
+              <div className="flex items-center gap-2">
+                {activeSceneId && lastAnalyzedPhrase[activeSceneId] && (
+                  <button
+                    onClick={() => setLastAnalyzedPhrase(activeSceneId, '')}
+                    className="text-[10px] text-slate-500 hover:text-slate-300 flex items-center gap-1 px-2 py-1"
+                    title="Ricomincia dall'inizio del testo"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    Ripristina
+                  </button>
+                )}
+                <button
+                  onClick={runDraftRevision}
+                  disabled={isAnalyzing || plainText.length < 30}
+                  className="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-3 py-1.5 rounded-lg text-white flex items-center space-x-1 transition-all"
+                >
+                  <Zap className="w-3 h-3" />
+                  <span>{activeSceneId && lastAnalyzedPhrase[activeSceneId] ? 'Continua' : 'Analizza'}</span>
+                </button>
+              </div>
             </div>
 
             <div className="bg-blue-900/10 border border-blue-500/20 p-3 rounded-lg flex items-start space-x-3">
