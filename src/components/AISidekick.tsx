@@ -708,7 +708,7 @@ Rispondi in italiano. Sii concreto e originale.`;
                 </div>
                 <button 
                   onClick={handleConvertQuotes}
-                  title="Converti \" \" in « »"
+                  title='Converti " " in « »'
                   className="p-1.5 text-blue-400/60 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-all flex items-center gap-1.5 group"
                 >
                   <Quote className="w-3.5 h-3.5" />
