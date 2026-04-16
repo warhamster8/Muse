@@ -15,7 +15,7 @@ export const ConfigView: React.FC = () => {
 
   const handleSaveKey = async () => {
     if (!keyInput.trim()) {
-      addToast("Inserisci una chiave valida", 'warning');
+      addToast("Inserisci una chiave valida", 'info');
       return;
     }
     
