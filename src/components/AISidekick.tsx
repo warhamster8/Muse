@@ -10,13 +10,19 @@ import {
   BookOpen,
   Languages,
   Compass,
-  X
+  X,
+  Settings as SettingsIcon,
+  Check,
+  Brain,
+  Cpu,
+  Key
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { groqService } from '../lib/groq';
 import { useStore } from '../store/useStore';
 import { useNarrative } from '../hooks/useNarrative';
 import { useToast } from './Toast';
+import { aiService, type AIProvider } from '../lib/aiService';
+import { supabase } from '../lib/supabase';
 
 type SidekickTab = 'revision' | 'braindump' | 'transformer' | 'lexicon';
 
@@ -27,8 +33,6 @@ function computeDiff(oldStr: string, newStr: string) {
   const oldWords = oldStr.split(/(\s+)/);
   const newWords = newStr.split(/(\s+)/);
   
-  // Basic LCS-style word matching for split view
-  // We'll mark words that don't exist in the other string
   const oldParts: DiffPart[] = oldWords.map(word => ({
     value: word,
     removed: !!(word.trim() && !newStr.includes(word.trim()))
@@ -42,7 +46,6 @@ function computeDiff(oldStr: string, newStr: string) {
   return { oldParts, newParts };
 }
 
-// Renders structured AI output: lines starting with ❌ get red, ✅ green, ## become headers, etc.
 const StructuredOutput: React.FC<{ 
   text: string; 
   onApply?: (original: string, suggestion: string) => void;
@@ -224,6 +227,7 @@ const StructuredOutput: React.FC<{
 
 export const AISidekick: React.FC = () => {
   const { 
+    user,
     currentSceneContent: content, 
     activeSceneId, 
     setCurrentSceneContent,
@@ -232,12 +236,20 @@ export const AISidekick: React.FC = () => {
     lastAnalyzedPhrase,
     setLastAnalyzedPhrase,
     sceneAnalysis,
-    setSceneAnalysis
+    setSceneAnalysis,
+    aiConfig,
+    setAIConfig
   } = useStore();
+  
   const { updateSceneContent } = useNarrative();
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = React.useState<SidekickTab>('revision');
+  const [showSettings, setShowSettings] = React.useState(false);
   
+  // Settings Local State
+  const [localGeminiKey, setLocalGeminiKey] = React.useState(aiConfig.geminiKey || '');
+  const [localProvider, setLocalProvider] = React.useState<AIProvider>(aiConfig.provider);
+
   const analysis = React.useMemo(() => 
     activeSceneId ? sceneAnalysis[activeSceneId] || '' : ''
   , [sceneAnalysis, activeSceneId]);
@@ -248,6 +260,7 @@ export const AISidekick: React.FC = () => {
     const next = typeof val === 'function' ? val(current) : val;
     setSceneAnalysis(activeSceneId, next);
   };
+
   const [appliedSuggestions, setAppliedSuggestions] = React.useState<string[]>([]);
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
   const [lexiconInput, setLexiconInput] = React.useState<string>('');
@@ -256,6 +269,32 @@ export const AISidekick: React.FC = () => {
   const sceneIgnoredSuggestions = React.useMemo(() => 
     activeSceneId ? (ignoredSuggestions || {})[activeSceneId] || [] : []
   , [ignoredSuggestions, activeSceneId]);
+
+  const handleSaveSettings = async () => {
+    if (!user) return;
+    try {
+      const newConfig = { 
+        provider: localProvider, 
+        geminiKey: localGeminiKey,
+        // Reset model based on provider if needed, or keep current
+        model: localProvider === 'gemini' ? 'gemini-1.5-flash' : 'llama-3.3-70b-versatile'
+      };
+
+      await supabase
+        .from('user_profiles')
+        .upsert({
+          user_id: user.id,
+          gemini_api_key: localGeminiKey,
+          ai_settings: { provider: localProvider, model: newConfig.model }
+        });
+      
+      setAIConfig(newConfig);
+      setShowSettings(false);
+      addToast('Impostazioni AI salvate con successo', 'success');
+    } catch (err) {
+      addToast('Errore nel salvataggio delle impostazioni', 'error');
+    }
+  };
 
   const handleReject = (originalText: string) => {
     if (activeSceneId) {
@@ -303,14 +342,7 @@ export const AISidekick: React.FC = () => {
     };
 
     const { textStr, textMap, charLens } = buildMapping(content);
-
-    const normalizeIt = (str: string) => str
-      .replace(/[\u201C\u201D]/g, '"')
-      .replace(/[\u2018\u2019]/g, "'")
-      .replace(/E['’]/g, 'È')
-      .replace(/\u00A0/g, ' ')
-      .trim();
-
+    const normalizeIt = (str: string) => str.replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'").replace(/E['’]/g, 'È').replace(/\u00A0/g, ' ').trim();
     const removeAccents = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
     const normalizedOriginal = normalizeIt(originalText);
@@ -319,7 +351,6 @@ export const AISidekick: React.FC = () => {
 
     const parts = searchOriginal.split(/\.\.\.|…/);
     const gapPattern = '[^a-zA-Z0-9]*';
-    
     let regexStr = parts.map(part => {
         const words = part.match(/[a-zA-Z0-9]+/g) || [];
         return words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(gapPattern);
@@ -348,10 +379,8 @@ export const AISidekick: React.FC = () => {
     if (match) {
       const textStart = match.index!;
       const textEnd = textStart + match[0].length - 1;
-      
       const htmlStart = textMap[textStart];
       const htmlEnd = textMap[textEnd] + charLens[textEnd];
-      
       const newContent = content.slice(0, htmlStart) + suggestion + content.slice(htmlEnd);
       
       setCurrentSceneContent(newContent);
@@ -360,8 +389,7 @@ export const AISidekick: React.FC = () => {
       setLastAnalyzedPhrase(activeSceneId, suggestion);
       addToast('Modifica applicata con successo', 'success');
     } else {
-      console.warn("Could not find original text.", searchStrHtml, "Regex:", regexStr);
-      addToast('Impossibile trovare il testo originale, modificalo manualmente', 'error');
+      addToast('Testo originale non trovato, modifica manualmente', 'error');
     }
   };
 
@@ -385,7 +413,6 @@ export const AISidekick: React.FC = () => {
 
     if (lastPhrase) {
       let index = plainText.indexOf(lastPhrase);
-      
       if (index === -1) {
         const pattern = lastPhrase.trim().split(/\s+/).slice(-10).map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+');
         try {
@@ -394,7 +421,6 @@ export const AISidekick: React.FC = () => {
           if (match) index = match.index!;
         } catch(e) {}
       }
-
       if (index !== -1) {
         const startIndex = Math.max(0, index + lastPhrase.length);
         if (startIndex < plainText.length - 20) {
@@ -402,6 +428,10 @@ export const AISidekick: React.FC = () => {
            isContinuation = true;
         }
       }
+    }
+
+    if (textToAnalyze.length > 4000) {
+      textToAnalyze = textToAnalyze.substring(0, 4000);
     }
 
     try {
@@ -422,23 +452,23 @@ REGOLE MANDATORIE:
 
 OBIETTIVI:
 - Rendere il testo dinamico e viscerale.
-- Sostituire verbi deboli ("c'era", "aveva") con verbi d'azione.
+- Sostituire verbi deboli con verbi d'azione.
 - Tagliare avverbi inutili e ridondanze.
 
 ${isContinuation ? "NOTA: Stai continuando la revisione. Non ripetere suggerimenti già dati." : ""}
 
 LINGUA: Italiano.`;
 
-      await groqService.streamChatCompletion(
+      await aiService.streamChat(
+        aiConfig,
         [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Revisiona questa bozza${isContinuation ? " (riprendendo da dove eri rimasto)" : ""}:\n\n${textToAnalyze}` }
         ],
-        'llama-3.3-70b-versatile',
         (chunk) => setAnalysis(prev => prev + chunk)
       );
-    } catch (err) {
-      setAnalysis('❌ Errore di connessione al servizio AI.');
+    } catch (err: any) {
+      setAnalysis(`❌ Errore AI: ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -450,95 +480,49 @@ LINGUA: Italiano.`;
     setAnalysis('');
     try {
       const systemPrompt = `Sei un assistente alla scrittura creativa. L'utente ha inserito dei pensieri sparsi (Braindump).
-Il tuo compito è trasformarli in suggestioni narrative concrete e azionabili.
-
-CONTESTO SCENA ATTUALE:
-${plainText ? plainText.slice(0, 600) : 'Nessuna scena attiva.'}
-
-STRUTTURA RISPOSTA:
-## Interpretazione
-(2 righe: cosa hai capito dal braindump)
-
-## 3 Direzioni Narrative
-Per ognuna:
-- **Direzione [N]:** [titolo evocativo]
-  Sviluppo: [2-3 frasi concrete di come potrebbe svilupparsi la scena]
-  Incipit suggerito: [una frase di apertura pronta all'uso]
-
-## Dettagli Sensoriali
-💡 [3 dettagli sensoriali specifici da integrare]
-
+Trasformali in suggestioni narrative concrete.
+CONTESTO SCENA ATTUALE: ${plainText ? plainText.slice(0, 600) : 'Nessuna scena attiva.'}
 Rispondi in italiano. Sii concreto e originale.`;
 
-      await groqService.streamChatCompletion(
+      await aiService.streamChat(
+        aiConfig,
         [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Braindump: ${braindumpInput}` }
         ],
-        'llama-3.3-70b-versatile',
         (chunk) => setAnalysis(prev => prev + chunk)
       );
-    } catch (err) {
-      setAnalysis('❌ Errore durante l\'elaborazione del braindump.');
+    } catch (err: any) {
+      setAnalysis(`❌ Errore Braindump: ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   const stylePrompts: Record<string, string> = {
-    visceral: `Sei un editor esperto di narrativa corporea e sensoriale.
-Riscrivi il testo dato usando ESCLUSIVAMENTE sensazioni fisiche, tattili, olfattive, gustative, propriocettive.
-REGOLE:
-- Ogni emozione diventa una reazione del corpo (tachicardia, tensione muscolare, sapore amaro in bocca).
-- Usa verbi fisici potenti: stringere, bruciare, contrarsi, esplodere.
-- Zero astrazioni. Solo carne, sudore, respiro.
-- Mantieni la trama, trasforma SOLO il modo di raccontare.
-Riscrivi in italiano. Restituisci SOLO il testo riscritto, senza commenti.`,
-
-    atmospheric: `Sei un maestro del "worldbuilding" sensoriale.
-Riscrivi il testo dato trasformando l'ambiente in un personaggio vivo e carico di tensione.
-REGOLE:
-- La luce, l'ombra, il suono, il silenzio, il clima devono riflettere lo stato emotivo della scena.
-- Usa personificazioni dell'ambiente ("il vento portava la sua inquietudine").
-- Dettagli architettonici, naturali o urbani come metafore implicite.
-- Alterna descrizione rapida e immersione lenta per gestire il ritmo.
-Riscrivi in italiano. Restituisci SOLO il testo riscritto.`,
-
-    metaphorical: `Sei un poeta-narratore con un registro fortemente simbolico.
-Riscrivi il testo dado usando metafore estese, similitudini originali e immagini archetipiche.
-REGOLE:
-- Ogni concetto emotivo ha una sua immagine concreta e originale (non cliché).
-- Usa almeno 2 similitudini costruite su elementi insoliti (non "come il vento", ma elementi specifici e inattesi).
-- Il simbolismo deve emergere naturalmente, non forzatamente.
-- Mantieni la leggibilità: poesia al servizio della storia.
-Riscrivi in italiano. Restituisci SOLO il testo riscritto.`,
-
-    psychological: `Sei uno scrittore di narrativa psicologica e flusso di coscienza.
-Riscrivi il testo dato portando il lettore DENTRO la mente del personaggio.
-REGOLE:
-- Usa il monologo interiore in prima o terza persona ravvicinata.
-- Alterna pensieri lucidi a pensieri frammentati e irrazionali.
-- Mostra il meccanismo di difesa, il dubbio, la razionalizzazione.
-- La voce interna può contraddire le azioni esterne.
-- Usa la punteggiatura per creare il ritmo del pensiero (ellissi, trattini).
-Riscrivi in italiano. Restituisci SOLO il testo riscritto.`,
+    visceral: `Riscrivi usando ESCLUSIVAMENTE sensazioni fisiche. Zero astrazioni. Solo carne, sudore, respiro.`,
+    atmospheric: `Riscrivi trasformando l'ambiente in un personaggio vivo e carico di tensione.`,
+    metaphorical: `Riscrivi usando metafore estese e immagini archetipiche originali.`,
+    psychological: `Riscrivi portando il lettore DENTRO la mente del personaggio (monologo interiore).`,
   };
 
   const runStyleTransform = async (style: string) => {
     if (!plainText || plainText.length < 10) return;
     setIsAnalyzing(true);
     setAnalysis('');
+    let textToAnalyze = plainText.length > 3000 ? plainText.substring(0, 3000) : plainText;
+
     try {
-      await groqService.streamChatCompletion(
+      await aiService.streamChat(
+        aiConfig,
         [
-          { role: 'system', content: stylePrompts[style] },
-          { role: 'user', content: `Riscrivi questo:\n\n${plainText}` }
+          { role: 'system', content: stylePrompts[style] + " Riscrivi in italiano. Restituisci SOLO il testo riscritto." },
+          { role: 'user', content: `Riscrivi questo:\n\n${textToAnalyze}` }
         ],
-        'llama-3.3-70b-versatile',
         (chunk) => setAnalysis(prev => prev + chunk)
       );
-    } catch (err) {
-      setAnalysis('❌ Errore di connessione al servizio AI.');
+    } catch (err: any) {
+      setAnalysis(`❌ Errore Stile: ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -549,41 +533,20 @@ Riscrivi in italiano. Restituisci SOLO il testo riscritto.`,
     setIsAnalyzing(true);
     setAnalysis('');
     try {
-      const prompts = {
-        synonyms: `Sei un esperto di semantica e lessicografia italiana. 
-L'utente cerca sinonimi e contrari per la parola: "${lexiconInput}".
+      const prompt = mode === 'synonyms' 
+        ? `Trova sinonimi/contrari per: "${lexiconInput}". Formato: S: ..., A: ..., 💎 [Parola]: [spiegazione]`
+        : `Trova 5 metafore originali per: "${lexiconInput}". Formato: M: ..., 💡 [spiegazione]`;
 
-REGOLE DI FORMATTAZIONE:
-1. Usa "## [Categoria]" per i titoli delle sezioni.
-2. Per i sinonimi, usa "S: [lista parole separate da virgola]". Esempio: "S: timore, apprensione, soggezione"
-3. Per i contrari, usa "A: [lista parole separate da virgola]".
-4. Per i termini rari/nobilitanti, usa "💎 [Parola]: [breve spiegazione]".
-5. Non usare elenchi puntati classici, usa solo i marker sopra.
-
-Rispondi in italiano con un tono professionale ma d'ispirazione.`,
-        metaphors: `Sei un consulente creativo per scrittori di narrativa.
-L'utente cerca immagini evocative per il concetto: "${lexiconInput}".
-
-REGOLE DI FORMATTAZIONE:
-1. Per ogni metafora, usa questo blocco:
-   M: [Immagine metaforica/similitudine]
-   💡 [breve spiegazione del sotto-testo emotivo]
-2. Genera esattamente 5 metafore originali (evita i cliché).
-3. Le immagini devono essere legate alla sensazione fisica, all'ambiente o ad elementi naturali.
-
-Rispondi in italiano.`
-      };
-
-      await groqService.streamChatCompletion(
+      await aiService.streamChat(
+        aiConfig,
         [
-          { role: 'system', content: prompts[mode] },
-          { role: 'user', content: `Parola/Concetto: ${lexiconInput}` }
+          { role: 'system', content: prompt + " Rispondi in italiano." },
+          { role: 'user', content: `Concetto: ${lexiconInput}` }
         ],
-        'llama-3.3-70b-versatile',
         (chunk) => setAnalysis(prev => prev + chunk)
       );
-    } catch (err) {
-      setAnalysis(`❌ Errore durante la ricerca nel lessico.`);
+    } catch (err: any) {
+      setAnalysis(`❌ Errore Lessico: ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -603,207 +566,178 @@ Rispondi in italiano.`
           <Sparkles className="w-5 h-5 text-blue-400" />
           <h2 className="font-semibold text-slate-200">AI Sidekick</h2>
         </div>
-        {isAnalyzing && <RefreshCw className="w-4 h-4 animate-spin text-blue-400" />}
-      </div>
-
-      <div className="flex p-2 gap-1">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => { setActiveTab(tab.id); }}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-1 text-[10px] uppercase tracking-tighter py-2 rounded transition-all",
-              activeTab === tab.id ? "bg-slate-700 text-blue-400" : "text-slate-500 hover:text-slate-300"
-            )}
+        <div className="flex items-center gap-2">
+          {isAnalyzing && <RefreshCw className="w-4 h-4 animate-spin text-blue-400" />}
+          <button 
+            onClick={() => setShowSettings(!showSettings)}
+            className={cn("p-1.5 rounded-lg transition-all", showSettings ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-800")}
           >
-            {tab.icon}
-            {tab.label}
+            <SettingsIcon className="w-4 h-4" />
           </button>
-        ))}
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {activeTab === 'revision' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase">Correzione Bozza</span>
-              <div className="flex items-center gap-2">
-                {activeSceneId && lastAnalyzedPhrase[activeSceneId] && (
-                  <button
-                    onClick={() => {
-                      setLastAnalyzedPhrase(activeSceneId, '');
-                      setSceneAnalysis(activeSceneId, '');
-                    }}
-                    className="text-[10px] text-slate-500 hover:text-slate-300 flex items-center gap-1 px-2 py-1"
-                    title="Ricomincia dall'inizio del testo"
-                  >
-                    <RefreshCw className="w-3 h-3" />
-                    Ripristina
-                  </button>
-                )}
-                <button
-                  onClick={runDraftRevision}
-                  disabled={isAnalyzing || plainText.length < 30}
-                  className="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-3 py-1.5 rounded-lg text-white flex items-center space-x-1 transition-all"
+      {showSettings ? (
+        <div className="flex-1 overflow-y-auto p-4 space-y-6 animate-in slide-in-from-right-4">
+           <div>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
+                <Brain className="w-3 h-3" /> Motore IA
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                <button 
+                   onClick={() => setLocalProvider('groq')}
+                   className={cn("p-3 rounded-xl border text-left transition-all", localProvider === 'groq' ? "bg-blue-600/10 border-blue-500 text-blue-100" : "bg-slate-900/50 border-slate-700 text-slate-400")}
                 >
-                  <Zap className="w-3 h-3" />
-                  <span>{activeSceneId && lastAnalyzedPhrase[activeSceneId] ? 'Continua' : 'Analizza'}</span>
+                  <div className="font-bold text-xs">Groq</div>
+                  <div className="text-[9px] opacity-60">Llama / Mixtral</div>
+                </button>
+                <button 
+                   onClick={() => setLocalProvider('gemini')}
+                   className={cn("p-3 rounded-xl border text-left transition-all", localProvider === 'gemini' ? "bg-purple-600/10 border-purple-500 text-purple-100" : "bg-slate-900/50 border-slate-700 text-slate-400")}
+                >
+                  <div className="font-bold text-xs">Gemini</div>
+                  <div className="text-[9px] opacity-60">Google AI (Free)</div>
                 </button>
               </div>
-            </div>
+           </div>
 
-            <div className="bg-blue-900/10 border border-blue-500/20 p-3 rounded-lg flex items-start space-x-3">
-              <BookOpen className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-              <p className="text-xs text-slate-400">
-                L'AI proporrà modifiche <span className="text-blue-400 font-semibold">prima/dopo</span> per rendere il testo più scorrevole e dinamico.
-              </p>
-            </div>
-
-            {plainText.length > 0 && plainText.length < 30 && (
-              <p className="text-xs text-yellow-500/80 text-center italic">Scrivi almeno qualche frase nella scena per avviare la revisione.</p>
-            )}
-
-            {analysis ? (
-              <div className="animate-in slide-in-from-bottom-2">
-                <StructuredOutput 
-                  text={analysis} 
-                  onApply={applySuggestion} 
-                  onReject={handleReject}
-                  appliedSuggestions={appliedSuggestions}
-                  rejectedSuggestions={sceneIgnoredSuggestions}
-                />
-              </div>
-            ) : (
-              !isAnalyzing && (
-                <div className="flex flex-col items-center justify-center h-36 text-slate-600 space-y-2">
-                  <AlertTriangle className="w-8 h-8 opacity-20" />
-                  <p className="text-xs text-center">Seleziona una scena e premi Analizza<br/>per ricevere proposte di revisione precise.</p>
+           {localProvider === 'gemini' && (
+             <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                  <Key className="w-3 h-3" /> Configurazione Gemini
+                </h3>
+                <div className="space-y-2">
+                  <input 
+                    type="password"
+                    placeholder="Incolla qui la tua API Key..."
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs focus:border-purple-500 transition-all"
+                    value={localGeminiKey}
+                    onChange={(e) => setLocalGeminiKey(e.target.value)}
+                  />
+                  <p className="text-[9px] text-slate-500 italic leading-relaxed">
+                    La chiave viene salvata nel tuo profilo privato su Supabase.
+                  </p>
                 </div>
-              )
-            )}
-          </div>
-        )}
+             </div>
+           )}
 
-        {activeTab === 'braindump' && (
-          <div className="space-y-4">
-            <p className="text-xs text-slate-500">Scarica qui i tuoi pensieri. L'IA li trasformerà in direzioni narrative concrete.</p>
-
-            <textarea
-              className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-xl p-3 text-xs text-slate-300 focus:outline-none focus:border-blue-500 transition-all resize-none shadow-inner"
-              placeholder="Es: la stanza puzza di fumo, lui è nervoso, fuori piove da ore, qualcosa non torna..."
-              value={braindumpInput}
-              onChange={(e) => setBraindumpInput(e.target.value)}
-            />
-
-            <button
-              onClick={runBraindump}
-              disabled={isAnalyzing || !braindumpInput.trim()}
-              className="w-full py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all"
-            >
-              <Zap className="w-3 h-3" />
-              Espandi Idee
-            </button>
-
-            {analysis && (
-              <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2">
-                <StructuredOutput text={analysis} />
+           <div>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
+                <Cpu className="w-3 h-3" /> Prestazioni
+              </h3>
+              <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-3 space-y-3">
+                 <div className="flex items-center justify-between text-xs">
+                   <span className="text-slate-300">Modello Selezionato</span>
+                   <span className="text-blue-400 font-medium">
+                     {localProvider === 'gemini' ? 'Gemini 1.5 Flash' : 'Llama 3.3 70B'}
+                   </span>
+                 </div>
+                 <p className="text-[9px] text-slate-500 leading-relaxed italic">
+                   {localProvider === 'gemini' 
+                     ? "Gemini Flash è estremamente generoso (1M+ parole/giorno) e molto veloce." 
+                     : "Groq 70B è più 'letterario' ma ha limiti giornalieri più restrittivi sul piano free."}
+                 </p>
               </div>
-            )}
+           </div>
 
-            <div className="bg-blue-900/10 border border-blue-500/20 p-3 rounded-lg flex items-start space-x-3">
-              <Lightbulb className="w-5 h-5 text-yellow-500 shrink-0" />
-              <p className="text-xs text-slate-300 italic opacity-70">Tip: Più dettagli sensoriali aggiungi, più l'IA sarà precisa.</p>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'transformer' && (
-          <div className="space-y-4">
-            <p className="text-xs text-slate-500">Riscrivi la tua scena in uno stile narrativo specifico.</p>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { key: 'visceral', label: '🩸 Viscerale', desc: 'Sensazioni fisiche' },
-                { key: 'atmospheric', label: '🌫️ Atmosferico', desc: 'Ambiente vivo' },
-                { key: 'metaphorical', label: '🌀 Metaforico', desc: 'Simboli e immagini' },
-                { key: 'psychological', label: '🧠 Psicologico', desc: 'Flusso di coscienza' },
-              ].map(({ key, label, desc }) => (
-                <button
-                  key={key}
-                  onClick={() => runStyleTransform(key)}
-                  disabled={isAnalyzing || plainText.length < 10}
-                  className="bg-slate-800 hover:bg-slate-700 disabled:opacity-50 p-3 rounded-lg text-left border border-slate-700 hover:border-blue-500/50 transition-all group"
-                >
-                  <div className="text-xs font-bold text-slate-200 group-hover:text-blue-400 transition-colors">{label}</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">{desc}</div>
-                </button>
-              ))}
-            </div>
-
-            {analysis && (
-              <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in fade-in">
-                <StructuredOutput text={analysis} />
-              </div>
-            )}
-
-            {!analysis && !isAnalyzing && (
-              <div className="flex flex-col items-center justify-center h-24 text-slate-600 space-y-2">
-                <Wand2 className="w-8 h-8 opacity-20" />
-                <p className="text-xs text-center">Scegli uno stile per riscrivere la scena attiva.</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'lexicon' && (
-          <div className="space-y-4">
-            <p className="text-xs text-slate-500">Trova la parola perfetta o un'immagine indimenticabile.</p>
-
-            <div className="relative">
-              <input
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-xl p-3 pl-10 text-xs text-slate-300 focus:outline-none focus:border-blue-500 transition-all shadow-inner"
-                placeholder="Inserisci una parola o un concetto..."
-                value={lexiconInput}
-                onChange={(e) => setLexiconInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && runLexiconTool('synonyms')}
-              />
-              <Compass className="w-4 h-4 text-slate-600 absolute left-3 top-3" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
+           <button 
+              onClick={handleSaveSettings}
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/40"
+           >
+             <Check className="w-4 h-4" /> Salva Impostazioni
+           </button>
+        </div>
+      ) : (
+        <>
+          <div className="flex p-2 gap-1">
+            {tabs.map(tab => (
               <button
-                onClick={() => runLexiconTool('synonyms')}
-                disabled={isAnalyzing || !lexiconInput.trim()}
-                className="py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 rounded-lg text-xs font-bold transition-all border border-slate-700"
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1 text-[10px] uppercase tracking-tighter py-2 rounded transition-all",
+                  activeTab === tab.id ? "bg-slate-700 text-blue-400" : "text-slate-500 hover:text-slate-300"
+                )}
               >
-                Sinonimi
+                {tab.icon}
+                {tab.label}
               </button>
-              <button
-                onClick={() => runLexiconTool('metaphors')}
-                disabled={isAnalyzing || !lexiconInput.trim()}
-                className="py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold transition-all"
-              >
-                Metafore
-              </button>
-            </div>
+            ))}
+          </div>
 
-            {analysis && (
-              <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2">
-                <StructuredOutput text={analysis} />
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {activeTab === 'revision' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-500 uppercase">Correzione Bozza</span>
+                  <div className="flex items-center gap-2">
+                    {activeSceneId && lastAnalyzedPhrase[activeSceneId] && (
+                      <button onClick={() => { setLastAnalyzedPhrase(activeSceneId!, ''); setSceneAnalysis(activeSceneId!, ''); }} className="text-[10px] text-slate-500 hover:text-slate-300 flex items-center gap-1 px-2 py-1">
+                        <RefreshCw className="w-3 h-3" /> Ripristina
+                      </button>
+                    )}
+                    <button onClick={runDraftRevision} disabled={isAnalyzing || plainText.length < 30} className="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-3 py-1.5 rounded-lg text-white flex items-center space-x-1 transition-all">
+                      <Zap className="w-3 h-3" />
+                      <span>{activeSceneId && lastAnalyzedPhrase[activeSceneId] ? 'Continua' : 'Analizza'}</span>
+                    </button>
+                  </div>
+                </div>
+                <div className="bg-blue-900/10 border border-blue-500/20 p-3 rounded-lg flex items-start space-x-3">
+                  <BookOpen className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+                  <p className="text-xs text-slate-400">Usi {aiConfig.provider === 'gemini' ? 'Gemini (Limite Alto)' : 'Groq (Limite Basso)'}.</p>
+                </div>
+                {analysis ? (
+                  <div className="animate-in slide-in-from-bottom-2">
+                    <StructuredOutput text={analysis} onApply={applySuggestion} onReject={handleReject} appliedSuggestions={appliedSuggestions} rejectedSuggestions={sceneIgnoredSuggestions} />
+                  </div>
+                ) : (
+                  !isAnalyzing && <div className="flex flex-col items-center justify-center h-36 text-slate-600 space-y-2"><AlertTriangle className="w-8 h-8 opacity-20" /><p className="text-xs text-center">Seleziona una scena e premi Analizza.</p></div>
+                )}
               </div>
             )}
-            
-            <div className="bg-blue-900/5 border border-blue-500/10 p-3 rounded-lg flex items-center space-x-3 mt-4">
-              <Languages className="w-4 h-4 text-blue-400 opacity-50" />
-              <p className="text-[10px] text-slate-500 italic">Dica: il vocabolario è lo scalpello dello scrittore.</p>
-            </div>
-          </div>
-        )}
-      </div>
 
-      <div className="p-4 border-t border-slate-700 space-y-3">
+            {activeTab === 'braindump' && (
+              <div className="space-y-4">
+                <textarea className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-xl p-3 text-xs text-slate-300 focus:outline-none focus:border-blue-500 transition-all resize-none shadow-inner" placeholder="Pensieri sparsi..." value={braindumpInput} onChange={(e) => setBraindumpInput(e.target.value)} />
+                <button onClick={runBraindump} disabled={isAnalyzing || !braindumpInput.trim()} className="w-full py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all"><Zap className="w-3 h-3" />Espandi Idee</button>
+                {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2"><StructuredOutput text={analysis} /></div>}
+              </div>
+            )}
+
+            {activeTab === 'transformer' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.keys(stylePrompts).map(key => (
+                    <button key={key} onClick={() => runStyleTransform(key)} disabled={isAnalyzing || plainText.length < 10} className="bg-slate-800 hover:bg-slate-700 disabled:opacity-50 p-3 rounded-lg text-left border border-slate-700 hover:border-blue-500/50 transition-all group">
+                      <div className="text-xs font-bold text-slate-200 group-hover:text-blue-400 transition-colors uppercase">{key}</div>
+                    </button>
+                  ))}
+                </div>
+                {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in fade-in"><StructuredOutput text={analysis} /></div>}
+              </div>
+            )}
+
+            {activeTab === 'lexicon' && (
+              <div className="space-y-4">
+                <div className="relative">
+                  <input className="w-full bg-slate-900/50 border border-slate-700 rounded-xl p-3 pl-10 text-xs text-slate-300 focus:outline-none focus:border-blue-500 transition-all shadow-inner" placeholder="Parola o concetto..." value={lexiconInput} onChange={(e) => setLexiconInput(e.target.value)} />
+                  <Compass className="w-4 h-4 text-slate-600 absolute left-3 top-3" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button onClick={() => runLexiconTool('synonyms')} disabled={isAnalyzing || !lexiconInput.trim()} className="py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 rounded-lg text-xs font-bold transition-all border border-slate-700">Sinonimi</button>
+                  <button onClick={() => runLexiconTool('metaphors')} disabled={isAnalyzing || !lexiconInput.trim()} className="py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold transition-all">Metafore</button>
+                </div>
+                {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2"><StructuredOutput text={analysis} /></div>}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      <div className="p-4 border-t border-slate-700">
         <div className="flex items-center space-x-2 text-[10px] text-slate-500 uppercase font-bold">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-          <span>Llama 3 Connected</span>
+          <div className={cn("w-2 h-2 rounded-full", isAnalyzing ? "bg-blue-500 animate-pulse" : "bg-green-500")}></div>
+          <span>{aiConfig.provider === 'gemini' ? 'Gemini connected' : 'Groq connected'}</span>
         </div>
       </div>
     </div>

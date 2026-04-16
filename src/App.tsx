@@ -15,9 +15,40 @@ import { AlertCircle, Settings, Cloud } from 'lucide-react';
 import { ToastContainer } from './components/Toast';
 
 function App() {
-  const { user, currentProject, activeTab, setUser } = useStore();
+  const { user, currentProject, activeTab, setUser, setAIConfig } = useStore();
   const [showAuth, setShowAuth] = useState(false);
   const ALLOWED_EMAIL = import.meta.env.VITE_ALLOWED_EMAIL;
+
+  // Caricamento profilo utente (API Keys, impostazioni AI)
+  React.useEffect(() => {
+    if (!user) return;
+
+    const loadProfile = async () => {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code === 'PGRST116') {
+        // Profilo non esiste, creiamolo
+        const initialSettings = { provider: 'groq' as const, model: 'llama-3.3-70b-versatile' };
+        await supabase.from('user_profiles').insert({
+          user_id: user.id,
+          ai_settings: initialSettings
+        });
+        setAIConfig({ ...initialSettings, geminiKey: '' });
+      } else if (data) {
+        setAIConfig({
+          provider: (data.ai_settings.provider as any) || 'groq',
+          model: data.ai_settings.model || 'llama-3.3-70b-versatile',
+          geminiKey: data.gemini_api_key || ''
+        });
+      }
+    };
+
+    loadProfile();
+  }, [user, setAIConfig]);
 
   React.useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Chapter } from '../types/narrative';
+import type { AIConfig } from '../lib/aiService';
 
 export type ViewTab = 'narrative' | 'characters' | 'world' | 'notes' | 'analysis' | 'config';
 
@@ -27,6 +28,7 @@ interface AppState {
   ignoredSuggestions: Record<string, string[]>;
   lastAnalyzedPhrase: Record<string, string>;
   sceneAnalysis: Record<string, string>;
+  aiConfig: AIConfig;
   
   setUser: (user: User | null) => void;
   setCurrentProject: (project: Project | null) => void;
@@ -41,6 +43,7 @@ interface AppState {
   addIgnoredSuggestion: (sceneId: string, suggestion: string) => void;
   setLastAnalyzedPhrase: (sceneId: string, phrase: string) => void;
   setSceneAnalysis: (sceneId: string, analysis: string) => void;
+  setAIConfig: (config: Partial<AIConfig>) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -58,6 +61,11 @@ export const useStore = create<AppState>()(
       ignoredSuggestions: {},
       lastAnalyzedPhrase: {},
       sceneAnalysis: {},
+      aiConfig: {
+        provider: 'groq',
+        model: 'llama-3.3-70b-versatile',
+        geminiKey: ''
+      },
       
       setUser: (user) => set({ user }),
       setCurrentProject: (project) => set({ currentProject: project }),
@@ -87,6 +95,9 @@ export const useStore = create<AppState>()(
           [sceneId]: analysis
         }
       })),
+      setAIConfig: (config) => set((state) => ({
+        aiConfig: { ...state.aiConfig, ...config }
+      })),
     }),
     {
       name: 'muse-storage',
@@ -97,7 +108,8 @@ export const useStore = create<AppState>()(
         activeTab: state.activeTab,
         ignoredSuggestions: state.ignoredSuggestions || {},
         lastAnalyzedPhrase: state.lastAnalyzedPhrase || {},
-        sceneAnalysis: state.sceneAnalysis || {}
+        sceneAnalysis: state.sceneAnalysis || {},
+        aiConfig: state.aiConfig
       }),
     }
   )

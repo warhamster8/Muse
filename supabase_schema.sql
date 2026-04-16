@@ -156,3 +156,15 @@ create policy "Users can access notes of their projects" on public.notes
       and projects.user_id = auth.uid()
     )
   );
+
+-- 9. Tabella USER PROFILES
+create table public.user_profiles (
+  user_id uuid references auth.users(id) on delete cascade primary key,
+  gemini_api_key text,
+  ai_settings jsonb default '{"provider": "groq", "model": "llama-3.3-70b-versatile"}'::jsonb,
+  updated_at timestamp with time zone default now()
+);
+
+alter table public.user_profiles enable row level security;
+create policy "Users can only see their own profile" on public.user_profiles
+  for all using (auth.uid() = user_id);
