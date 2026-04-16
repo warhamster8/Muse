@@ -11,7 +11,8 @@ import {
   Languages,
   X,
   ChevronRight,
-  Quote
+  Quote,
+  CheckCircle
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useStore } from '../store/useStore';
@@ -19,7 +20,7 @@ import { useNarrative } from '../hooks/useNarrative';
 import { useToast } from './Toast';
 import { aiService } from '../lib/aiService';
 
-type SidekickTab = 'revision' | 'braindump' | 'transformer' | 'lexicon';
+type SidekickTab = 'revision' | 'grammar' | 'braindump' | 'transformer' | 'lexicon';
 
 type DiffPart = { value: string; added?: boolean; removed?: boolean };
 
@@ -537,6 +538,50 @@ LINGUA: Italiano.`;
     }
   };
 
+  const runGrammarAnalysis = async () => {
+    if (!plainText || plainText.length < 10) return;
+    setIsAnalyzing(true);
+    setAnalysis('');
+    
+    let textToAnalyze = activeSelection || plainText;
+    if (textToAnalyze.length > 4000) textToAnalyze = textToAnalyze.substring(0, 4000);
+
+    try {
+      const systemPrompt = `Sei un correttore bozze professionista.
+Il tuo compito è ESCLUSIVAMENTE correggere errori tecnici (ortografia, punteggiatura, spazi, a capo).
+NON suggerire cambiamenti di stile o trama.
+
+REGOLE MANDATORIE:
+1. Inizia con "## Analisi Tecnica".
+2. Segui RIGOROSAMENTE l'ordine del testo (alto -> basso).
+3. Usa QUESTO FORMATO:
+   ❌ Errore riscontrato (parola o punteggiatura errata)
+   ✅ Versione corretta
+   🏷️ Categoria (Ortografia, Punteggiatura, Formattazione)
+   💡 Breve regola grammaticale o spiegazione dell'errore
+
+4. CASI SPECIFICI:
+   - Punteggiatura: Controlla spazi prima/dopo virgole e punti.
+   - A capo: Segnala paragrafi interrotti a metà parola o troppi spazi/invio vuoti inutili.
+   - Accenti/Apostrofi: Verifica "È" vs "E'", "perché" vs "perche'", ecc.
+
+LINGUA: Italiano. Sii estremamente preciso.`;
+
+      await aiService.streamChat(
+        aiConfig,
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Correggi ortografia e punteggiatura di questo testo:\n\n${textToAnalyze}` }
+        ],
+        (chunk) => setAnalysis(prev => prev + chunk)
+      );
+    } catch (err: any) {
+      setAnalysis(`❌ Errore AI: ${err?.message || 'Errore Sconosciuto'}`);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const runBraindump = async () => {
     if (!braindumpInput.trim()) return;
     setIsAnalyzing(true);
@@ -616,6 +661,7 @@ Rispondi in italiano. Sii concreto e originale.`;
 
   const tabs: { id: SidekickTab; label: string; icon: React.ReactNode }[] = [
     { id: 'revision', label: 'Revisione', icon: <PenLine className="w-3 h-3" /> },
+    { id: 'grammar', label: 'Correzione', icon: <CheckCircle className="w-3 h-3" /> },
     { id: 'braindump', label: 'Braindump', icon: <Lightbulb className="w-3 h-3" /> },
     { id: 'transformer', label: 'Stile', icon: <Wand2 className="w-3 h-3" /> },
     { id: 'lexicon', label: 'Lessico', icon: <Languages className="w-3 h-3" /> },
@@ -723,6 +769,32 @@ Rispondi in italiano. Sii concreto e originale.`;
               </div>
             ) : (
               !isAnalyzing && <div className="flex flex-col items-center justify-center h-36 text-slate-600 space-y-2"><AlertTriangle className="w-8 h-8 opacity-20" /><p className="text-xs text-center">Seleziona una scena e premi Analizza.</p></div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'grammar' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase">Analisi Ortografica</span>
+              <button 
+                onClick={runGrammarAnalysis} 
+                disabled={isAnalyzing || (activeSelection ? activeSelection.length < 5 : plainText.length < 20)}
+                className={cn(
+                  "text-xs px-3 py-1.5 rounded-lg text-white flex items-center space-x-1 transition-all shadow-lg",
+                  activeSelection ? "bg-green-600 shadow-green-900/30" : "bg-blue-600 shadow-blue-900/30"
+                )}
+              >
+                <CheckCircle className="w-3 h-3" />
+                <span>{activeSelection ? 'Correggi Selezione' : 'Trova Errori'}</span>
+              </button>
+            </div>
+            {analysis ? (
+              <div className="animate-in slide-in-from-bottom-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                <StructuredOutput text={analysis} onApply={applySuggestion} onReject={handleReject} appliedSuggestions={appliedSuggestions} rejectedSuggestions={sceneIgnoredSuggestions} />
+              </div>
+            ) : (
+              !isAnalyzing && <div className="flex flex-col items-center justify-center h-36 text-slate-600 space-y-2"><CheckCircle className="w-8 h-8 opacity-20" /><p className="text-xs text-center border-t border-slate-700/50 pt-3">Nessun errore rilevato finora.</p></div>
             )}
           </div>
         )}

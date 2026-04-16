@@ -34,6 +34,11 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
       CustomShortcuts,
     ],
     content: initialContent,
+    editorProps: {
+      attributes: {
+        spellcheck: 'true',
+      },
+    },
     onUpdate: ({ editor }) => {
       // Don't emit changes back to the parent if we're currently syncing from the parent
       if (isExternallyUpdating.current) return;
