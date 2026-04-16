@@ -36,15 +36,21 @@ export const geminiService = {
     };
 
     const trimmedKey = apiKey.trim();
-    console.log(`[DEBUG] Chiamata Gemini con chiave: ${trimmedKey.substring(0, 4)}...${trimmedKey.slice(-4)}`);
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${trimmedKey}`;
+    // Usiamo v1 (stabile) invece di v1beta
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${trimmedKey}`;
+
+    // Creiamo un oggetto Headers pulito e rimuoviamo esplicitamente Authorization
+    // per evitare che estensioni o proxy lo aggiungano a nostra insaputa.
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    // x-goog-api-key non è strettamente necessario se usiamo il parametro ?key= nell'URL,
+    // ma lo aggiungiamo per massima compatibilità.
+    headers.append('x-goog-api-key', trimmedKey);
 
     const response = await fetch(url, {
       method: 'POST',
-      credentials: 'omit',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: headers,
+      credentials: 'omit', // Cruciale: non inviare cookie di sessione Google
       body: JSON.stringify(payload),
     });
 
@@ -90,13 +96,14 @@ export const geminiService = {
     const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${trimmedKey}`;
     
     try {
+      const headers = new Headers();
+      headers.append('Content-Type', 'application/json');
+      headers.append('x-goog-api-key', trimmedKey);
+
       const response = await fetch(url, {
         method: 'POST',
         credentials: 'omit',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': trimmedKey,
-        },
+        headers: headers,
         body: JSON.stringify({
           contents: [{ parts: [{ text: 'Say hi' }] }]
         }),
