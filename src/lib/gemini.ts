@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 
 export const geminiService = {
   async streamChatCompletion(
@@ -30,13 +30,49 @@ export const geminiService = {
         temperature,
         maxOutputTokens: 4096,
       },
+      safetySettings: [
+        {
+          category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+      ],
     });
 
-    const result = await chat.sendMessageStream(lastMessage);
+    try {
+      const result = await chat.sendMessageStream(lastMessage);
 
-    for await (const chunk of result.stream) {
-      const chunkText = chunk.text();
-      onChunk(chunkText);
+      for await (const chunk of result.stream) {
+        try {
+          const chunkText = chunk.text();
+          onChunk(chunkText);
+        } catch (e) {
+          console.warn("Gemini: Could not parse chunk", e);
+        }
+      }
+    } catch (err: any) {
+      if (err?.message?.includes('Failed to parse stream') || err?.message?.includes('fetch')) {
+         console.warn("Stream failed, attempting non-streaming fallback...");
+         try {
+           const fallbackResult = await chat.sendMessage(lastMessage);
+           onChunk(fallbackResult.response.text());
+         } catch (fallbackErr: any) {
+           throw new Error(fallbackErr?.message || "Errore di connessione irreversibile.");
+         }
+      } else {
+         throw err;
+      }
     }
   }
 };
