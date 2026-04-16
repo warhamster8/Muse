@@ -30,6 +30,8 @@ interface AppState {
   sceneAnalysis: Record<string, string>;
   aiConfig: AIConfig;
   
+  activeSelection: string | null;
+  
   setUser: (user: User | null) => void;
   setCurrentProject: (project: Project | null) => void;
   setActiveTab: (tab: ViewTab) => void;
@@ -44,6 +46,7 @@ interface AppState {
   setLastAnalyzedPhrase: (sceneId: string, phrase: string | ((prev: string) => string), tabId?: string) => void;
   setSceneAnalysis: (sceneId: string, analysis: string | ((prev: string) => string), tabId?: string) => void;
   setAIConfig: (config: Partial<AIConfig>) => void;
+  setActiveSelection: (selection: string | null) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -66,6 +69,7 @@ export const useStore = create<AppState>()(
         model: 'llama-3.3-70b-versatile',
         deepseekKey: ''
       },
+      activeSelection: null,
       
       setUser: (user) => set({ user }),
       setCurrentProject: (project) => set({ currentProject: project }),
@@ -108,6 +112,7 @@ export const useStore = create<AppState>()(
       setAIConfig: (config) => set((state) => ({
         aiConfig: { ...state.aiConfig, ...config }
       })),
+      setActiveSelection: (selection) => set({ activeSelection: selection }),
     }),
     {
       name: 'muse-storage',
@@ -120,6 +125,7 @@ export const useStore = create<AppState>()(
         lastAnalyzedPhrase: state.lastAnalyzedPhrase || {},
         sceneAnalysis: state.sceneAnalysis || {},
         aiConfig: state.aiConfig
+        // activeSelection excluded
       }),
     }
   )

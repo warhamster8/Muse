@@ -247,6 +247,8 @@ export const AISidekick: React.FC = () => {
     setLastAnalyzedPhrase,
     sceneAnalysis,
     setSceneAnalysis,
+    activeSelection,
+    setActiveSelection,
     aiConfig,
     setActiveTab: setGlobalTab
   } = useStore();
@@ -282,9 +284,33 @@ export const AISidekick: React.FC = () => {
     }
   };
 
+  // Helper to sort structured text by appearance in the manuscript
+  const sortAnalysisResults = (fullText: string, analysisText: string) => {
+    const sections = analysisText.split(/(?=## |❌ )/);
+    const header = sections.find(s => s.startsWith('##')) || '';
+    const suggestions = sections.filter(s => s.startsWith('❌'));
+    const footer = sections.find(s => s.includes('## Note Generali')) || '';
+
+    const sortedSuggestions = suggestions
+      .map(sug => {
+        const match = sug.match(/❌\s*(.+?)(?=\n|✅|$)/);
+        const phrase = match ? match[1].replace(/^["“”«»]+|["“”«»]+$/g, '').trim() : '';
+        const index = phrase ? fullText.indexOf(phrase) : -1;
+        return { content: sug, index };
+      })
+      .sort((a, b) => {
+        if (a.index === -1) return 1;
+        if (b.index === -1) return -1;
+        return a.index - b.index;
+      })
+      .map(s => s.content);
+
+    return [header, ...sortedSuggestions, footer].join('\n').trim();
+  };
+
   const applySuggestion = async (originalText: string, suggestion: string) => {
     if (!activeSceneId || !content) return;
-
+    
     const buildMapping = (html: string) => {
       const textMap: number[] = [];
       const charLens: number[] = [];
@@ -386,28 +412,32 @@ export const AISidekick: React.FC = () => {
     setAnalysis('');
     setAppliedSuggestions([]);
 
-    let textToAnalyze = plainText;
-    const memoryKey = `${activeSceneId}-revision`;
-    const lastPhrase = activeSceneId ? lastAnalyzedPhrase[memoryKey] : null;
+    let textToAnalyze = activeSelection || plainText;
+    const isSelection = !!activeSelection;
 
-    if (lastPhrase) {
-      let index = plainText.indexOf(lastPhrase);
-      if (index === -1) {
-        // Try fallback with word context
-        const words = lastPhrase.trim().split(/\s+/);
-        if (words.length > 5) {
-          const pattern = words.slice(-5).map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+');
-          try {
-            const regex = new RegExp(pattern, 'i');
-            const match = plainText.match(regex);
-            if (match) index = match.index!;
-          } catch(e) {}
+    if (!isSelection) {
+      const memoryKey = `${activeSceneId}-revision`;
+      const lastPhrase = activeSceneId ? lastAnalyzedPhrase[memoryKey] : null;
+
+      if (lastPhrase) {
+        let index = plainText.indexOf(lastPhrase);
+        if (index === -1) {
+          // Try fallback with word context
+          const words = lastPhrase.trim().split(/\s+/);
+          if (words.length > 5) {
+            const pattern = words.slice(-5).map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+');
+            try {
+              const regex = new RegExp(pattern, 'i');
+              const match = plainText.match(regex);
+              if (match) index = match.index!;
+            } catch(e) {}
+          }
         }
-      }
-      if (index !== -1) {
-        const startIndex = Math.max(0, index + lastPhrase.length);
-        if (startIndex < plainText.length - 20) {
-           textToAnalyze = plainText.substring(startIndex);
+        if (index !== -1) {
+          const startIndex = Math.max(0, index + lastPhrase.length);
+          if (startIndex < plainText.length - 20) {
+             textToAnalyze = plainText.substring(startIndex);
+          }
         }
       }
     }
@@ -424,20 +454,21 @@ Revisiona la bozza fornita con precisione e profondità.
 
 REGOLE MANDATORIE:
 1. Inizia IMMEDIATAMENTE con "## Analisi Revisione".
-2. Per ogni problema identificato, usa QUESTO FORMATO (non cambiare mai i simboli):
+2. Segui RIGOROSAMENTE l'ordine del testo: analizza il testo dall'alto verso il basso (lineare).
+3. Per ogni problema identificato, usa QUESTO FORMATO (non cambiare mai i simboli):
    ❌ Frase originale dal testo
    ✅ Tua nuova versione migliorata e riscritta
    🏷️ Categoria (es: Verbo, Ritmo, Stile)
    💡 Breve spiegazione del perché la tua versione è migliore
 
-3. ESEMPIO DI OUTPUT:
+4. ESEMPIO DI OUTPUT:
    ❌ Il cielo era scuro e faceva molta paura.
    ✅ Nubi plumbee schiacciavano l'orizzonte, cariche di una minaccia silenziosa.
    🏷️ Atmosfera
    💡 Sostituzione di verbi generici con immagini viscerali.
 
-4. NON scrivere introduzioni o commenti extra. Identifica 5-7 punti chiave.
-5. Concludi con "## Note Generali" (2 righe di sintesi).
+5. NON scrivere introduzioni o commenti extra. Identifica 5-7 punti chiave.
+6. Concludi con "## Note Generali" (2 righe di sintesi).
 
 LINGUA: Italiano.`;
 
@@ -445,7 +476,7 @@ LINGUA: Italiano.`;
         aiConfig,
         [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Revisiona questa bozza:\n\n${textToAnalyze}` }
+          { role: 'user', content: `${isSelection ? 'REVISIONA SOLO QUESTA SELEZIONE:\n' : 'Revisiona questa bozza:\n'}\n${textToAnalyze}` }
         ],
         (chunk) => {
           fullResponse += chunk;
@@ -453,9 +484,13 @@ LINGUA: Italiano.`;
         }
       );
 
-      // Automatic checkpointing: find the last ❌ line
-      if (activeSceneId) {
-        const lines = fullResponse.split('\n');
+      // Post-processing: Sort results from top to bottom based on position in full text
+      const sortedResult = sortAnalysisResults(plainText, fullResponse);
+      setAnalysis(sortedResult);
+
+      // Automatic checkpointing (only for full scene analysis)
+      if (activeSceneId && !isSelection) {
+        const lines = sortedResult.split('\n');
         const lastErrorLine = lines.reverse().find(l => l.trim().startsWith('❌'));
         if (lastErrorLine) {
           const phrase = lastErrorLine.replace(/^❌\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim();
@@ -599,12 +634,15 @@ Rispondi in italiano. Sii concreto e originale.`;
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
                 <span className="text-xs font-bold text-slate-500 uppercase">Correzione Bozza</span>
-                {currentLastPhrase && (
+                {activeSelection && (
+                  <span className="text-[9px] text-green-400 font-bold animate-pulse">✨ Selezione attiva</span>
+                )}
+                {!activeSelection && currentLastPhrase && (
                   <span className="text-[9px] text-blue-400/60 truncate max-w-[120px] italic">Memoria: {currentLastPhrase.slice(0, 15)}...</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
-                {activeSceneId && lastAnalyzedPhrase[`${activeSceneId}-revision`] && (
+                {activeSceneId && lastAnalyzedPhrase[`${activeSceneId}-revision`] && !activeSelection && (
                   <button 
                     onClick={() => { 
                       setLastAnalyzedPhrase(activeSceneId!, '', 'revision'); 
@@ -616,9 +654,12 @@ Rispondi in italiano. Sii concreto e originale.`;
                     <RefreshCw className="w-3.5 h-3.5" />
                   </button>
                 )}
-                <button onClick={runDraftRevision} disabled={isAnalyzing || plainText.length < 30} className="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-3 py-1.5 rounded-lg text-white flex items-center space-x-1 transition-all shadow-lg shadow-blue-900/30">
+                <button onClick={runDraftRevision} disabled={isAnalyzing || (activeSelection ? activeSelection.length < 5 : plainText.length < 30)} className={cn(
+                  "text-xs px-3 py-1.5 rounded-lg text-white flex items-center space-x-1 transition-all shadow-lg",
+                  activeSelection ? "bg-green-600 hover:bg-green-500 shadow-green-900/30" : "bg-blue-600 hover:bg-blue-500 shadow-blue-900/30"
+                )}>
                   <Zap className="w-3 h-3" />
-                  <span>{currentLastPhrase ? 'Continua' : 'Analizza'}</span>
+                  <span>{activeSelection ? 'Analizza Selezione' : (currentLastPhrase ? 'Continua' : 'Analizza')}</span>
                 </button>
               </div>
             </div>

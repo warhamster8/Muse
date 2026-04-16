@@ -11,8 +11,11 @@ import {
   Type
 } from 'lucide-react';
 
+import { useStore } from '../store/useStore';
+
 export const Editor: React.FC<{ initialContent: string; onChange: (content: string) => void }> = ({ initialContent, onChange }) => {
   const isExternallyUpdating = React.useRef(false);
+  const { setActiveSelection } = useStore();
 
   const editor = useEditor({
     extensions: [
@@ -24,6 +27,15 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
       // Don't emit changes back to the parent if we're currently syncing from the parent
       if (isExternallyUpdating.current) return;
       onChange(editor.getHTML());
+    },
+    onSelectionUpdate: ({ editor }) => {
+      const { from, to, empty } = editor.state.selection;
+      if (empty) {
+        setActiveSelection(null);
+      } else {
+        const selectedText = editor.state.doc.textBetween(from, to, ' ');
+        setActiveSelection(selectedText);
+      }
     },
   });
 
