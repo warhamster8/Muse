@@ -232,8 +232,8 @@ const MODELS: Record<AIProvider, { id: string; label: string; desc: string }[]> 
     { id: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B', desc: 'Balanced - Equilibrato' }
   ],
   gemini: [
-    { id: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash', desc: 'Turbo - Gratis e generoso' },
-    { id: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro', desc: 'Brain - Più profondo' }
+    { id: 'gemini-1.5-flash-latest', label: 'Gemini 1.5 Flash', desc: 'Turbo - Gratis e generoso' },
+    { id: 'gemini-1.5-pro-latest', label: 'Gemini 1.5 Pro', desc: 'Brain - Più profondo' }
   ]
 };
 
@@ -609,7 +609,7 @@ Rispondi in italiano. Sii concreto e originale.`;
                 <button 
                    onClick={() => { 
                     setLocalProvider('gemini'); 
-                    setLocalModel('gemini-1.5-flash'); 
+                    setLocalModel('gemini-1.5-flash-latest'); 
                    }}
                    className={cn("p-3 rounded-xl border text-left transition-all", localProvider === 'gemini' ? "bg-purple-600/10 border-purple-500 text-purple-100" : "bg-slate-900/50 border-slate-700 text-slate-400")}
                 >
