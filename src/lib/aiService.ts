@@ -21,19 +21,32 @@ export const aiService = {
       return geminiService.streamChatCompletion(
         config.geminiKey,
         messages,
-        config.model,
         onChunk,
         options?.temperature
       );
     } else {
-      // Groq handles its own key from environment or we could pass it if needed,
-      // but typically Groq keys are set on the server/env for security.
-      return groqService.streamChatCompletion(
-        messages,
-        config.model,
-        onChunk,
-        options?.temperature
-      );
+      try {
+        return await groqService.streamChatCompletion(
+          messages,
+          config.model,
+          onChunk,
+          options?.temperature
+        );
+      } catch (err: any) {
+        // Se Groq 70B fallisce per quota (429), proviamo il modello 8B che ha limiti enormi
+        if ((err?.message?.includes('429') || err?.message?.includes('limit')) && config.model.includes('70b')) {
+          console.warn("aiService: Groq 70B fallito (quota), provo fallback su Llama 8B...");
+          onChunk("\n\n⚠️ Quota Groq 70B piena. Utilizzo modello ultra-veloce Llama 8B...\n\n");
+          
+          return groqService.streamChatCompletion(
+            messages,
+            'llama-3.1-8b-instant',
+            onChunk,
+            options?.temperature
+          );
+        }
+        throw err;
+      }
     }
   }
 };

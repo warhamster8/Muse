@@ -4,19 +4,15 @@ export const geminiService = {
   async streamChatCompletion(
     apiKey: string,
     messages: any[],
-    requestedModel = 'gemini-2.0-flash-lite',
     onChunk: (text: string) => void,
     temperature = 0.7
   ) {
     if (!apiKey) throw new Error('Gemini API Key missing');
 
-    // Lista ottimizzata: modelli leggeri -> Gemma -> Pro
+    // SOLO i modelli verificati per l'account dell'utente
     const modelRotation = [
-      requestedModel,
       'gemini-2.0-flash-lite',
       'gemini-flash-latest',
-      'gemma-3-27b-it',
-      'gemma-3-4b-it',
       'gemini-pro-latest'
     ];
 
@@ -24,7 +20,7 @@ export const geminiService = {
     let lastError: any = null;
 
     for (const modelName of uniqueModels) {
-      console.log(`GeminiService: Tentativo con modello ${modelName}...`);
+      console.log(`GeminiService: Tentativo con modello VERIFICATO ${modelName}...`);
       
       try {
         const genAI = new GoogleGenerativeAI(apiKey);
@@ -44,7 +40,7 @@ export const geminiService = {
           history: chatHistory,
           generationConfig: {
             temperature,
-            maxOutputTokens: 2048, // Ridotto per essere più "leggeri"
+            maxOutputTokens: 2048,
           },
           safetySettings: [
             { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -60,14 +56,10 @@ export const geminiService = {
           try {
             const chunkText = chunk.text();
             if (chunkText) {
-              console.log(`GeminiService [${modelName}]: Received chunk`);
               onChunk(chunkText);
             }
           } catch (e) {
-            const feedback = (chunk as any).promptFeedback;
-            if (feedback?.blockReason) {
-               onChunk(`\n\n❌ Blocco Sicurezza (${modelName}): ${feedback.blockReason}\n\n`);
-            }
+             console.warn("Gemini: Error parsing chunk", e);
           }
         }
         
@@ -76,19 +68,24 @@ export const geminiService = {
       } catch (err: any) {
         lastError = err;
         const errMsg = err?.message || '';
-        console.error(`GeminiService: Fallimento con ${modelName}:`, errMsg);
-
-        if (!errMsg.includes('429') && !errMsg.includes('404') && !errMsg.includes('quota')) {
-          throw err;
+        
+        // Se è un 404, significa che il modello non è attivo, saltiamo subito
+        if (errMsg.includes('404')) {
+           console.warn(`GeminiService: Modello ${modelName} non trovato (404).`);
+           continue;
         }
 
-        onChunk(`\n\n⚠️ ${modelName} indisponibile. Raffreddamento 2s e cambio modello...\n\n`);
-        
-        // Pausa di raffreddamento prima del prossimo tentativo
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Se è un 429, informiamo l'utente e aspettiamo un po'
+        if (errMsg.includes('429')) {
+           onChunk(`\n\n⚠️ ${modelName} in pausa quota. Passo al prossimo...\n\n`);
+           await new Promise(resolve => setTimeout(resolve, 3000));
+           continue;
+        }
+
+        throw err;
       }
     }
 
-    throw lastError || new Error("Tutti i modelli (Gemini/Gemma) hanno fallito.");
+    throw lastError || new Error("Configurazione Gemini non riuscita.");
   }
 };
