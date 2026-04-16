@@ -11,11 +11,11 @@ import { WorldView } from './views/WorldView';
 import { AuthView } from './views/AuthView';
 import { ProjectSelector } from './views/ProjectSelector';
 import { AnalysisView } from './views/AnalysisView';
-import { AlertCircle, Settings, Cloud, Zap } from 'lucide-react';
+import { AlertCircle, Settings, Cloud } from 'lucide-react';
 import { ToastContainer } from './components/Toast';
 
 function App() {
-  const { user, currentProject, activeTab, setUser, setLocalMode } = useStore();
+  const { user, currentProject, activeTab, setUser } = useStore();
   const [showAuth, setShowAuth] = useState(false);
   const ALLOWED_EMAIL = import.meta.env.VITE_ALLOWED_EMAIL;
 
