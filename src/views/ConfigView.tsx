@@ -26,15 +26,24 @@ export const ConfigView: React.FC = () => {
 
     setIsSaving(true);
     try {
+      // Otteniamo le impostazioni attuali per non sovrascriverle tutte
+      const currentSettings = aiConfig;
+      
       const { error } = await supabase
         .from('user_profiles')
-        .update({ deepseek_api_key: keyInput.trim() })
+        .update({ 
+          deepseek_api_key: keyInput.trim(),
+          ai_settings: {
+            ...currentSettings,
+            provider: 'deepseek'
+          }
+        })
         .eq('user_id', user.id);
 
       if (error) throw error;
       
-      setAIConfig({ deepseekKey: keyInput.trim() });
-      addToast("Chiave salvata correttamente", 'success');
+      setAIConfig({ deepseekKey: keyInput.trim(), provider: 'deepseek' });
+      addToast("Chiave salvata e DeepSeek attivato!", 'success');
       setKeyInput('');
     } catch (err: any) {
       console.error(err);
