@@ -229,7 +229,7 @@ const MODELS: Record<AIProvider, { id: string; label: string; desc: string }[]> 
   groq: [
     { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B', desc: 'Brain - Molto letterario' },
     { id: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B', desc: 'Turbo - Velocissimo' },
-    { id: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B', desc: 'Balanced - Equilibrato' }
+    { id: 'mixtral-8x7b-32768-v1', label: 'Mixtral (Legacy)', desc: 'Balanced - Equilibrato' }
   ],
   gemini: [
     { id: 'gemini-flash-latest', label: 'Gemini Flash', desc: 'Turbo - Veloce, stabile e gratuito' },
@@ -419,6 +419,13 @@ export const AISidekick: React.FC = () => {
     setAnalysis('');
     setAppliedSuggestions([]);
 
+    // Auto-fix per modelli dismessi che bloccano le impostazioni
+    let currentConfig = aiConfig;
+    if (currentConfig.model === 'mixtral-8x7b-32768') {
+       currentConfig = { ...currentConfig, model: 'llama-3.3-70b-versatile' };
+       setAIConfig(currentConfig);
+    }
+
     let textToAnalyze = plainText;
     const lastPhrase = activeSceneId ? lastAnalyzedPhrase[activeSceneId] : null;
     let isContinuation = false;
@@ -472,7 +479,7 @@ ${isContinuation ? "NOTA: Stai continuando la revisione. Non ripetere suggerimen
 LINGUA: Italiano.`;
 
       await aiService.streamChat(
-        aiConfig,
+        currentConfig,
         [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Revisiona questa bozza${isContinuation ? " (riprendendo da dove eri rimasto)" : ""}:\n\n${textToAnalyze}` }
