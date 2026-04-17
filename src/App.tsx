@@ -99,8 +99,8 @@ function App() {
           <div className="absolute -top-32 -right-32 w-80 h-80 bg-[#5be9b1]/10 blur-[140px] rounded-full" />
           <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-[#5be9b1]/10 blur-[140px] rounded-full" />
           
-          <div className="w-56 h-56 mx-auto rounded-[32px] bg-[#13161a] flex items-center justify-center p-6 mb-10 logo-glow border border-white/10 shadow-inner">
-            <img src="/logo.png" alt="Project Muse Logo" className="w-full h-full object-contain logo-blend scale-110" />
+          <div className="w-80 h-80 mx-auto rounded-[40px] bg-[#13161a] flex items-center justify-center p-8 mb-10 logo-glow border border-white/5 shadow-inner">
+            <img src="/logo.png" alt="Project Muse Logo" className="w-full h-full object-contain logo-blend" />
           </div>
           <div>
             <h1 className="text-6xl font-black font-display text-slate-50 tracking-tighter leading-tight uppercase">Project Muse</h1>

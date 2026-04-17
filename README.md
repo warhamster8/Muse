@@ -1,8 +1,21 @@
-# 🖋️ Project Muse: Inkwell Edition
+<div align="center">
+  <img src="public/logo.png" width="160" height="160" alt="Muse Logo">
+  <h1>Project Muse</h1>
+  <p><b>L'Architetto della tua Visione Narrativa</b></p>
+  
+  <p>
+    <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js">
+    <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
+    <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase">
+    <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
+  </p>
+</div>
+
+---
 
 **Project Muse** è una suite di scrittura creativa professionale progettata per trasformare frammenti di idee in narrativa strutturata. Con l'edizione *Inkwell*, l'interfaccia si evolve in un ambiente minimalista ad alto contrasto (Charcoal & Mint) studiato per massimizzare la concentrazione e l'immersione editoriale.
 
-![Project Muse Preview](public/inkwell_preview_sharp.png)
+![Project Muse Preview](public/muse_preview.png)
 
 ---
 
@@ -49,7 +62,7 @@ Crea schede personaggi profonde (bio, psicologia, evoluzione) e mappa il tuo mon
 
 ### 1. Clona il Repository
 ```bash
-git clone https://github.com/warhamster8/Muse.git
+git clone https://github.com/placeholder-username/Muse.git
 cd Muse
 npm install
 ```
@@ -65,7 +78,7 @@ Crea un file `.env` nella root del progetto:
 ```env
 VITE_SUPABASE_URL=tua_url_supabase
 VITE_SUPABASE_ANON_KEY=tua_key_anon_supabase
-VITE_ALLOWED_EMAIL=tua_email_abilitata
+VITE_ALLOWED_EMAIL=user-email@example.com
 VITE_GROQ_API_KEY=tua_key_groq
 ```
 
@@ -80,4 +93,4 @@ npm run dev
 L'estetica **Inkwell** è stata progettata per ridurre l'affaticamento visivo. Utilizza una base carbone profonda con accenti "Mint Tech" che evidenziano solo ciò che conta: la tua storia.
 
 ---
-*Developed with ❤️ by Google Deepmind Team - Advanced Agentic Coding.*
+*Developed with ❤️ by Google DeepMind Team - Advanced Agentic Coding.*
