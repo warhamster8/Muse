@@ -62,8 +62,9 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   React.useEffect(() => {
     if (editor) {
       // 1. Update the suggestion highlight extension storage
-      if (editor.storage.suggestionHighlight) {
-        editor.storage.suggestionHighlight.suggestions = highlightedText ? [highlightedText] : [];
+      const storage = editor.storage as any;
+      if (storage.suggestionHighlight) {
+        storage.suggestionHighlight.suggestions = highlightedText ? [highlightedText] : [];
       }
       
       // Force a re-render of decorations by dispatching an empty transaction
