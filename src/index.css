@@ -77,11 +77,20 @@
 
 /* TipTap Editor Styling: Immersion Focused */
 .ProseMirror {
-    @apply outline-none min-h-[500px] text-xl leading-normal text-slate-200 font-serif max-w-none;
+    @apply outline-none min-h-[500px] text-xl leading-tight text-slate-200 font-serif max-w-none;
 }
 
 .ProseMirror p {
-    @apply m-0;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Collapsa eventuali paragrafi vuoti inseriti per errore */
+.ProseMirror p:empty, 
+.ProseMirror p > br:only-child {
+    display: none;
 }
 
 .ProseMirror h1 {
