@@ -14,7 +14,7 @@ export const aiService = {
     config: AIConfig,
     messages: any[],
     onChunk: (text: string) => void,
-    options?: { temperature?: number }
+    options?: { temperature?: number, signal?: AbortSignal }
   ) {
     if (config.provider === 'deepseek') {
       if (!config.deepseekKey) throw new Error('Chiave DeepSeek non trovata nel profilo');
@@ -23,7 +23,8 @@ export const aiService = {
         config.deepseekKey,
         messages,
         onChunk,
-        options?.temperature
+        options?.temperature,
+        options?.signal
       );
     }
 
@@ -32,7 +33,8 @@ export const aiService = {
       messages,
       'llama-3.3-70b-versatile',
       onChunk,
-      options?.temperature
+      options?.temperature,
+      options?.signal
     );
   }
 };

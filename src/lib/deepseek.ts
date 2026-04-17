@@ -3,7 +3,8 @@ export const deepseekService = {
     apiKey: string,
     messages: any[],
     onChunk: (text: string) => void,
-    temperature = 0.7
+    temperature = 0.7,
+    signal?: AbortSignal
   ) {
     if (!apiKey) throw new Error('Chiave DeepSeek mancante');
 
@@ -13,6 +14,7 @@ export const deepseekService = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
       },
+      signal, // Pass the AbortSignal to fetch
       body: JSON.stringify({
         model: 'deepseek-chat',
         messages,
@@ -33,6 +35,10 @@ export const deepseekService = {
     let buffer = '';
 
     while (true) {
+      if (signal?.aborted) {
+        reader.cancel();
+        break;
+      }
       const { done, value } = await reader.read();
       if (done) break;
 

@@ -19,7 +19,8 @@ export const groqService = {
     messages: any[],
     model = 'llama-3.3-70b-versatile',
     onChunk: (text: string) => void,
-    temperature = 0.55
+    temperature = 0.55,
+    signal?: AbortSignal
   ) {
     if (!groq) throw new Error('Groq API Key missing');
 
@@ -29,9 +30,10 @@ export const groqService = {
       stream: true,
       temperature,
       max_tokens: 2048,
-    });
+    }, { signal });
 
     for await (const chunk of stream) {
+      if (signal?.aborted) break;
       const content = chunk.choices[0]?.delta?.content || '';
       onChunk(content);
     }

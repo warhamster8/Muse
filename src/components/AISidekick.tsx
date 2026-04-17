@@ -316,6 +316,19 @@ export const AISidekick: React.FC = () => {
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
   const [lexiconInput, setLexiconInput] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
+
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    // Clear suggestions from view but keep memory (lastAnalyzedPhrase)
+    if (activeSceneId) {
+      setSceneAnalysis(activeSceneId, '', activeTab);
+    }
+    setIsAnalyzing(false);
+  };
 
   const sceneIgnoredSuggestions = React.useMemo(() => 
     activeSceneId ? (ignoredSuggestions || {})[activeSceneId] || [] : []
@@ -473,6 +486,11 @@ export const AISidekick: React.FC = () => {
 
   const runDraftRevision = async () => {
     if (!plainText || plainText.length < 30) return;
+    
+    // Abort previous if any
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    abortControllerRef.current = new AbortController();
+    
     setIsAnalyzing(true);
     setAnalysis('');
     setAppliedSuggestions([]);
@@ -539,7 +557,8 @@ LINGUA: Italiano.`;
         (chunk) => {
           fullResponse += chunk;
           setAnalysis(prev => prev + chunk);
-        }
+        },
+        { signal: abortControllerRef.current.signal }
       );
 
       // Post-processing: Sort results from top to bottom based on position in full text
@@ -559,14 +578,20 @@ LINGUA: Italiano.`;
       }
 
     } catch (err: any) {
+      if (err.name === 'AbortError') return;
       setAnalysis(`❌ Errore AI: ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
+      abortControllerRef.current = null;
     }
   };
 
   const runGrammarAnalysis = async () => {
     if (!plainText || plainText.length < 10) return;
+    
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    abortControllerRef.current = new AbortController();
+    
     setIsAnalyzing(true);
     setAnalysis('');
     
@@ -604,17 +629,24 @@ LINGUA: Italiano. Sii estremamente preciso.`;
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Correggi ortografia e punteggiatura di questo testo:\n\n${textToAnalyze}` }
         ],
-        (chunk) => setAnalysis(prev => prev + chunk)
+        (chunk) => setAnalysis(prev => prev + chunk),
+        { signal: abortControllerRef.current.signal }
       );
     } catch (err: any) {
+      if (err.name === 'AbortError') return;
       setAnalysis(`❌ Errore AI: ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
+      abortControllerRef.current = null;
     }
   };
 
   const runBraindump = async () => {
     if (!braindumpInput.trim()) return;
+    
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    abortControllerRef.current = new AbortController();
+    
     setIsAnalyzing(true);
     setAnalysis('');
     try {
@@ -628,12 +660,15 @@ Rispondi in italiano. Sii concreto e originale.`;
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Braindump: ${braindumpInput}` }
         ],
-        (chunk) => setAnalysis(prev => prev + chunk)
+        (chunk) => setAnalysis(prev => prev + chunk),
+        { signal: abortControllerRef.current.signal }
       );
     } catch (err: any) {
+      if (err.name === 'AbortError') return;
       setAnalysis(`❌ Errore: ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -646,6 +681,10 @@ Rispondi in italiano. Sii concreto e originale.`;
 
   const runStyleTransform = async (style: string) => {
     if (!plainText || plainText.length < 10) return;
+    
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    abortControllerRef.current = new AbortController();
+    
     setIsAnalyzing(true);
     setAnalysis('');
     let textToAnalyze = plainText.length > 3000 ? plainText.substring(0, 3000) : plainText;
@@ -657,17 +696,24 @@ Rispondi in italiano. Sii concreto e originale.`;
           { role: 'system', content: stylePrompts[style] + " Riscrivi in italiano. Restituisci SOLO il testo riscritto." },
           { role: 'user', content: `Riscrivi questo:\n\n${textToAnalyze}` }
         ],
-        (chunk) => setAnalysis(prev => prev + chunk)
+        (chunk) => setAnalysis(prev => prev + chunk),
+        { signal: abortControllerRef.current.signal }
       );
     } catch (err: any) {
+      if (err.name === 'AbortError') return;
       setAnalysis(`❌ Errore: ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
+      abortControllerRef.current = null;
     }
   };
 
   const runLexiconTool = async (mode: 'synonyms' | 'metaphors') => {
     if (!lexiconInput.trim()) return;
+    
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    abortControllerRef.current = new AbortController();
+    
     setIsAnalyzing(true);
     setAnalysis('');
     try {
@@ -681,12 +727,15 @@ Rispondi in italiano. Sii concreto e originale.`;
           { role: 'system', content: prompt + " Rispondi in italiano." },
           { role: 'user', content: `Concetto: ${lexiconInput}` }
         ],
-        (chunk) => setAnalysis(prev => prev + chunk)
+        (chunk) => setAnalysis(prev => prev + chunk),
+        { signal: abortControllerRef.current.signal }
       );
     } catch (err: any) {
+      if (err.name === 'AbortError') return;
       setAnalysis(`❌ Errore: ${err?.message || 'Errore Sconosciuto'}`);
     } finally {
       setIsAnalyzing(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -757,7 +806,15 @@ Rispondi in italiano. Sii concreto e originale.`;
                 )}
               </div>
               <div className="flex items-center gap-3">
-                {activeSceneId && lastAnalyzedPhrase[`${activeSceneId}-revision`] && !activeSelection && (
+                {isAnalyzing || analysis ? (
+                  <button 
+                    onClick={handleStop}
+                    title={isAnalyzing ? "Interrompi" : "Rimuovi suggerimenti"}
+                    className="p-2.5 text-slate-700 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20"
+                  >
+                    {isAnalyzing ? <X className="w-4 h-4" /> : <RefreshCw className="w-4 h-4" />}
+                  </button>
+                ) : currentLastPhrase && !activeSelection && (
                   <button 
                     onClick={() => { 
                       setLastAnalyzedPhrase(activeSceneId!, '', 'revision'); 
