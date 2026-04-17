@@ -708,7 +708,7 @@ Rispondi in italiano. Sii concreto e originale.`;
   const currentLastPhrase = activeSceneId ? lastAnalyzedPhrase[`${activeSceneId}-${activeTab}`] : null;
 
   return (
-    <div className="w-96 h-screen glass border-l border-white/5 flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.5)] z-20">
+    <div className="w-80 h-screen glass border-l border-white/5 flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.5)] z-20">
       <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
         <div className="flex items-center space-x-4">
           <div className="p-2.5 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">

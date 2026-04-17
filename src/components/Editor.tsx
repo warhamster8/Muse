@@ -115,8 +115,8 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-8 md:p-12 lg:p-16 bg-slate-900/50">
-        <div className="max-w-3xl mx-auto">
+      <div className="flex-1 overflow-y-auto px-6 py-8 md:px-12 lg:px-20 bg-slate-900/50">
+        <div className="max-w-4xl mx-auto">
            <EditorContent editor={editor} />
         </div>
       </div>

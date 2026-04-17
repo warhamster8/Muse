@@ -38,7 +38,7 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <div className="w-64 h-screen bg-slate-950 border-r border-white/5 flex flex-col p-4">
+    <div className="w-60 h-screen bg-slate-950 border-r border-white/5 flex flex-col p-4">
       <div className="p-4 flex flex-col items-center mb-6">
         <div className="w-16 h-16 rounded-3xl glass flex items-center justify-center p-2 mb-3 border-white/5 shadow-2x logo-glow">
           <img src="/logo.png" alt="Muse Logo" className="w-full h-full object-contain logo-blend scale-110" />
