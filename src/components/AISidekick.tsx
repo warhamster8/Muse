@@ -19,7 +19,7 @@ import { useStore } from '../store/useStore';
 import { useNarrative } from '../hooks/useNarrative';
 import { useToast } from './Toast';
 import { aiService } from '../lib/aiService';
-import { findMatchInText, normalizeForMatch } from '../lib/tiptap/matchUtils';
+import { findMatchInText } from '../lib/tiptap/matchUtils';
 
 type SidekickTab = 'revision' | 'grammar' | 'braindump' | 'transformer' | 'lexicon';
 
@@ -436,14 +436,6 @@ export const AISidekick: React.FC = () => {
 
     const { textStr, textMap, charLens } = buildMapping(content);
     
-    const normalizeIt = (str: string) => str
-      .replace(/[\u201C\u201D\u201E\u201F«»]/g, '"')
-      .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
-      .replace(/[\u2013\u2014]/g, '-')
-      .replace(/E['’]/g, 'È')
-      .replace(/\u00A0/g, ' ')
-      .trim();
-
     // Use unified fuzzy matching
     const match = findMatchInText(textStr, originalText);
 
