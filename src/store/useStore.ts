@@ -31,6 +31,7 @@ interface AppState {
   aiConfig: AIConfig;
   
   activeSelection: string | null;
+  highlightedText: string | null;
   
   setUser: (user: User | null) => void;
   setCurrentProject: (project: Project | null) => void;
@@ -47,6 +48,7 @@ interface AppState {
   setSceneAnalysis: (sceneId: string, analysis: string | ((prev: string) => string), tabId?: string) => void;
   setAIConfig: (config: Partial<AIConfig>) => void;
   setActiveSelection: (selection: string | null) => void;
+  setHighlightedText: (text: string | null) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -70,6 +72,7 @@ export const useStore = create<AppState>()(
         deepseekKey: ''
       },
       activeSelection: null,
+      highlightedText: null,
       
       setUser: (user) => set({ user }),
       setCurrentProject: (project) => set({ currentProject: project }),
@@ -113,6 +116,7 @@ export const useStore = create<AppState>()(
         aiConfig: { ...state.aiConfig, ...config }
       })),
       setActiveSelection: (selection) => set({ activeSelection: selection }),
+      setHighlightedText: (text) => set({ highlightedText: text }),
     }),
     {
       name: 'muse-storage',

@@ -48,14 +48,21 @@ const StructuredOutput: React.FC<{
   appliedSuggestions?: string[];
   rejectedSuggestions?: string[];
 }> = ({ text, onApply, onReject, appliedSuggestions, rejectedSuggestions }) => {
+  const { setHighlightedText } = useStore();
   const lines = text.split('\n');
-  const elements: React.ReactNode[] = [];
+  const items: { 
+    type: 'suggestion' | 'header' | 'chips' | 'memo' | 'other', 
+    content: any, 
+    key: string 
+  }[] = [];
+  
   let currentSuggestion: { original?: string; suggestion?: string; reason?: string; category?: string } | null = null;
 
-  const renderSuggestionCard = (sug: typeof currentSuggestion, key: string | number, isPending = false) => {
+  const renderSuggestionCard = (sug: any, key: string | number, isPending = false) => {
     if (!sug || !sug.original) return null;
     const { original, suggestion, reason, category } = sug;
     
+    // Internal check: if already handled, return null (though the parent should filter)
     if (!isPending && (appliedSuggestions?.includes(original) || rejectedSuggestions?.includes(original))) {
       return null;
     }
@@ -131,10 +138,10 @@ const StructuredOutput: React.FC<{
     );
   };
 
-  const flushCurrent = (keyPrefix: string | number) => {
+  const flushCurrent = (key: string) => {
     if (currentSuggestion) {
       if (currentSuggestion.original && currentSuggestion.suggestion) {
-        elements.push(renderSuggestionCard(currentSuggestion, `done-${keyPrefix}`));
+        items.push({ type: 'suggestion', content: { ...currentSuggestion }, key });
         currentSuggestion = null;
       }
     }
@@ -164,7 +171,7 @@ const StructuredOutput: React.FC<{
     if (!trimmedLine) return;
 
     if (/^(?:\d+\.\s*)?❌/.test(trimmedLine)) {
-      flushCurrent(i);
+      flushCurrent(`sug-${i}`);
       currentSuggestion = { 
         original: trimmedLine.replace(/^(?:\d+\.\s*)?❌\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim() 
       };
@@ -176,59 +183,91 @@ const StructuredOutput: React.FC<{
       if (currentSuggestion) {
         currentSuggestion.reason = trimmedLine.replace(/^(?:\d+\.\s*)?💡\s*/, '').trim();
       } else {
-        elements.push(
+        items.push({ type: 'other', key: `info-${i}`, content: (
           <div key={i} className="bg-[#5be9b1]/5 border-l-4 border-[#5be9b1]/30 p-5 rounded-r-3xl mb-6 mt-2">
             <p className="text-sm text-slate-400 font-light leading-relaxed">
               {trimmedLine.replace(/^💡\s*/, '')}
             </p>
           </div>
-        );
+        )});
       }
     } else if (/^(?:\d+\.\s*)?🏷️/.test(trimmedLine)) {
       if (currentSuggestion) {
         currentSuggestion.category = trimmedLine.replace(/^(?:\d+\.\s*)?🏷️\s*/, '').trim();
       }
     } else if (trimmedLine.startsWith('S:')) {
-      flushCurrent(i);
-      elements.push(renderChips(trimmedLine, "bg-[#5be9b1]/10 text-[#5be9b1] border-[#5be9b1]/20 hover:bg-[#5be9b1]/20"));
+      flushCurrent(`sug-${i}`);
+      items.push({ type: 'chips', key: `chips-s-${i}`, content: renderChips(trimmedLine, "bg-[#5be9b1]/10 text-[#5be9b1] border-[#5be9b1]/20 hover:bg-[#5be9b1]/20") });
     } else if (trimmedLine.startsWith('A:')) {
-      flushCurrent(i);
-      elements.push(renderChips(trimmedLine, "bg-white/[0.05] text-slate-500 border-white/5 hover:bg-white/10"));
+      flushCurrent(`sug-${i}`);
+      items.push({ type: 'chips', key: `chips-a-${i}`, content: renderChips(trimmedLine, "bg-white/[0.05] text-slate-500 border-white/5 hover:bg-white/10") });
     } else if (trimmedLine.startsWith('M:')) {
-      flushCurrent(i);
-      elements.push(
+      flushCurrent(`sug-${i}`);
+      items.push({ type: 'memo', key: `memo-${i}`, content: (
         <div key={i} className="bg-[#5be9b1]/5 border border-[#5be9b1]/10 rounded-[24px] p-5 mb-5 shadow-inner">
           <p className="text-sm text-white font-medium leading-relaxed italic">{trimmedLine.replace(/^M:\s*/, '')}</p>
         </div>
-      );
+      )});
     } else if (trimmedLine.startsWith('##')) {
-      flushCurrent(i);
-      elements.push(
+      flushCurrent(`sug-${i}`);
+      items.push({ type: 'header', key: `head-${i}`, content: (
         <div key={i} className="pt-8 pb-3 mb-6 border-b border-white/5 flex items-center justify-between">
           <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-[#5be9b1]/70">
             {trimmedLine.replace(/^#+\s*/, '')}
           </h3>
           <div className="h-[1px] flex-1 bg-gradient-to-r from-[#5be9b1]/20 to-transparent ml-6" />
         </div>
-      );
+      )});
     } else if (trimmedLine) {
       if (!currentSuggestion) {
-        elements.push(
+        items.push({ type: 'other', key: `text-${i}`, content: (
           <div key={i} className="px-3 py-2 bg-slate-800/20 border-l-2 border-slate-700 rounded-r-lg mb-4 ml-1">
             <p className="text-slate-400 text-[11px] leading-relaxed italic">
               {trimmedLine}
             </p>
           </div>
-        );
+        )});
       }
     }
   });
 
   if (currentSuggestion) {
-    elements.push(renderSuggestionCard(currentSuggestion, "pending-last", true));
-  } else if (text.endsWith('\n') || text.length === 0) {
-    // Show a subtle pulse if we just finished a line and might be waiting for the next
-    elements.push(
+    items.push({ type: 'suggestion', key: 'pending-last', content: { ...currentSuggestion } });
+  }
+
+  // Find the first available suggestion to show
+  const availableSuggestions = items.filter(item => 
+    item.type === 'suggestion' && 
+    !appliedSuggestions?.includes(item.content.original) && 
+    !rejectedSuggestions?.includes(item.content.original)
+  );
+  
+  const activeSuggestion = availableSuggestions[0];
+
+  // Logic to update the store's highlightedText
+  React.useEffect(() => {
+    if (activeSuggestion) {
+      setHighlightedText(activeSuggestion.content.original);
+    } else {
+      setHighlightedText(null);
+    }
+    
+    // Clean up on unmount
+    return () => setHighlightedText(null);
+  }, [activeSuggestion?.content.original, setHighlightedText]);
+
+  const outputElements: React.ReactNode[] = [];
+  
+  items.forEach(item => {
+    if (item.type !== 'suggestion') {
+      outputElements.push(item.content);
+    } else if (item === activeSuggestion) {
+      outputElements.push(renderSuggestionCard(item.content, item.key, item.key === 'pending-last'));
+    }
+  });
+
+  if (activeSuggestion === undefined && (text.endsWith('\n') || text.length === 0)) {
+    outputElements.push(
       <div key="typing" className="flex items-center gap-2 px-4 py-3 opacity-30">
         <div className="w-1.5 h-1.5 bg-[#5be9b1] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
         <div className="w-1.5 h-1.5 bg-[#5be9b1] rounded-full animate-bounce" style={{ animationDelay: '200ms' }} />
@@ -237,7 +276,7 @@ const StructuredOutput: React.FC<{
     );
   }
 
-  return <div className="space-y-1">{elements}</div>;
+  return <div className="space-y-1">{outputElements}</div>;
 };
 
 export const AISidekick: React.FC = () => {

@@ -13,6 +13,9 @@ import {
 
 import { useStore } from '../store/useStore';
 
+import { Plugin, PluginKey } from '@tiptap/pm/state';
+import { Decoration, DecorationSet } from '@tiptap/pm/view';
+
 const CustomShortcuts = Extension.create({
   name: 'customShortcuts',
   addKeyboardShortcuts() {
@@ -20,6 +23,53 @@ const CustomShortcuts = Extension.create({
       'Mod-Alt-1': () => this.editor.commands.insertContent('«'),
       'Mod-Alt-2': () => this.editor.commands.insertContent('»'),
     }
+  },
+});
+
+const HighlightExtension = Extension.create({
+  name: 'activeSuggestionHighlight',
+
+  addOptions() {
+    return {
+      highlightedText: null as string | null,
+    }
+  },
+
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey('activeSuggestionHighlight'),
+        props: {
+          decorations: (state) => {
+            const { highlightedText } = this.options;
+            if (!highlightedText || highlightedText.length < 2) return DecorationSet.empty;
+
+            const decorations: Decoration[] = [];
+            const { doc } = state;
+
+            doc.descendants((node, pos) => {
+              if (node.isText) {
+                const text = node.text || '';
+                let index = text.indexOf(highlightedText);
+                
+                while (index !== -1) {
+                  const start = pos + index;
+                  const end = start + highlightedText.length;
+                  decorations.push(
+                    Decoration.inline(start, end, {
+                      class: 'suggestion-highlight-pulse',
+                    })
+                  );
+                  index = text.indexOf(highlightedText, index + 1);
+                }
+              }
+            });
+
+            return DecorationSet.create(doc, decorations);
+          },
+        },
+      }),
+    ]
   },
 });
 
@@ -32,6 +82,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
       StarterKit,
       CharacterCount,
       CustomShortcuts,
+      HighlightExtension.configure({ highlightedText: null }),
     ],
     content: initialContent,
     editorProps: {
@@ -54,6 +105,23 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
       }
     },
   });
+
+  // Handle suggestion highlighting from the store
+  const { highlightedText } = useStore();
+  React.useEffect(() => {
+    if (editor) {
+      editor.setOptions({
+        extensions: editor.extensionManager.extensions.map(ext => {
+           if (ext.name === 'activeSuggestionHighlight') {
+             return ext.configure({ highlightedText });
+           }
+           return ext;
+        })
+      });
+      // Force a re-render/re-decoration
+      editor.view.dispatch(editor.state.tr);
+    }
+  }, [highlightedText, editor]);
 
   // Sync content if it changes externally (e.g. via AI Sidekick "Applica")
   React.useEffect(() => {
