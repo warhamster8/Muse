@@ -67,7 +67,7 @@ const StructuredOutput: React.FC<{
       return null;
     }
 
-    const { oldParts, newParts } = suggestion ? computeDiff(original, suggestion) : { oldParts: [{ value: original }], newParts: [] };
+    const { oldParts, newParts } = suggestion ? computeDiff(original, suggestion) : { oldParts: [{ value: original, removed: false }], newParts: [] };
 
     return (
       <div key={key} className={cn(
@@ -231,7 +231,7 @@ const StructuredOutput: React.FC<{
     }
   });
 
-  if (currentSuggestion) {
+  if (currentSuggestion && currentSuggestion.original) {
     items.push({ type: 'suggestion', key: 'pending-last', content: { ...currentSuggestion } });
   }
 
