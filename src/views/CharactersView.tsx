@@ -14,6 +14,7 @@ export const CharactersView: React.FC = () => {
     characters.find(c => c.id === selectedCharId) || null,
   [characters, selectedCharId]);
 
+  const [localName, setLocalName] = React.useState('');
   const [localBio, setLocalBio] = React.useState('');
   const [localPsychology, setLocalPsychology] = React.useState('');
   const [localEvolution, setLocalEvolution] = React.useState('');
@@ -28,6 +29,7 @@ export const CharactersView: React.FC = () => {
   // Sync local state when selection changes
   React.useEffect(() => {
     if (selectedChar) {
+      setLocalName(selectedChar.name || '');
       setLocalBio(selectedChar.bio || '');
       setLocalPsychology(selectedChar.psychology || '');
       setLocalEvolution(selectedChar.evolution || '');
@@ -36,6 +38,17 @@ export const CharactersView: React.FC = () => {
       setIsAdjusting(false);
     }
   }, [selectedChar?.id]);
+
+  // Debounce updates for name
+  React.useEffect(() => {
+    if (!selectedChar) return;
+    const timer = setTimeout(() => {
+      if (localName !== selectedChar.name && localName.trim() !== '') {
+        updateCharacter(selectedChar.id, { name: localName });
+      }
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [localName, selectedChar?.id]);
 
   // Debounce updates for position
   React.useEffect(() => {
@@ -294,9 +307,12 @@ export const CharactersView: React.FC = () => {
                           </button>
                         )}
                       </div>
-                      <h2 className="text-6xl font-medium font-display text-white tracking-tighter mb-8 truncate w-full">
-                        {selectedChar.name}
-                      </h2>
+                      <input 
+                        value={localName}
+                        onChange={(e) => setLocalName(e.target.value)}
+                        className="text-6xl font-medium font-display bg-transparent text-white focus:outline-none placeholder:opacity-5 tracking-tighter mb-8 truncate w-full"
+                        placeholder="Nome del Personaggio..."
+                      />
                     </>
                   )}
                   

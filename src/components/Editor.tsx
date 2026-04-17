@@ -72,7 +72,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   if (!editor) return null;
 
   return (
-    <div className="flex flex-col h-full bg-[#0b0e11] shadow-2xl rounded-xl border border-white/10 overflow-hidden">
+    <div className="flex flex-col h-full bg-[#13161a] shadow-2xl rounded-xl border border-white/10 overflow-hidden">
       <div className="bg-[#171b1f] p-3 border-b border-white/10 flex items-center space-x-2">
         <button
           onClick={() => editor.chain().focus().toggleBold().run()}
@@ -115,8 +115,8 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-12 md:px-12 lg:px-24 bg-[#0b0e11]">
-        <div className="max-w-4xl mx-auto">
+      <div className="flex-1 overflow-y-auto px-8 py-12 bg-[#13161a]">
+        <div className="w-full">
            <EditorContent editor={editor} />
         </div>
       </div>

@@ -71,7 +71,7 @@ export const NarrativeView: React.FC = () => {
   return (
     <div className="flex h-full gap-4 overflow-hidden animate-in fade-in duration-700">
       {/* Chapter/Scene Navigator */}
-      <div className="w-72 bg-[#121519] border border-white/10 rounded-[32px] overflow-hidden flex flex-col shadow-sm">
+      <div className="w-64 bg-[#121519] border border-white/10 rounded-[32px] overflow-hidden flex flex-col shadow-sm">
         <div className="p-6 border-b border-white/10 flex items-center justify-between bg-black/20">
           <div className="flex items-center gap-2">
             <Library className="w-4 h-4 text-[#5be9b1]/50" />
