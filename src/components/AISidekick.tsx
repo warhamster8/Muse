@@ -226,6 +226,9 @@ const StructuredOutput: React.FC<{
               {trimmedLine}
             </p>
           </div>
+        )});
+      }
+    }
   });
 
   const finalSug = currentSuggestion as any;
