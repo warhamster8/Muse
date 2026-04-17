@@ -19,6 +19,7 @@ import { useStore } from '../store/useStore';
 import { useNarrative } from '../hooks/useNarrative';
 import { useToast } from './Toast';
 import { aiService } from '../lib/aiService';
+import { findMatchInText, normalizeForMatch } from '../lib/tiptap/matchUtils';
 
 type SidekickTab = 'revision' | 'grammar' | 'braindump' | 'transformer' | 'lexicon';
 
@@ -338,8 +339,9 @@ export const AISidekick: React.FC = () => {
       .map(sug => {
         const match = sug.match(/❌\s*(.+?)(?=\n|✅|$)/);
         const phrase = match ? match[1].replace(/^["“”«»]+|["“”«»]+$/g, '').trim() : '';
-        const index = phrase ? fullText.indexOf(phrase) : -1;
-        return { content: sug, index };
+        // Use fuzzy matching for sorting
+        const matchPos = phrase ? findMatchInText(fullText, phrase) : null;
+        return { content: sug, index: matchPos ? matchPos.start : -1 };
       })
       .sort((a, b) => {
         if (a.index === -1) return 1;
@@ -429,50 +431,12 @@ export const AISidekick: React.FC = () => {
       .replace(/\u00A0/g, ' ')
       .trim();
 
-    const removeAccents = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-    const searchOriginal = removeAccents(normalizeIt(originalText));
-    const searchStrHtml = removeAccents(textStr); // Don't normalize textStr here to keep indices aligned
-
-    const parts = searchOriginal.split(/\.\.\.|…/);
-    const gapPattern = '[\\s\\W]*'; // Any non-word character or space
-
-    // Stage 1: Strict Match (includes punctuation)
-    let regexStr = parts.map(part => {
-        const tokens = part.match(/[a-zA-Z0-9]+|[^\s\w]/g) || [];
-        return tokens.map(t => escapeRegex(t)).join(gapPattern);
-    }).filter(p => p).join('(?:.|\\n){0,150}?');
-
-    let regex = new RegExp(regexStr, 'i');
-    let match = searchStrHtml.match(regex);
-
-    // Stage 2: Fuzzy Word Match (ignore punctuation differences)
-    if (!match) {
-        regexStr = parts.map(part => {
-            const words = part.match(/[a-zA-Z0-9]+/g) || [];
-            return words.map(w => escapeRegex(w)).join('[\\s\\W]*');
-        }).filter(p => p).join('(?:.|\\n){0,200}?');
-        regex = new RegExp(regexStr, 'i');
-        match = searchStrHtml.match(regex);
-    }
-
-    // Stage 3: Anchor Match (First/Last words)
-    if (!match) {
-        const allWords = searchOriginal.match(/[a-zA-Z0-9]+/g) || [];
-        if (allWords.length >= 4) {
-            const first = allWords.slice(0, 3).map(w => escapeRegex(w)).join('[\\s\\W]*');
-            const last = allWords.slice(-3).map(w => escapeRegex(w)).join('[\\s\\W]*');
-            const maxLen = Math.max(200, searchOriginal.length * 2);
-            regexStr = `${first}(?:.|\\n){0,${maxLen}}?${last}`;
-            regex = new RegExp(regexStr, 'i');
-            match = searchStrHtml.match(regex);
-        }
-    }
+    // Use unified fuzzy matching
+    const match = findMatchInText(textStr, originalText);
 
     if (match) {
-      const textStart = match.index!;
-      const textEnd = textStart + match[0].length - 1;
+      const textStart = match.start;
+      const textEnd = match.end - 1;
       const htmlStart = textMap[textStart];
       let htmlEnd = textMap[textEnd] + charLens[textEnd];
       
@@ -517,25 +481,14 @@ export const AISidekick: React.FC = () => {
     const isSelection = !!activeSelection;
 
     if (!isSelection) {
-      const memoryKey = `${activeSceneId}-revision`;
+      const memoryKey = `${activeSceneId}-${activeTab}`;
       const lastPhrase = activeSceneId ? lastAnalyzedPhrase[memoryKey] : null;
 
       if (lastPhrase) {
-        let index = plainText.indexOf(lastPhrase);
-        if (index === -1) {
-          // Try fallback with word context
-          const words = lastPhrase.trim().split(/\s+/);
-          if (words.length > 5) {
-            const pattern = words.slice(-5).map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+');
-            try {
-              const regex = new RegExp(pattern, 'i');
-              const match = plainText.match(regex);
-              if (match) index = match.index!;
-            } catch(e) {}
-          }
-        }
-        if (index !== -1) {
-          const startIndex = Math.max(0, index + lastPhrase.length);
+        // Use fuzzy matching for checkpointing
+        const match = findMatchInText(plainText, lastPhrase);
+        if (match) {
+          const startIndex = Math.max(0, match.end);
           if (startIndex < plainText.length - 20) {
              textToAnalyze = plainText.substring(startIndex);
           }
@@ -581,7 +534,7 @@ LINGUA: Italiano.`;
         aiConfig,
         [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `${isSelection ? 'REVISIONA SOLO QUESTA SELEZIONE:\n' : 'Revisiona questa bozza:\n'}\n${textToAnalyze}` }
+          { role: 'user', content: `${isSelection ? 'REVISIONA SOLO QUESTA SELEZIONE:\n' : (textToAnalyze !== plainText ? 'CONTINUA LA REVISIONE DA QUESTO PUNTO (IGNORA PARTI PRECEDENTI):\n' : 'Revisiona questa bozza:\n')}\n${textToAnalyze}` }
         ],
         (chunk) => {
           fullResponse += chunk;
