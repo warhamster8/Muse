@@ -17,6 +17,9 @@ export const CharactersView: React.FC = () => {
   const [localBio, setLocalBio] = React.useState('');
   const [localPsychology, setLocalPsychology] = React.useState('');
   const [localEvolution, setLocalEvolution] = React.useState('');
+  const [posX, setPosX] = React.useState(50);
+  const [posY, setPosY] = React.useState(50);
+  const [isAdjusting, setIsAdjusting] = React.useState(false);
 
   const [isInterviewing, setIsInterviewing] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -28,8 +31,22 @@ export const CharactersView: React.FC = () => {
       setLocalBio(selectedChar.bio || '');
       setLocalPsychology(selectedChar.psychology || '');
       setLocalEvolution(selectedChar.evolution || '');
+      setPosX(selectedChar.avatar_pos_x ?? 50);
+      setPosY(selectedChar.avatar_pos_y ?? 50);
+      setIsAdjusting(false);
     }
   }, [selectedChar?.id]);
+
+  // Debounce updates for position
+  React.useEffect(() => {
+    if (!selectedChar) return;
+    const timer = setTimeout(() => {
+      if (posX !== selectedChar.avatar_pos_x || posY !== selectedChar.avatar_pos_y) {
+        updateCharacter(selectedChar.id, { avatar_pos_x: posX, avatar_pos_y: posY });
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [posX, posY, selectedChar?.id]);
 
   // Debounce updates to the store/DB
   React.useEffect(() => {
@@ -73,7 +90,9 @@ export const CharactersView: React.FC = () => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
-      updateCharacter(selectedChar.id, { avatar_url: base64String });
+      updateCharacter(selectedChar.id, { avatar_url: base64String, avatar_pos_x: 50, avatar_pos_y: 50 });
+      setPosX(50);
+      setPosY(50);
       addToast('Immagine caricata con successo', 'success');
     };
     reader.readAsDataURL(file);
@@ -133,7 +152,12 @@ export const CharactersView: React.FC = () => {
             >
               <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-900 border border-slate-700 flex-shrink-0">
                 {char.avatar_url ? (
-                  <img src={char.avatar_url} alt={char.name} className="w-full h-full object-cover" />
+                  <img 
+                    src={char.avatar_url} 
+                    alt={char.name} 
+                    className="w-full h-full object-cover" 
+                    style={{ objectPosition: `${char.avatar_pos_x ?? 50}% ${char.avatar_pos_y ?? 50}%` }}
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-700">
                     <User className="w-6 h-6" />
@@ -159,71 +183,142 @@ export const CharactersView: React.FC = () => {
               
               <div className="relative flex flex-col md:flex-row items-center md:items-end gap-8">
                 {/* Large Portrait */}
-                <div 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="group relative w-48 h-64 rounded-3xl bg-slate-950 border-2 border-slate-700/50 overflow-hidden cursor-pointer hover:border-blue-500 transition-all shadow-2xl flex-shrink-0"
-                >
-                  {selectedChar.avatar_url ? (
-                    <img src={selectedChar.avatar_url} alt={selectedChar.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-700 bg-slate-900/50">
-                      <Camera className="w-10 h-10 mb-2 opacity-20" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-20">Click to Upload</span>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-blue-600/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                    <div className="flex flex-col items-center gap-2">
-                      <Camera className="w-8 h-8 text-white" />
-                      <span className="text-[10px] font-bold text-white uppercase tracking-tighter">Change Portrait</span>
-                    </div>
+                <div className="relative">
+                  <div 
+                    onClick={() => !isAdjusting && fileInputRef.current?.click()}
+                    className={cn(
+                      "group relative w-48 h-64 rounded-3xl bg-slate-950 border-2 overflow-hidden transition-all shadow-2xl flex-shrink-0",
+                      isAdjusting ? "border-blue-500 cursor-move" : "border-slate-700/50 cursor-pointer hover:border-blue-500"
+                    )}
+                  >
+                    {selectedChar.avatar_url ? (
+                      <img 
+                        src={selectedChar.avatar_url} 
+                        alt={selectedChar.name} 
+                        className={cn(
+                          "w-full h-full object-cover transition-transform duration-500",
+                          !isAdjusting && "group-hover:scale-105"
+                        )}
+                        style={{ objectPosition: `${posX}% ${posY}%` }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-700 bg-slate-900/50">
+                        <Camera className="w-10 h-10 mb-2 opacity-20" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest opacity-20">Click to Upload</span>
+                      </div>
+                    )}
+                    {!isAdjusting && (
+                      <div className="absolute inset-0 bg-blue-600/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                        <div className="flex flex-col items-center gap-2">
+                          <Camera className="w-8 h-8 text-white" />
+                          <span className="text-[10px] font-bold text-white uppercase tracking-tighter">Change Portrait</span>
+                        </div>
+                      </div>
+                    )}
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={handleImageUpload} 
+                    />
                   </div>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    className="hidden" 
-                    accept="image/*"
-                    onChange={handleImageUpload} 
-                  />
+
+                  {/* Positioning Controls overlay */}
+                  {selectedChar.avatar_url && (
+                    <button
+                      onClick={() => setIsAdjusting(!isAdjusting)}
+                      className={cn(
+                        "absolute -bottom-3 -right-3 p-3 rounded-2xl shadow-xl transition-all z-10",
+                        isAdjusting ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-500"
+                      )}
+                    >
+                      <TrendingUp className={cn("w-4 h-4 transition-transform", isAdjusting && "rotate-90")} />
+                    </button>
+                  )}
                 </div>
 
                 {/* Name & Actions */}
                 <div className="flex-1 flex flex-col items-center md:items-start pb-2">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-blue-500/20">
-                      Protagonist Identity
-                    </span>
-                    {selectedChar.avatar_url && (
+                  {isAdjusting ? (
+                    <div className="w-full max-w-xs space-y-4 mb-6 p-4 glass rounded-2xl border border-blue-500/30">
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[10px] font-bold text-blue-400 uppercase tracking-widest">
+                          <span>Orizzontale</span>
+                          <span>{posX}%</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="100" 
+                          value={posX}
+                          onChange={(e) => setPosX(parseInt(e.target.value))}
+                          className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[10px] font-bold text-blue-400 uppercase tracking-widest">
+                          <span>Verticale</span>
+                          <span>{posY}%</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="100" 
+                          value={posY}
+                          onChange={(e) => setPosY(parseInt(e.target.value))}
+                          className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                        />
+                      </div>
                       <button 
-                        onClick={() => updateCharacter(selectedChar.id, { avatar_url: '' })}
-                        className="text-slate-600 hover:text-red-400 p-1 transition-colors"
-                        title="Remove photo"
+                        onClick={() => setIsAdjusting(false)}
+                        className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-xs font-bold rounded-lg transition-all"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        Conferma Posizione
                       </button>
-                    )}
-                  </div>
-                  <h2 className="text-5xl font-bold font-serif text-white tracking-tight mb-6">
-                    {selectedChar.name}
-                  </h2>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-blue-500/20">
+                          Protagonist Identity
+                        </span>
+                        {selectedChar.avatar_url && (
+                          <button 
+                            onClick={() => updateCharacter(selectedChar.id, { avatar_url: '' })}
+                            className="text-slate-600 hover:text-red-400 p-1 transition-colors"
+                            title="Remove photo"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                      <h2 className="text-5xl font-bold font-serif text-white tracking-tight mb-6">
+                        {selectedChar.name}
+                      </h2>
+                    </>
+                  )}
                   
-                  <div className="flex flex-wrap gap-4">
-                    <button 
-                      onClick={handleInterview}
-                      disabled={isInterviewing}
-                      className="flex items-center gap-3 px-8 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-2xl text-sm font-bold transition-all disabled:opacity-50 shadow-lg shadow-purple-900/30 active:scale-95"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      {isInterviewing ? 'Consulting Muse...' : 'Interview Character'}
-                    </button>
-                    
-                    <button 
-                      onClick={() => addToast('Analisi tratti in arrivo...', 'info')}
-                      className="flex items-center gap-3 px-8 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl text-sm font-bold transition-all active:scale-95 border border-slate-700"
-                    >
-                      <TrendingUp className="w-4 h-4" />
-                      Analyze Stats
-                    </button>
-                  </div>
+                  {!isAdjusting && (
+                    <div className="flex flex-wrap gap-4">
+                      <button 
+                        onClick={handleInterview}
+                        disabled={isInterviewing}
+                        className="flex items-center gap-3 px-8 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-2xl text-sm font-bold transition-all disabled:opacity-50 shadow-lg shadow-purple-900/30 active:scale-95"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        {isInterviewing ? 'Consulting Muse...' : 'Interview Character'}
+                      </button>
+                      
+                      <button 
+                        onClick={() => addToast('Analisi tratti in arrivo...', 'info')}
+                        className="flex items-center gap-3 px-8 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl text-sm font-bold transition-all active:scale-95 border border-slate-700"
+                      >
+                        <TrendingUp className="w-4 h-4" />
+                        Analyze Stats
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

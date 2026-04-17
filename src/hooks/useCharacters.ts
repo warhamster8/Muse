@@ -12,6 +12,8 @@ export type Character = {
   evolution: string;
   relations: string;
   avatar_url?: string;
+  avatar_pos_x?: number;
+  avatar_pos_y?: number;
 };
 
 export function useCharacters() {
@@ -39,10 +41,30 @@ export function useCharacters() {
   const addCharacter = async (name: string) => {
     if (!currentProject) return;
     if (isLocalMode) {
-      storage.insert('characters', { project_id: currentProject.id, name, bio: '', psychology: '', evolution: '', relations: '', avatar_url: '' });
+      storage.insert('characters', { 
+        project_id: currentProject.id, 
+        name, 
+        bio: '', 
+        psychology: '', 
+        evolution: '', 
+        relations: '', 
+        avatar_url: '',
+        avatar_pos_x: 50,
+        avatar_pos_y: 50
+      });
       fetchCharacters();
     } else {
-      const { error } = await supabase.from('characters').insert([{ project_id: currentProject.id, name, bio: '', psychology: '', evolution: '', relations: '', avatar_url: '' }]);
+      const { error } = await supabase.from('characters').insert([{ 
+        project_id: currentProject.id, 
+        name, 
+        bio: '', 
+        psychology: '', 
+        evolution: '', 
+        relations: '', 
+        avatar_url: '',
+        avatar_pos_x: 50,
+        avatar_pos_y: 50
+      }]);
       if (error) {
         console.error('Error adding character:', error);
         alert('Errore nella creazione del personaggio: ' + error.message);
