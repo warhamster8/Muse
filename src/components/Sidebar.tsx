@@ -39,7 +39,6 @@ export const Sidebar: React.FC = () => {
 
   return (
     <div className="w-60 h-screen bg-[#13161a] border-r border-white/10 flex flex-col p-4 shadow-2xl z-30">
- bitumen:
       <div className="p-4 flex flex-col items-center mb-8">
         <div className="w-16 h-16 rounded-[24px] bg-[#1a1e23] border border-white/10 flex items-center justify-center p-2 mb-4 logo-glow">
           <img src="/logo.png" alt="Muse Logo" className="w-full h-full object-contain logo-blend scale-110" />
@@ -78,7 +77,6 @@ export const Sidebar: React.FC = () => {
               activeTab === item.id 
                 ? "bg-[#5be9b1] text-[#0b0e11] shadow-[0_4px_20px_-2px_rgba(91,233,177,0.4)]" 
                 : "text-slate-500 hover:bg-white/5 hover:text-slate-200"
- bitumen:
             )}
           >
             <item.icon className={cn("w-4 h-4 transition-colors", activeTab === item.id ? "text-[#0b0e11]" : "group-hover:text-[#5be9b1]/50")} />
