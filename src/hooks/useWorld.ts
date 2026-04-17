@@ -8,6 +8,7 @@ export type Setting = {
   project_id: string;
   name: string;
   type: 'Primary' | 'Secondary';
+  category: 'location' | 'object';
   description: string;
 };
 
@@ -33,13 +34,19 @@ export function useWorld() {
     setLoading(false);
   };
 
-  const addSetting = async (name: string, type: 'Primary' | 'Secondary') => {
+  const addSetting = async (name: string, type: 'Primary' | 'Secondary', category: 'location' | 'object' = 'location') => {
     if (!currentProject) return;
     if (isLocalMode) {
-      storage.insert('settings', { project_id: currentProject.id, name, type, description: '' });
+      storage.insert('settings', { project_id: currentProject.id, name, type, category, description: '' });
       fetchWorld();
     } else {
-      const { error } = await supabase.from('settings').insert([{ project_id: currentProject.id, name, type, description: '' }]);
+      const { error } = await supabase.from('settings').insert([{ 
+        project_id: currentProject.id, 
+        name, 
+        type, 
+        category, 
+        description: '' 
+      }]);
       if (error) {
         console.error('Error adding setting:', error);
         alert('Errore nella creazione dell\'ambientazione: ' + error.message);
