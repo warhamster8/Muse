@@ -52,7 +52,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4 selection:bg-[#5be9b1]/30">
+    <div className="min-h-screen flex items-center justify-center bg-black p-4 selection:bg-[#5be9b1]/30">
       <div className="glass p-12 rounded-[40px] border border-white/5 max-w-md w-full relative overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.5)]">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-[#5be9b1]" />
         
@@ -83,7 +83,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onBack }) => {
               <input 
                 type="email" 
                 required
-                className="w-full bg-slate-900/40 border border-white/5 rounded-[20px] py-4 pl-14 pr-6 text-sm focus:outline-none focus:border-[#5be9b1]/30 focus:bg-slate-900/60 transition-all text-white placeholder:text-slate-800"
+                className="w-full bg-[#050505]/40 border border-white/5 rounded-[20px] py-4 pl-14 pr-6 text-sm focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#050505]/60 transition-all text-white placeholder:text-slate-800"
                 placeholder="proprietario@muse.ai"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -98,7 +98,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onBack }) => {
               <input 
                 type="password" 
                 required
-                className="w-full bg-slate-900/40 border border-white/5 rounded-[20px] py-4 pl-14 pr-6 text-sm focus:outline-none focus:border-[#5be9b1]/30 focus:bg-slate-900/60 transition-all text-white placeholder:text-slate-800"
+                className="w-full bg-[#050505]/40 border border-white/5 rounded-[20px] py-4 pl-14 pr-6 text-sm focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#050505]/60 transition-all text-white placeholder:text-slate-800"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

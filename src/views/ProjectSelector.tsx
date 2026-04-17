@@ -72,7 +72,7 @@ export const ProjectSelector: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-8 selection:bg-[#5be9b1]/30 overflow-y-auto scrollbar-hide">
+    <div className="min-h-screen bg-black flex items-center justify-center p-8 selection:bg-[#5be9b1]/30 overflow-y-auto scrollbar-hide">
       <div className="max-w-6xl w-full space-y-12 py-12 animate-in fade-in zoom-in duration-1000">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8 bg-white/[0.02] p-10 rounded-[48px] border border-white/5 shadow-2xl">
           <div className="flex items-center gap-8">
@@ -124,7 +124,7 @@ export const ProjectSelector: React.FC = () => {
                     <label className="text-[9px] font-bold text-[#5be9b1] uppercase tracking-widest">Titolo Manoscritto</label>
                     <input 
                       autoFocus
-                      className="w-full bg-slate-900/60 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:border-[#5be9b1]/50 transition-all placeholder:text-slate-800"
+                      className="w-full bg-[#050505]/60 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:border-[#5be9b1]/50 transition-all placeholder:text-slate-800"
                       placeholder="L'Ombra del Tempo..."
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}

@@ -64,7 +64,7 @@ const StructuredOutput: React.FC<{
 
     return (
       <div key={key} className={cn(
-        "bg-[#171b1f] border border-white/10 rounded-[28px] overflow-hidden mb-5 shadow-sm group transition-all duration-500 hover:border-[#5be9b1]/40",
+        "bg-[#0a0a0a] border border-white/10 rounded-[28px] overflow-hidden mb-5 shadow-sm group transition-all duration-500 hover:border-[#5be9b1]/40",
         isPending ? "opacity-70 border-[#5be9b1]/30 ring-1 ring-[#5be9b1]/10" : "animate-in fade-in zoom-in-95"
       )}>
         <div className="bg-white/[0.02] px-5 py-4 flex items-center justify-between border-b border-white/10">
@@ -83,7 +83,7 @@ const StructuredOutput: React.FC<{
               {suggestion && (
                 <button 
                   onClick={() => onApply?.(original, suggestion)}
-                  className="text-[10px] font-black uppercase tracking-widest bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] px-4 py-2 rounded-xl transition-all flex items-center gap-2"
+                  className="text-[10px] font-black uppercase tracking-widest bg-[#5be9b1] hover:bg-[#4ade80] text-[#000000] px-4 py-2 rounded-xl transition-all flex items-center gap-2"
                 >
                   <Zap className="w-3 h-3" /> Applica
                 </button>
@@ -114,7 +114,7 @@ const StructuredOutput: React.FC<{
               ))}
             </div>
           ) : isPending && (
-            <div className="h-10 flex items-center px-4 bg-slate-900/40 rounded-2xl border border-dashed border-white/5 animate-pulse">
+            <div className="h-10 flex items-center px-4 bg-[#050505]/40 rounded-2xl border border-dashed border-white/5 animate-pulse">
                <span className="text-[10px] text-slate-700 font-bold uppercase tracking-widest italic">Elaborazione...</span>
             </div>
           )}
@@ -706,7 +706,7 @@ Rispondi in italiano. Sii concreto e originale.`;
   const currentLastPhrase = activeSceneId ? lastAnalyzedPhrase[`${activeSceneId}-${activeTab}`] : null;
 
   return (
-    <div className="w-80 h-screen bg-[#111418] border-l border-white/5 flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.5)] z-20">
+    <div className="w-80 h-screen bg-[#050505] border-l border-white/5 flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.5)] z-20">
       <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
         <div className="flex items-center space-x-4">
           <div className="p-2.5 bg-[#5be9b1]/10 rounded-2xl border border-[#5be9b1]/20">
@@ -735,7 +735,7 @@ Rispondi in italiano. Sii concreto e originale.`;
             className={cn(
               "flex items-center justify-center py-3 rounded-2xl transition-all border border-transparent active:scale-95 group",
               activeTab === tab.id 
-                ? "bg-[#5be9b1] text-[#0b0e11] shadow-inner" 
+                ? "bg-[#5be9b1] text-[#000000] shadow-inner" 
                 : "text-slate-600 hover:text-slate-400 hover:bg-white/5"
             )}
           >
@@ -746,7 +746,7 @@ Rispondi in italiano. Sii concreto e originale.`;
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-hide bg-slate-950/20">
+      <div className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-hide bg-black/20">
         {activeTab === 'revision' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -831,7 +831,7 @@ Rispondi in italiano. Sii concreto e originale.`;
                 disabled={isAnalyzing || (activeSelection ? activeSelection.length < 5 : plainText.length < 20)}
                 className={cn(
                   "text-[10px] font-bold uppercase tracking-widest px-5 py-3 rounded-2xl text-white flex items-center space-x-2 transition-all shadow-2xl active:scale-95 disabled:opacity-50",
-                  activeSelection ? "bg-[#5be9b1] text-[#0b0e11] hover:bg-[#4ade80] shadow-[#5be9b1]/10" : "bg-[#5be9b1] text-[#0b0e11] hover:bg-[#4ade80] shadow-[#5be9b1]/10"
+                  activeSelection ? "bg-[#5be9b1] text-[#000000] hover:bg-[#4ade80] shadow-[#5be9b1]/10" : "bg-[#5be9b1] text-[#000000] hover:bg-[#4ade80] shadow-[#5be9b1]/10"
                 )}
               >
                 <CheckCircle className="w-4 h-4" />
@@ -853,7 +853,7 @@ Rispondi in italiano. Sii concreto e originale.`;
             <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-slate-700 uppercase tracking-[0.2em] mb-4">Sviluppo Intuizioni</span>
                 <textarea 
-                    className="w-full h-48 bg-[#171b1f] border border-white/5 rounded-[24px] p-6 text-xs text-slate-300 focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#1a1f24] transition-all resize-none shadow-inner placeholder:text-slate-800" 
+                    className="w-full h-48 bg-[#0a0a0a] border border-white/5 rounded-[24px] p-6 text-xs text-slate-300 focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#0f0f0f] transition-all resize-none shadow-inner placeholder:text-slate-800" 
                     placeholder="Incolla qui pensieri sparsi, frammenti di dialogo o concetti vaghi..." 
                     value={braindumpInput} 
                     onChange={(e) => setBraindumpInput(e.target.value)} 
@@ -862,7 +862,7 @@ Rispondi in italiano. Sii concreto e originale.`;
             <button 
                 onClick={runBraindump} 
                 disabled={isAnalyzing || !braindumpInput.trim()} 
-                className="w-full py-4 bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] disabled:opacity-50 rounded-[20px] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-2xl shadow-[#5be9b1]/10 active:scale-95"
+                className="w-full py-4 bg-[#5be9b1] hover:bg-[#4ade80] text-[#000000] disabled:opacity-50 rounded-[20px] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-2xl shadow-[#5be9b1]/10 active:scale-95"
             >
                 <Zap className="w-4 h-4" />
                 Espandi Concetti
@@ -884,7 +884,7 @@ Rispondi in italiano. Sii concreto e originale.`;
                     key={key} 
                     onClick={() => runStyleTransform(key)} 
                     disabled={isAnalyzing || plainText.length < 10} 
-                    className="bg-[#171b1f] hover:bg-[#5be9b1]/10 disabled:opacity-50 p-5 rounded-[24px] text-left border border-white/5 hover:border-[#5be9b1]/30 transition-all group relative overflow-hidden"
+                    className="bg-[#0a0a0a] hover:bg-[#5be9b1]/10 disabled:opacity-50 p-5 rounded-[24px] text-left border border-white/5 hover:border-[#5be9b1]/30 transition-all group relative overflow-hidden"
                 >
                   <div className="absolute top-0 right-0 w-12 h-12 bg-[#5be9b1]/5 blur-xl group-hover:bg-[#5be9b1]/10 transition-all" />
                   <div className="text-[10px] font-black text-slate-500 group-hover:text-[#5be9b1] transition-colors uppercase tracking-widest relative z-10">{key}</div>
@@ -906,7 +906,7 @@ Rispondi in italiano. Sii concreto e originale.`;
                 <div className="relative group">
                     <Languages className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700 group-focus-within:text-[#5be9b1] transition-colors" />
                     <input 
-                        className="w-full bg-slate-900/60 border border-white/5 rounded-[20px] py-4 pl-14 pr-6 text-sm text-white focus:outline-none focus:border-[#5be9b1]/30 focus:bg-slate-900 transition-all shadow-inner placeholder:text-slate-800" 
+                        className="w-full bg-[#050505]/60 border border-white/5 rounded-[20px] py-4 pl-14 pr-6 text-sm text-white focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#050505] transition-all shadow-inner placeholder:text-slate-800" 
                         placeholder="Concetto da analizzare..." 
                         value={lexiconInput} 
                         onChange={(e) => setLexiconInput(e.target.value)} 

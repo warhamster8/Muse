@@ -72,37 +72,37 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   if (!editor) return null;
 
   return (
-    <div className="flex flex-col h-full bg-[#0b0e11] shadow-2xl rounded-xl border border-white/10 overflow-hidden">
-      <div className="bg-[#171b1f] p-3 border-b border-white/10 flex items-center space-x-2">
+    <div className="flex flex-col h-full bg-[#000000] shadow-2xl rounded-xl border border-white/10 overflow-hidden">
+      <div className="bg-[#0a0a0a] p-3 border-b border-white/10 flex items-center space-x-2">
         <button
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`p-2 rounded-xl transition-all ${editor.isActive('bold') ? 'bg-[#5be9b1] text-[#0b0e11] shadow-lg shadow-[#5be9b1]/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
+          className={`p-2 rounded-xl transition-all ${editor.isActive('bold') ? 'bg-[#5be9b1] text-[#000000] shadow-lg shadow-[#5be9b1]/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
         >
           <Bold className="w-5 h-5" />
         </button>
         <button
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`p-2 rounded-xl transition-all ${editor.isActive('italic') ? 'bg-[#5be9b1] text-[#0b0e11] shadow-lg shadow-[#5be9b1]/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
+          className={`p-2 rounded-xl transition-all ${editor.isActive('italic') ? 'bg-[#5be9b1] text-[#000000] shadow-lg shadow-[#5be9b1]/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
         >
           <Italic className="w-5 h-5" />
         </button>
         <div className="w-px h-6 bg-slate-700 mx-1" />
         <button
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          className={`p-2 rounded-xl transition-all ${editor.isActive('heading', { level: 1 }) ? 'bg-[#5be9b1] text-[#0b0e11] shadow-lg shadow-[#5be9b1]/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
+          className={`p-2 rounded-xl transition-all ${editor.isActive('heading', { level: 1 }) ? 'bg-[#5be9b1] text-[#000000] shadow-lg shadow-[#5be9b1]/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
         >
           <Heading1 className="w-5 h-5" />
         </button>
         <button
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={`p-2 rounded-xl transition-all ${editor.isActive('heading', { level: 2 }) ? 'bg-[#5be9b1] text-[#0b0e11] shadow-lg shadow-[#5be9b1]/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
+          className={`p-2 rounded-xl transition-all ${editor.isActive('heading', { level: 2 }) ? 'bg-[#5be9b1] text-[#000000] shadow-lg shadow-[#5be9b1]/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
         >
           <Heading2 className="w-5 h-5" />
         </button>
         <div className="w-px h-6 bg-slate-700 mx-1" />
         <button
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`p-2 rounded-xl transition-all ${editor.isActive('bulletList') ? 'bg-[#5be9b1] text-[#0b0e11] shadow-lg shadow-[#5be9b1]/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
+          className={`p-2 rounded-xl transition-all ${editor.isActive('bulletList') ? 'bg-[#5be9b1] text-[#000000] shadow-lg shadow-[#5be9b1]/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
         >
           <List className="w-5 h-5" />
         </button>
@@ -115,7 +115,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-12 md:px-12 lg:px-24 bg-[#0b0e11]">
+      <div className="flex-1 overflow-y-auto px-6 py-12 md:px-12 lg:px-24 bg-[#000000]">
         <div className="max-w-4xl mx-auto">
            <EditorContent editor={editor} />
         </div>

@@ -27,13 +27,13 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return this.props.fallback || (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-slate-200 p-8">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-black text-slate-200 p-8">
           <div className="bg-red-900/20 border border-red-500/50 rounded-2xl p-8 max-w-md w-full shadow-2xl backdrop-blur-md">
             <h1 className="text-2xl font-bold text-red-400 mb-4">Si è verificato un errore</h1>
             <p className="text-sm text-slate-400 mb-6">
               Progetto Muse ha riscontrato un problema durante il caricamento di questa sezione.
             </p>
-            <div className="bg-slate-950/50 rounded-lg p-3 mb-6 font-mono text-xs text-red-300/70 break-words border border-red-500/20">
+            <div className="bg-black/50 rounded-lg p-3 mb-6 font-mono text-xs text-red-300/70 break-words border border-red-500/20">
               {this.state.error?.message}
             </div>
             <button 

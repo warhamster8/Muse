@@ -10,9 +10,9 @@
   --primary-mint: #5be9b1;
   --primary-mint-hover: #4ade80;
   
-  --bg-deep: #0b0e11;
-  --bg-surface: #121519;
-  --bg-card: #171b1f;
+  --bg-deep: #000000;
+  --bg-surface: #050505;
+  --bg-card: #0a0a0a;
   
   --slate-50: #f8fafc;
   --slate-100: #f1f5f9;
@@ -21,12 +21,12 @@
   --slate-700: #334155;
   --slate-800: #1e293b;
   --slate-900: #0f172a;
-  --slate-950: #0b0e11;
+  --slate-950: #000000;
 }
 
 @layer base {
   body {
-    @apply bg-[#0b0e11] text-slate-200 font-sans antialiased selection:bg-[#5be9b1]/30 selection:text-[#5be9b1];
+    @apply bg-[#000000] text-slate-200 font-sans antialiased selection:bg-[#5be9b1]/30 selection:text-[#5be9b1];
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -44,12 +44,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-900 rounded-full hover:bg-[#5be9b1]/20 transition-colors border-2 border-slate-950;
+  @apply bg-[#050505] rounded-full hover:bg-[#5be9b1]/20 transition-colors border-2 border-slate-950;
 }
 
 /* Concept 3 / Inkwell: Sharp & Solid */
 .glass {
-  @apply bg-[#121519] border border-white/10 shadow-2xl;
+  @apply bg-[#050505] border border-white/10 shadow-2xl;
 }
 
 .glass-emerald {

@@ -128,7 +128,7 @@ export const ConfigView: React.FC = () => {
           }`}
         >
           <div className="flex items-start justify-between mb-6">
-            <div className={`p-4 rounded-2xl transition-colors ${aiConfig.provider === 'groq' ? 'bg-[#5be9b1] text-white shadow-lg' : 'bg-slate-900 border border-white/5 text-slate-600'}`}>
+            <div className={`p-4 rounded-2xl transition-colors ${aiConfig.provider === 'groq' ? 'bg-[#5be9b1] text-white shadow-lg' : 'bg-[#050505] border border-white/5 text-slate-600'}`}>
               <Zap className="w-6 h-6" />
             </div>
             {aiConfig.provider === 'groq' && (
@@ -142,8 +142,8 @@ export const ConfigView: React.FC = () => {
             Velocità di elaborazione estrema e latenza minima. Consigliato per brainstorming rapido e riscrittura istantanea.
           </p>
           <div className="mt-8 flex gap-3">
-            <span className="text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 bg-slate-900 rounded-lg text-slate-600 border border-white/5">70B Parametri</span>
-            <span className="text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 bg-slate-900 rounded-lg text-slate-600 border border-white/5">LPU Optimized</span>
+            <span className="text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 bg-[#050505] rounded-lg text-slate-600 border border-white/5">70B Parametri</span>
+            <span className="text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 bg-[#050505] rounded-lg text-slate-600 border border-white/5">LPU Optimized</span>
           </div>
         </button>
 
@@ -157,7 +157,7 @@ export const ConfigView: React.FC = () => {
           }`}
         >
           <div className="flex items-start justify-between mb-6">
-            <div className={`p-4 rounded-2xl transition-colors ${aiConfig.provider === 'deepseek' ? 'bg-[#5be9b1] text-white shadow-lg' : 'bg-slate-900 border border-white/5 text-slate-600'}`}>
+            <div className={`p-4 rounded-2xl transition-colors ${aiConfig.provider === 'deepseek' ? 'bg-[#5be9b1] text-white shadow-lg' : 'bg-[#050505] border border-white/5 text-slate-600'}`}>
               <Cpu className="w-6 h-6" />
             </div>
             {aiConfig.provider === 'deepseek' && (
@@ -171,8 +171,8 @@ export const ConfigView: React.FC = () => {
             Ragionamento analitico superiore e profondità creativa. Eccellente per analisi strutturali e editing di alta qualità.
           </p>
           <div className="mt-8 flex gap-3">
-            <span className="text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 bg-slate-900 rounded-lg text-slate-600 border border-white/5">671B Parametri</span>
-            <span className="text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 bg-slate-900 rounded-lg text-slate-600 border border-white/5">MoE Architecture</span>
+            <span className="text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 bg-[#050505] rounded-lg text-slate-600 border border-white/5">671B Parametri</span>
+            <span className="text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 bg-[#050505] rounded-lg text-slate-600 border border-white/5">MoE Architecture</span>
           </div>
         </button>
       </div>
@@ -195,7 +195,7 @@ export const ConfigView: React.FC = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-           <div className="p-6 bg-slate-950/40 border border-white/5 rounded-3xl hover:border-white/10 transition-all group">
+           <div className="p-6 bg-black/40 border border-white/5 rounded-3xl hover:border-white/10 transition-all group">
               <p className="text-[9px] uppercase tracking-[0.2em] text-slate-700 font-bold mb-3 group-hover:text-slate-500 transition-colors">Endpoint DeepSeek</p>
                <div className="flex items-center gap-4">
                   <div className={`w-2.5 h-2.5 rounded-full ${aiConfig.deepseekKey ? 'bg-[#5be9b1] shadow-[0_0_8px_rgba(16,185,129,0.3)]' : 'bg-amber-900'}`} />
@@ -207,7 +207,7 @@ export const ConfigView: React.FC = () => {
                </div>
             </div>
             
-            <div className="p-6 bg-slate-950/40 border border-white/5 rounded-3xl flex items-center justify-between hover:border-white/10 transition-all">
+            <div className="p-6 bg-black/40 border border-white/5 rounded-3xl flex items-center justify-between hover:border-white/10 transition-all">
                <div>
                   <p className="text-[9px] uppercase tracking-[0.2em] text-slate-700 font-bold mb-3">Diagnostica Core</p>
                   <span className="text-sm font-medium text-slate-400">Esegui ping di sistema</span>
@@ -234,7 +234,7 @@ export const ConfigView: React.FC = () => {
                 <Terminal className="w-4 h-4" />
                 <span>Console Log / Risposta Server</span>
               </div>
-              <pre className="text-[11px] font-mono bg-slate-950/50 p-6 rounded-2xl overflow-x-auto text-[#5be9b1] border border-white/5 leading-relaxed">
+              <pre className="text-[11px] font-mono bg-black/50 p-6 rounded-2xl overflow-x-auto text-[#5be9b1] border border-white/5 leading-relaxed">
                 {JSON.stringify(testResult, null, 2)}
               </pre>
             </motion.div>
@@ -256,7 +256,7 @@ export const ConfigView: React.FC = () => {
                 value={keyInput}
                 onChange={(e) => setKeyInput(e.target.value)}
                 placeholder="Incolla chiave segreta (sk-...)"
-                className="flex-1 bg-slate-900/60 border border-white/5 rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:border-[#5be9b1]/30 focus:bg-slate-900 transition-all font-mono"
+                className="flex-1 bg-[#050505]/60 border border-white/5 rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#050505] transition-all font-mono"
               />
               <button
                 onClick={handleSaveKey}

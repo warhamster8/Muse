@@ -128,7 +128,7 @@ export const CharactersView: React.FC = () => {
     <div className="flex h-full gap-6 overflow-hidden animate-in fade-in duration-700">
       {/* Character List */}
       <div className="w-80 flex flex-col gap-6">
-        <div className="flex items-center justify-between bg-[#171b1f] p-4 rounded-2xl border border-white/5">
+        <div className="flex items-center justify-between bg-[#0a0a0a] p-4 rounded-2xl border border-white/5">
           <h2 className="text-sm font-bold font-display flex items-center gap-3 tracking-[0.2em] text-slate-400">
             <Users className="w-4 h-4 text-[#5be9b1]" />
             ATTORI
@@ -147,10 +147,10 @@ export const CharactersView: React.FC = () => {
                 "p-4 rounded-[24px] border transition-all cursor-pointer flex gap-4 items-center group",
                 selectedCharId === char.id 
                   ? "bg-[#5be9b1]/10 border-[#5be9b1]/30 shadow-xl shadow-emerald-950/20" 
-                  : "bg-[#171b1f] border-white/5 hover:border-white/10"
+                  : "bg-[#0a0a0a] border-white/5 hover:border-white/10"
               )}
             >
-              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-[#171b1f] border border-white/5 flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
+              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-[#0a0a0a] border border-white/5 flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
                 {char.avatar_url ? (
                   <img 
                     src={char.avatar_url} 
@@ -178,7 +178,7 @@ export const CharactersView: React.FC = () => {
       </div>
 
       {/* Detail Area */}
-      <div className="flex-1 min-w-0 bg-[#171b1f] rounded-[40px] border border-white/5 flex flex-col overflow-hidden shadow-sm">
+      <div className="flex-1 min-w-0 bg-[#0a0a0a] rounded-[40px] border border-white/5 flex flex-col overflow-hidden shadow-sm">
         {selectedChar ? (
           <div className="flex flex-col h-full">
             <div className="p-10 border-b border-white/5 bg-white/[0.01] relative overflow-hidden group/header">
@@ -191,7 +191,7 @@ export const CharactersView: React.FC = () => {
                   <div 
                     onClick={() => !isAdjusting && fileInputRef.current?.click()}
                     className={cn(
-                      "group relative w-56 h-72 rounded-[40px] bg-slate-950 border border-white/5 overflow-hidden transition-all shadow-2xl flex-shrink-0",
+                      "group relative w-56 h-72 rounded-[40px] bg-black border border-white/5 overflow-hidden transition-all shadow-2xl flex-shrink-0",
                       isAdjusting ? "ring-2 ring-[#5be9b1] cursor-move" : "cursor-pointer hover:border-[#5be9b1]/30"
                     )}
                   >
@@ -206,7 +206,7 @@ export const CharactersView: React.FC = () => {
                         style={{ objectPosition: `${posX}% ${posY}%` }}
                       />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-800 bg-[#171b1f]/50">
+                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-800 bg-[#0a0a0a]/50">
                         <Camera className="w-12 h-12 mb-2 opacity-10" />
                         <span className="text-[9px] font-bold uppercase tracking-[0.2em] opacity-10">Capture Portrait</span>
                       </div>
@@ -231,7 +231,7 @@ export const CharactersView: React.FC = () => {
                       onClick={() => setIsAdjusting(!isAdjusting)}
                       className={cn(
                         "absolute -bottom-2 -right-2 p-4 rounded-[20px] shadow-2xl transition-all z-10 border border-white/10",
-                        isAdjusting ? "bg-[#5be9b1] text-white" : "bg-[#171b1f] text-slate-400 hover:text-[#5be9b1]"
+                        isAdjusting ? "bg-[#5be9b1] text-white" : "bg-[#0a0a0a] text-slate-400 hover:text-[#5be9b1]"
                       )}
                     >
                       <TrendingUp className={cn("w-4 h-4 transition-transform duration-500", isAdjusting && "rotate-90")} />
@@ -331,7 +331,7 @@ export const CharactersView: React.FC = () => {
                   <h4 className="text-[10px] font-bold uppercase tracking-[0.3em]">Biografia & Origini</h4>
                 </div>
                 <textarea 
-                  className="w-full h-40 bg-[#171b1f] border border-white/5 rounded-[32px] p-8 text-sm text-slate-300 focus:outline-none focus:border-[#5be9b1]/30 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide"
+                  className="w-full h-40 bg-[#0a0a0a] border border-white/5 rounded-[32px] p-8 text-sm text-slate-300 focus:outline-none focus:border-[#5be9b1]/30 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide"
                   placeholder="Descrivi le origini, il passato e i segreti del personaggio..."
                   value={localBio}
                   onChange={(e) => setLocalBio(e.target.value)}
@@ -344,7 +344,7 @@ export const CharactersView: React.FC = () => {
                   <h4 className="text-[10px] font-bold uppercase tracking-[0.3em]">Psicologia & Conflitti</h4>
                 </div>
                 <textarea 
-                  className="w-full h-40 bg-[#171b1f] border border-white/5 rounded-[32px] p-8 text-sm text-slate-300 focus:outline-none focus:border-emerald-700/30 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide"
+                  className="w-full h-40 bg-[#0a0a0a] border border-white/5 rounded-[32px] p-8 text-sm text-slate-300 focus:outline-none focus:border-emerald-700/30 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide"
                   placeholder="Cosa spinge questo personaggio? Quali sono le sue paure più profonde?"
                   value={localPsychology}
                   onChange={(e) => setLocalPsychology(e.target.value)}
@@ -357,7 +357,7 @@ export const CharactersView: React.FC = () => {
                   <h4 className="text-[10px] font-bold uppercase tracking-[0.3em]">Arco Narrativo & Evoluzione</h4>
                 </div>
                 <textarea 
-                  className="w-full h-40 bg-[#171b1f] border border-white/5 rounded-[32px] p-8 text-sm text-slate-300 focus:outline-none focus:border-emerald-900/30 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide"
+                  className="w-full h-40 bg-[#0a0a0a] border border-white/5 rounded-[32px] p-8 text-sm text-slate-300 focus:outline-none focus:border-emerald-900/30 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide"
                   placeholder="Come cambia il personaggio dall'inizio alla fine del viaggio?"
                   value={localEvolution}
                   onChange={(e) => setLocalEvolution(e.target.value)}

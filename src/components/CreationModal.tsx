@@ -33,7 +33,7 @@ export const CreationModal: React.FC<CreationModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="w-full max-w-md glass border border-slate-700 rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
         <div className="relative p-6 border-b border-slate-700 bg-slate-800/50">
           <button 
@@ -56,7 +56,7 @@ export const CreationModal: React.FC<CreationModalProps> = ({
             <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Nome</label>
             <input 
               autoFocus
-              className="w-full bg-slate-900 border border-slate-700 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-blue-500 transition-all shadow-inner"
+              className="w-full bg-[#050505] border border-slate-700 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-blue-500 transition-all shadow-inner"
               placeholder={placeholder}
               value={value}
               onChange={(e) => setValue(e.target.value)}

@@ -94,12 +94,12 @@ function App() {
   // 1. Landing Screen (Not logged in, Not in Auth view)
   if (!user && !showAuth) {
     return (
-      <div className="h-screen flex items-center justify-center bg-[#0b0e11] p-4 selection:bg-[#5be9b1]/30">
-        <div className="bg-[#121519] p-12 rounded-[40px] border border-white/10 max-w-xl w-full text-center space-y-10 relative overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)]">
+      <div className="h-screen flex items-center justify-center bg-[#000000] p-4 selection:bg-[#5be9b1]/30">
+        <div className="bg-[#050505] p-12 rounded-[40px] border border-white/10 max-w-xl w-full text-center space-y-10 relative overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)]">
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#5be9b1]/5 blur-[120px] rounded-full" />
           <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#5be9b1]/5 blur-[120px] rounded-full" />
           
-          <div className="w-56 h-56 mx-auto rounded-[32px] bg-[#1a1f24] flex items-center justify-center p-6 mb-10 logo-glow border border-white/10 shadow-inner">
+          <div className="w-56 h-56 mx-auto rounded-[32px] bg-[#0f0f0f] flex items-center justify-center p-6 mb-10 logo-glow border border-white/10 shadow-inner">
             <img src="/logo.png" alt="Project Muse Logo" className="w-full h-full object-contain logo-blend scale-110" />
           </div>
           <div>
@@ -110,7 +110,7 @@ function App() {
           <div className="grid grid-cols-1 gap-6 px-10">
              <button 
                 onClick={() => setShowAuth(true)}
-                className="group relative w-full py-5 bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] rounded-[24px] text-lg font-black transition-all shadow-2xl shadow-[#5be9b1]/10 flex items-center justify-center gap-3 overflow-hidden"
+                className="group relative w-full py-5 bg-[#5be9b1] hover:bg-[#4ade80] text-[#000000] rounded-[24px] text-lg font-black transition-all shadow-2xl shadow-[#5be9b1]/10 flex items-center justify-center gap-3 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <Cloud className="w-6 h-6 transition-transform group-hover:scale-110" />
@@ -145,7 +145,7 @@ function App() {
 
   // 4. Main App Dashboard
   return (
-    <div className="flex h-screen bg-[#0b0e11] text-slate-100 font-sans overflow-hidden">
+    <div className="flex h-screen bg-[#000000] text-slate-100 font-sans overflow-hidden">
       <ErrorBoundary>
         <Sidebar />
         <main className="flex-1 h-screen p-6 overflow-hidden flex flex-col">
