@@ -26,11 +26,11 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-200 font-sans antialiased selection:bg-[#5be9b1]/30 selection:text-[#5be9b1];
+    @apply bg-[#0b0e11] text-slate-200 font-sans antialiased selection:bg-[#5be9b1]/30 selection:text-[#5be9b1];
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display text-slate-50 tracking-tight;
+    @apply font-display text-slate-50 tracking-tighter font-black;
   }
 }
 
@@ -47,13 +47,13 @@
   @apply bg-slate-900 rounded-full hover:bg-[#5be9b1]/20 transition-colors border-2 border-slate-950;
 }
 
-/* Concept 3 / Inkwell Glass: Flatter & Deeper */
+/* Concept 3 / Inkwell: Sharp & Solid */
 .glass {
-  @apply bg-[#121519]/80 backdrop-blur-xl border border-white/5 shadow-2xl;
+  @apply bg-[#121519] border border-white/10 shadow-2xl;
 }
 
 .glass-emerald {
-  @apply bg-[#5be9b1]/5 backdrop-blur-xl border border-[#5be9b1]/20 shadow-xl;
+  @apply bg-[#5be9b1]/10 border border-[#5be9b1]/20 shadow-xl;
 }
 
 .bg-inkwell {
@@ -116,8 +116,8 @@
 }
 
 .logo-glow {
-    box-shadow: 0 0 50px rgba(91, 233, 177, 0.1);
-    background: radial-gradient(circle, rgba(91, 233, 177, 0.03) 0%, transparent 70%);
+    box-shadow: 0 0 100px rgba(0, 0, 0, 0.5);
+    background: radial-gradient(circle, rgba(91, 233, 177, 0.05) 0%, transparent 80%);
 }
 
 /* Suggestion Highlights: Soft Mint */

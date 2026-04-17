@@ -72,8 +72,8 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   if (!editor) return null;
 
   return (
-    <div className="flex flex-col h-full bg-[#0b0e11] shadow-2xl rounded-xl border border-white/5 overflow-hidden">
-      <div className="bg-[#171b1f] p-3 border-b border-white/5 flex items-center space-x-2">
+    <div className="flex flex-col h-full bg-[#0b0e11] shadow-2xl rounded-xl border border-white/10 overflow-hidden">
+      <div className="bg-[#171b1f] p-3 border-b border-white/10 flex items-center space-x-2">
         <button
           onClick={() => editor.chain().focus().toggleBold().run()}
           className={`p-2 rounded-xl transition-all ${editor.isActive('bold') ? 'bg-[#5be9b1] text-[#0b0e11] shadow-lg shadow-[#5be9b1]/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
@@ -108,9 +108,9 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
         </button>
         
         <div className="ml-auto flex items-center space-x-6 px-4">
-           <div className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-slate-600">
-              <Type className="w-3.5 h-3.5" />
-              <span>{editor.storage.characterCount.words()} Parola</span>
+           <div className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600">
+              <Type className="w-4 h-4 text-[#5be9b1]/40" />
+              <span>{editor.storage.characterCount.words()} PAROLA</span>
            </div>
         </div>
       </div>

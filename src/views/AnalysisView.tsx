@@ -30,24 +30,24 @@ interface MetricCardProps {
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon: Icon, trend }) => (
-  <div className="bg-[#171b1f] p-8 rounded-[32px] border border-white/5 hover:border-[#5be9b1]/20 transition-all group relative overflow-hidden">
+  <div className="bg-[#171b1f] p-8 rounded-[32px] border border-white/10 hover:border-[#5be9b1]/30 transition-all group relative overflow-hidden">
     <div className="absolute top-0 right-0 w-24 h-24 bg-[#5be9b1]/5 blur-3xl -mr-12 -mt-12 group-hover:bg-[#5be9b1]/10 transition-all" />
     <div className="flex items-center justify-between mb-6">
-      <div className="p-3 bg-slate-950 rounded-[18px] text-[#5be9b1] border border-white/5 group-hover:scale-110 transition-transform shadow-inner">
+      <div className="p-3 bg-black rounded-[18px] text-[#5be9b1] border border-white/10 group-hover:scale-110 transition-transform">
         <Icon className="w-5 h-5" />
       </div>
       {trend && (
         <div className="flex flex-col items-end">
-          <span className="text-[10px] text-[#5be9b1] font-black tracking-widest uppercase">Pacing</span>
-          <span className="text-[9px] text-slate-500">{trend}</span>
+          <span className="text-[10px] text-[#5be9b1] font-black tracking-[0.2em] uppercase">Pacing</span>
+          <span className="text-[9px] text-slate-500 font-black">{trend}</span>
         </div>
       )}
     </div>
-    <div className="text-4xl font-medium text-slate-50 mb-1 tracking-tighter">{value}</div>
-    <div className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">{title}</div>
+    <div className="text-4xl font-black text-slate-50 mb-1 tracking-tighter">{value}</div>
+    <div className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em]">{title}</div>
   </div>
 );
-
+ bitumen:
 export const AnalysisView: React.FC = () => {
   const { chapters } = useStore();
   const { characters } = useCharacters();
@@ -102,11 +102,11 @@ export const AnalysisView: React.FC = () => {
 
   if (chapters.length === 0) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-slate-700 space-y-6 bg-slate-900/10 rounded-[40px] border border-white/5">
+      <div className="h-full flex flex-col items-center justify-center text-slate-700 space-y-6 bg-black rounded-[40px] border border-white/10">
         <Activity className="w-16 h-16 opacity-10" />
         <div className="text-center">
-            <h3 className="text-lg font-medium text-slate-400">Nessun dato disponibile</h3>
-            <p className="text-xs opacity-50 max-w-[200px] mx-auto mt-2">Inizia a scrivere per sbloccare le proiezioni statistiche del tuo manoscritto.</p>
+            <h3 className="text-lg font-black text-slate-400">Nessun dato disponibile</h3>
+            <p className="text-[10px] font-black uppercase tracking-widest opacity-50 max-w-[200px] mx-auto mt-2">Inizia a scrivere per sbloccare le proiezioni statistiche del tuo manoscritto.</p>
         </div>
       </div>
     );
@@ -114,13 +114,13 @@ export const AnalysisView: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full space-y-8 animate-in fade-in duration-700">
-      <header className="flex items-center justify-between bg-[#171b1f] p-8 rounded-[32px] border border-white/5">
+      <header className="flex items-center justify-between bg-[#171b1f] p-8 rounded-[32px] border border-white/10">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Activity className="w-4 h-4 text-[#5be9b1]" />
-            <span className="text-[10px] font-black text-[#5be9b1]/50 uppercase tracking-[0.2em]">DASHBOARD ANALITICA</span>
+            <span className="text-[10px] font-black text-[#5be9b1]/50 uppercase tracking-[0.3em]">DASHBOARD ANALITICA</span>
           </div>
-          <h1 className="text-4xl font-semibold tracking-tight">Anatomia del Manoscritto</h1>
+          <h1 className="text-4xl font-black tracking-tighter">Anatomia del Manoscritto</h1>
         </div>
         <div className="flex items-center gap-4">
            <div className="text-right hidden md:block">
@@ -144,13 +144,13 @@ export const AnalysisView: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Chapter Balance Chart */}
-          <div className="lg:col-span-2 bg-[#171b1f] p-10 rounded-[40px] border border-white/5 shadow-sm">
+          <div className="lg:col-span-2 bg-[#171b1f] p-10 rounded-[40px] border border-white/10 shadow-sm">
             <div className="flex items-center justify-between mb-10">
               <div>
-                <h2 className="text-xl font-bold flex items-center gap-3">
+                <h2 className="text-xl font-black flex items-center gap-3">
                   Bilanciamento Capitoli
                 </h2>
-                <p className="text-xs text-slate-500 mt-1">Distribuzione della densità testuale per sezione.</p>
+                <p className="text-[10px] text-slate-500 mt-1 font-black uppercase tracking-widest leading-none">Distribuzione della densità testuale per sezione.</p>
               </div>
               <div className="flex gap-2">
                  <div className="w-3 h-3 rounded-full bg-emerald-500/40" />

@@ -64,12 +64,12 @@ const StructuredOutput: React.FC<{
 
     return (
       <div key={key} className={cn(
-        "bg-[#171b1f] border border-white/5 rounded-[24px] overflow-hidden mb-5 shadow-sm group transition-all duration-500 hover:border-[#5be9b1]/20",
+        "bg-[#171b1f] border border-white/10 rounded-[28px] overflow-hidden mb-5 shadow-sm group transition-all duration-500 hover:border-[#5be9b1]/40",
         isPending ? "opacity-70 border-[#5be9b1]/30 ring-1 ring-[#5be9b1]/10" : "animate-in fade-in zoom-in-95"
       )}>
-        <div className="bg-white/[0.01] px-4 py-3 flex items-center justify-between border-b border-white/5">
+        <div className="bg-white/[0.02] px-5 py-4 flex items-center justify-between border-b border-white/10">
           <div className="flex items-center gap-3">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-600">
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600">
               {category || 'Suggerimento'}
             </span>
             {isPending && <RefreshCw className="w-3 h-3 animate-spin text-[#5be9b1]" />}
@@ -79,13 +79,14 @@ const StructuredOutput: React.FC<{
               <button 
                 onClick={() => onReject?.(original)}
                 className="text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:text-red-400 px-3 py-1.5 rounded-xl transition-all flex items-center gap-2 border border-transparent hover:bg-red-500/10"
+                className="text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-red-400 px-3 py-1.5 rounded-xl transition-all flex items-center gap-2 border border-transparent hover:bg-red-500/10"
               >
                 <X className="w-3 h-3" /> Ignora
               </button>
               {suggestion && (
                 <button 
                   onClick={() => onApply?.(original, suggestion)}
-                  className="text-[10px] font-bold uppercase tracking-widest bg-[#5be9b1] hover:bg-[#5be9b1] text-white px-3 py-1.5 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-emerald-950/20"
+                  className="text-[10px] font-black uppercase tracking-widest bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] px-4 py-2 rounded-xl transition-all flex items-center gap-2"
                 >
                   <Zap className="w-3 h-3" /> Applica
                 </button>
@@ -121,8 +122,8 @@ const StructuredOutput: React.FC<{
             </div>
           )}
           {reason && (
-            <p className="text-[11px] text-slate-500 italic px-2 flex items-start gap-2.5 animate-in slide-in-from-left-1 leading-relaxed">
-              <Sparkles className="w-3.5 h-3.5 text-[#5be9b1]/50 shrink-0 mt-0.5" />
+            <p className="text-[11px] text-slate-600 italic px-2 flex items-start gap-2.5 animate-in slide-in-from-left-1 leading-relaxed font-black uppercase tracking-widest">
+              <Sparkles className="w-3.5 h-3.5 text-[#5be9b1]/30 shrink-0 mt-0.5" />
               <span>{reason}</span>
             </p>
           )}

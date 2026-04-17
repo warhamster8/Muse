@@ -71,13 +71,13 @@ export const NarrativeView: React.FC = () => {
   return (
     <div className="flex h-full gap-4 overflow-hidden animate-in fade-in duration-700">
       {/* Chapter/Scene Navigator */}
-      <div className="w-72 bg-[#121519] border border-white/5 rounded-[32px] overflow-hidden flex flex-col shadow-sm">
-        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+      <div className="w-72 bg-[#121519] border border-white/10 rounded-[32px] overflow-hidden flex flex-col shadow-sm">
+        <div className="p-6 border-b border-white/10 flex items-center justify-between bg-black/20">
           <div className="flex items-center gap-2">
             <Library className="w-4 h-4 text-[#5be9b1]/50" />
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Manoscritto</span>
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Manoscritto</span>
           </div>
-          <button onClick={() => setModalType('chapter')} className="p-2 hover:bg-[#5be9b1]/10 rounded-xl text-[#5be9b1] transition-colors border border-transparent hover:border-[#5be9b1]/20">
+          <button onClick={() => setModalType('chapter')} className="p-2 hover:bg-[#5be9b1]/10 rounded-xl text-[#5be9b1] transition-colors border border-transparent hover:border-[#5be9b1]/30">
             <Plus className="w-4 h-4" />
           </button>
         </div>
@@ -94,7 +94,7 @@ export const NarrativeView: React.FC = () => {
                     {expandedChapters.has(chapter.id) ? <ChevronDown className="w-3 h-3 text-slate-600" /> : <ChevronRight className="w-3 h-3 text-slate-600" />}
                   </div>
                   <Folder className={cn("w-4 h-4 transition-colors", expandedChapters.has(chapter.id) ? "text-[#5be9b1]" : "text-slate-700")} />
-                  <span className="text-sm font-semibold text-slate-300 flex-1 truncate">{chapter.title}</span>
+                  <span className="text-sm font-black text-slate-300 flex-1 truncate uppercase tracking-tighter">{chapter.title}</span>
                   <Plus onClick={(e) => {
                     e.stopPropagation();
                     setTargetChapterId(chapter.id);
@@ -120,9 +120,9 @@ export const NarrativeView: React.FC = () => {
                                 className={cn(
                                   "flex items-center space-x-3 px-4 py-2.5 rounded-xl cursor-pointer transition-all group/scene border",
                                   activeSceneId === scene.id 
-                                    ? "bg-[#5be9b1]/10 text-[#5be9b1] border-[#5be9b1]/20 shadow-lg shadow-[#5be9b1]/5" 
-                                    : "text-slate-500 hover:bg-white/5 hover:text-slate-300 border-transparent",
-                                  snapshot.isDragging && "bg-[#171b1f] shadow-2xl border-[#5be9b1]/30 z-50 scale-105"
+                                    ? "bg-[#5be9b1]/10 text-[#5be9b1] border-[#5be9b1]/30" 
+                                    : "text-slate-500 hover:bg-white/5 hover:text-slate-200 border-transparent",
+                                  snapshot.isDragging && "bg-[#1a1f24] shadow-2xl border-[#5be9b1]/50 z-50 scale-105"
                                 )}
                               >
                                 <div {...provided.dragHandleProps} className="p-1 hover:bg-white/10 rounded-lg opacity-0 group-hover/scene:opacity-100 transition-opacity">

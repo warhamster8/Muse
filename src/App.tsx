@@ -95,16 +95,16 @@ function App() {
   if (!user && !showAuth) {
     return (
       <div className="h-screen flex items-center justify-center bg-[#0b0e11] p-4 selection:bg-[#5be9b1]/30">
-        <div className="glass p-12 rounded-[40px] border border-white/5 max-w-xl w-full text-center space-y-10 relative overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)]">
+        <div className="bg-[#121519] p-12 rounded-[40px] border border-white/10 max-w-xl w-full text-center space-y-10 relative overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)]">
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#5be9b1]/5 blur-[120px] rounded-full" />
           <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#5be9b1]/5 blur-[120px] rounded-full" />
           
-          <div className="w-56 h-56 mx-auto rounded-[32px] glass flex items-center justify-center p-6 mb-10 logo-glow border-white/5 shadow-inner">
+          <div className="w-56 h-56 mx-auto rounded-[32px] bg-[#1a1f24] flex items-center justify-center p-6 mb-10 logo-glow border border-white/10 shadow-inner">
             <img src="/logo.png" alt="Project Muse Logo" className="w-full h-full object-contain logo-blend scale-110" />
           </div>
           <div>
-            <h1 className="text-6xl font-black font-display text-slate-50 tracking-tight leading-tight">Project Muse</h1>
-            <p className="text-slate-500 mt-4 text-xl font-light tracking-wide italic">L'architetto della tua visione narrativa</p>
+            <h1 className="text-6xl font-black font-display text-slate-50 tracking-tighter leading-tight uppercase">Project Muse</h1>
+            <p className="text-slate-500 mt-4 text-sm font-black uppercase tracking-[0.4em] mb-4">L'architetto della tua visione narrativa</p>
           </div>
           
           <div className="grid grid-cols-1 gap-6 px-10">
@@ -118,14 +118,14 @@ function App() {
               </button>
           </div>
 
-          <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[32px] text-left space-y-3 mx-10">
+          <div className="bg-black/40 border border-white/10 p-8 rounded-[32px] text-left space-y-3 mx-10">
              <div className="flex items-center gap-2 text-emerald-500/50">
                 <AlertCircle className="w-4 h-4" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Restricted Core</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em]">Restricted Core</span>
              </div>
-             <p className="text-xs text-slate-500 leading-relaxed font-light">
-               Questo portale è configurato per l'accesso esclusivo. <br/>
-               Configurazione di sicurezza: <span className="text-emerald-500/50">Level 4 Encryption</span>.
+             <p className="text-xs text-slate-500 leading-relaxed font-black uppercase tracking-widest">
+               QUESTO PORTALE È CONFIGURATO PER L'ACCESSO ESCLUSIVO. <br/>
+               CONFIGURAZIONE DI SICUREZZA: <span className="text-emerald-500/50">LEVEL 4 ENCRYPTION</span>.
              </p>
           </div>
         </div>
