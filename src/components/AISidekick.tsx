@@ -69,25 +69,25 @@ const StructuredOutput: React.FC<{
       )}>
         <div className="bg-white/[0.02] px-4 py-3 flex items-center justify-between border-b border-white/10">
           <div className="flex items-center gap-2">
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 truncate max-w-[100px]">
-              {category || 'Suggerimento'}
+            <span className="text-[9px] font-black uppercase tracking-[0.1em] text-slate-700 truncate max-w-[60px] opacity-70">
+              {category || 'Idea'}
             </span>
             {isPending && <RefreshCw className="w-2.5 h-2.5 animate-spin text-[#5be9b1]" />}
           </div>
           {!isPending && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <button
                 onClick={() => onReject?.(original)}
-                className="text-[9px] font-black uppercase tracking-wider text-slate-600 hover:text-red-400 px-2 py-1.5 rounded-xl transition-all flex items-center gap-1.5 border border-transparent hover:bg-red-500/10"
+                className="text-[9px] font-black uppercase tracking-wider text-slate-600 hover:text-red-400 px-2 py-1.5 rounded-xl transition-all flex items-center gap-1.5 border border-transparent hover:bg-red-500/10 shrink-0"
               >
-                <X className="w-2.5 h-2.5" /> Ignora
+                <X className="w-2.5 h-2.5" /> <span className="hidden xs:inline">Ignora</span>
               </button>
               {suggestion && (
                 <button 
                   onClick={() => onApply?.(original, suggestion)}
-                  className="text-[9px] font-black uppercase tracking-wider bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5"
+                  className="text-[9px] font-black uppercase tracking-wider bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0"
                 >
-                  <Zap className="w-2.5 h-2.5" /> Applica
+                  <Zap className="w-2.5 h-2.5" /> <span className="hidden xs:inline text-nowrap">Applica</span>
                 </button>
               )}
             </div>
