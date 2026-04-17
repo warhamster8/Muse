@@ -98,9 +98,48 @@ export function useNarrative() {
     }
   };
 
+  const reorderScenes = async (updatedChapters: Chapter[]) => {
+    setChapters(updatedChapters);
+
+    if (isLocalMode) {
+      const allScenes = storage.getCollection<Scene>('scenes');
+      const updatedScenesMap = new Map();
+      updatedChapters.forEach(c => {
+        c.scenes?.forEach((s, idx) => {
+          updatedScenesMap.set(s.id, { ...s, chapter_id: c.id, order_index: idx });
+        });
+      });
+
+      const newAllScenes = allScenes.map(s => {
+        if (updatedScenesMap.has(s.id)) {
+          return updatedScenesMap.get(s.id);
+        }
+        return s;
+      });
+      storage.setCollection('scenes', newAllScenes);
+    } else {
+      const scenesToUpdate = updatedChapters.flatMap(c => 
+        c.scenes?.map((s, idx) => ({
+          id: s.id,
+          chapter_id: c.id,
+          order_index: idx,
+          project_id: currentProject?.id // Ensure context if needed, though id is enough for upsert
+        })) || []
+      );
+      
+      if (scenesToUpdate.length > 0) {
+        const { error } = await supabase.from('scenes').upsert(scenesToUpdate);
+        if (error) {
+          console.error('Error reordering scenes:', error);
+          fetchNarrative(); // Revert on error
+        }
+      }
+    }
+  };
+
   useEffect(() => {
     fetchNarrative();
   }, [currentProject, isLocalMode]);
 
-  return { chapters, loading, addChapter, addScene, updateSceneContent, refresh: fetchNarrative };
+  return { chapters, loading, addChapter, addScene, updateSceneContent, reorderScenes, refresh: fetchNarrative };
 }
