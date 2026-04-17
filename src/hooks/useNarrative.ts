@@ -122,8 +122,7 @@ export function useNarrative() {
         c.scenes?.map((s, idx) => ({
           id: s.id,
           chapter_id: c.id,
-          order_index: idx,
-          project_id: currentProject?.id // Ensure context if needed, though id is enough for upsert
+          order_index: idx
         })) || []
       );
       
