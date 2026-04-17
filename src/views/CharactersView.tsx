@@ -153,22 +153,29 @@ export const CharactersView: React.FC = () => {
       <div className="flex-1 min-w-0 glass rounded-2xl border border-slate-700 flex flex-col overflow-hidden">
         {selectedChar ? (
           <div className="flex flex-col h-full">
-            <div className="p-6 border-b border-slate-700 flex items-center justify-between bg-slate-800/20">
-              <div className="flex items-center gap-4">
+            <div className="p-8 border-b border-slate-700 bg-slate-800/20 relative overflow-hidden group/header">
+              {/* Background Glow */}
+              <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 blur-[120px] -mr-48 -mt-48 transition-all group-hover/header:bg-blue-600/10" />
+              
+              <div className="relative flex flex-col md:flex-row items-center md:items-end gap-8">
+                {/* Large Portrait */}
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className="group relative w-20 h-20 rounded-2xl bg-slate-900 border border-slate-700 overflow-hidden cursor-pointer hover:border-blue-500 transition-all shadow-xl"
+                  className="group relative w-48 h-64 rounded-3xl bg-slate-950 border-2 border-slate-700/50 overflow-hidden cursor-pointer hover:border-blue-500 transition-all shadow-2xl flex-shrink-0"
                 >
                   {selectedChar.avatar_url ? (
-                    <img src={selectedChar.avatar_url} alt={selectedChar.name} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                    <img src={selectedChar.avatar_url} alt={selectedChar.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-600">
-                      <Camera className="w-6 h-6 mb-1" />
-                      <span className="text-[8px] font-bold uppercase">Add Photo</span>
+                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-700 bg-slate-900/50">
+                      <Camera className="w-10 h-10 mb-2 opacity-20" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-20">Click to Upload</span>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-blue-600/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Camera className="w-6 h-6 text-white" />
+                  <div className="absolute inset-0 bg-blue-600/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                    <div className="flex flex-col items-center gap-2">
+                      <Camera className="w-8 h-8 text-white" />
+                      <span className="text-[10px] font-bold text-white uppercase tracking-tighter">Change Portrait</span>
+                    </div>
                   </div>
                   <input 
                     type="file" 
@@ -178,30 +185,47 @@ export const CharactersView: React.FC = () => {
                     onChange={handleImageUpload} 
                   />
                 </div>
-                <div>
-                  <h2 className="text-3xl font-bold font-serif text-white">{selectedChar.name}</h2>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-blue-400 font-mono uppercase tracking-widest">Profile Identity</span>
+
+                {/* Name & Actions */}
+                <div className="flex-1 flex flex-col items-center md:items-start pb-2">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-blue-500/20">
+                      Protagonist Identity
+                    </span>
                     {selectedChar.avatar_url && (
                       <button 
                         onClick={() => updateCharacter(selectedChar.id, { avatar_url: '' })}
-                        className="text-red-500 hover:text-red-400 p-1"
+                        className="text-slate-600 hover:text-red-400 p-1 transition-colors"
                         title="Remove photo"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     )}
                   </div>
+                  <h2 className="text-5xl font-bold font-serif text-white tracking-tight mb-6">
+                    {selectedChar.name}
+                  </h2>
+                  
+                  <div className="flex flex-wrap gap-4">
+                    <button 
+                      onClick={handleInterview}
+                      disabled={isInterviewing}
+                      className="flex items-center gap-3 px-8 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-2xl text-sm font-bold transition-all disabled:opacity-50 shadow-lg shadow-purple-900/30 active:scale-95"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      {isInterviewing ? 'Consulting Muse...' : 'Interview Character'}
+                    </button>
+                    
+                    <button 
+                      onClick={() => addToast('Analisi tratti in arrivo...', 'info')}
+                      className="flex items-center gap-3 px-8 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl text-sm font-bold transition-all active:scale-95 border border-slate-700"
+                    >
+                      <TrendingUp className="w-4 h-4" />
+                      Analyze Stats
+                    </button>
+                  </div>
                 </div>
               </div>
-              <button 
-                onClick={handleInterview}
-                disabled={isInterviewing}
-                className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-xl text-sm font-bold transition-all disabled:opacity-50 shadow-lg shadow-purple-900/30"
-              >
-                <MessageSquare className="w-4 h-4" />
-                {isInterviewing ? 'Interviewing...' : 'AI Interview'}
-              </button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-hide">
