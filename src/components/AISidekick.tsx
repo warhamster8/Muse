@@ -76,6 +76,8 @@ const StructuredOutput: React.FC<{
           </div>
           {!isPending && (
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => onReject?.(original)}
                 className="text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-red-400 px-3 py-1.5 rounded-xl transition-all flex items-center gap-2 border border-transparent hover:bg-red-500/10"
               >
                 <X className="w-3 h-3" /> Ignora
