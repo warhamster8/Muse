@@ -122,10 +122,8 @@ export const useStore = create<AppState>()(
         isLocalMode: state.isLocalMode,
         activeTab: state.activeTab,
         ignoredSuggestions: state.ignoredSuggestions || {},
-        lastAnalyzedPhrase: state.lastAnalyzedPhrase || {},
-        sceneAnalysis: state.sceneAnalysis || {},
         aiConfig: state.aiConfig
-        // activeSelection excluded
+        // activeSelection, lastAnalyzedPhrase, and sceneAnalysis excluded to prevent persistence
       }),
     }
   )
