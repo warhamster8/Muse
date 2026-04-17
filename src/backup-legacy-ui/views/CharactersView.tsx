@@ -125,32 +125,32 @@ export const CharactersView: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full gap-6 overflow-hidden animate-in fade-in duration-700">
+    <div className="flex h-full gap-6 overflow-hidden">
       {/* Character List */}
-      <div className="w-80 flex flex-col gap-6">
-        <div className="flex items-center justify-between bg-white/[0.02] p-4 rounded-2xl border border-white/5">
-          <h2 className="text-sm font-bold font-display flex items-center gap-3 tracking-[0.2em] text-slate-400">
-            <Users className="w-4 h-4 text-emerald-500" />
-            ATTORI
+      <div className="w-80 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold font-serif flex items-center gap-2">
+            <User className="w-5 h-5 text-blue-400" />
+            Characters
           </h2>
-          <button onClick={() => setIsModalOpen(true)} className="bg-emerald-600 hover:bg-emerald-500 p-2 rounded-xl transition-all shadow-lg shadow-emerald-950/20 active:scale-90">
-            <Plus className="w-4 h-4 text-white" />
+          <button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-500 p-2 rounded-lg transition-colors">
+            <Plus className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-hide">
           {characters.map(char => (
             <div 
               key={char.id}
               onClick={() => setSelectedCharId(char.id)}
               className={cn(
-                "p-4 rounded-[24px] border transition-all cursor-pointer flex gap-4 items-center group",
+                "p-3 rounded-xl border transition-all cursor-pointer flex gap-3 items-center",
                 selectedCharId === char.id 
-                  ? "bg-emerald-500/10 border-emerald-500/30 shadow-xl shadow-emerald-950/20" 
-                  : "bg-white/[0.02] border-white/5 hover:border-white/10"
+                  ? "glass border-blue-500 bg-blue-600/10 shadow-lg shadow-blue-900/10" 
+                  : "bg-slate-800/50 border-slate-700 hover:border-slate-500"
               )}
             >
-              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-slate-900 border border-white/5 flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-900 border border-slate-700 flex-shrink-0">
                 {char.avatar_url ? (
                   <img 
                     src={char.avatar_url} 
@@ -165,12 +165,8 @@ export const CharactersView: React.FC = () => {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className={cn("font-bold truncate tracking-tight transition-colors", selectedCharId === char.id ? "text-emerald-400" : "text-slate-100")}>
-                    {char.name}
-                </h3>
-                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1 opacity-50 truncate">
-                    {char.bio ? 'Scheda Completa' : 'Nessuna bio...'}
-                </p>
+                <h3 className="font-bold text-slate-100 truncate">{char.name}</h3>
+                <p className="text-[10px] text-slate-500 truncate">{char.bio || 'No bio...'}</p>
               </div>
             </div>
           ))}
@@ -178,21 +174,21 @@ export const CharactersView: React.FC = () => {
       </div>
 
       {/* Detail Area */}
-      <div className="flex-1 min-w-0 bg-white/[0.02] rounded-[40px] border border-white/5 flex flex-col overflow-hidden shadow-sm">
+      <div className="flex-1 min-w-0 glass rounded-2xl border border-slate-700 flex flex-col overflow-hidden">
         {selectedChar ? (
           <div className="flex flex-col h-full">
-            <div className="p-10 border-b border-white/5 bg-white/[0.01] relative overflow-hidden group/header">
+            <div className="p-8 border-b border-slate-700 bg-slate-800/20 relative overflow-hidden group/header">
               {/* Background Glow */}
-              <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/5 blur-[150px] -mr-48 -mt-48 transition-all group-hover/header:bg-emerald-500/10" />
+              <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 blur-[120px] -mr-48 -mt-48 transition-all group-hover/header:bg-blue-600/10" />
               
-              <div className="relative flex flex-col md:flex-row items-center md:items-end gap-10">
+              <div className="relative flex flex-col md:flex-row items-center md:items-end gap-8">
                 {/* Large Portrait */}
                 <div className="relative">
                   <div 
                     onClick={() => !isAdjusting && fileInputRef.current?.click()}
                     className={cn(
-                      "group relative w-56 h-72 rounded-[40px] bg-slate-950 border border-white/5 overflow-hidden transition-all shadow-2xl flex-shrink-0",
-                      isAdjusting ? "ring-2 ring-emerald-500 cursor-move" : "cursor-pointer hover:border-emerald-500/30"
+                      "group relative w-48 h-64 rounded-3xl bg-slate-950 border-2 overflow-hidden transition-all shadow-2xl flex-shrink-0",
+                      isAdjusting ? "border-blue-500 cursor-move" : "border-slate-700/50 cursor-pointer hover:border-blue-500"
                     )}
                   >
                     {selectedChar.avatar_url ? (
@@ -200,20 +196,23 @@ export const CharactersView: React.FC = () => {
                         src={selectedChar.avatar_url} 
                         alt={selectedChar.name} 
                         className={cn(
-                          "w-full h-full object-cover transition-transform duration-700",
+                          "w-full h-full object-cover transition-transform duration-500",
                           !isAdjusting && "group-hover:scale-105"
                         )}
                         style={{ objectPosition: `${posX}% ${posY}%` }}
                       />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-800 bg-slate-900/50">
-                        <Camera className="w-12 h-12 mb-2 opacity-10" />
-                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] opacity-10">Capture Portrait</span>
+                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-700 bg-slate-900/50">
+                        <Camera className="w-10 h-10 mb-2 opacity-20" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest opacity-20">Click to Upload</span>
                       </div>
                     )}
                     {!isAdjusting && (
-                      <div className="absolute inset-0 bg-emerald-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-                        <Camera className="w-10 h-10 text-white" />
+                      <div className="absolute inset-0 bg-blue-600/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                        <div className="flex flex-col items-center gap-2">
+                          <Camera className="w-8 h-8 text-white" />
+                          <span className="text-[10px] font-bold text-white uppercase tracking-tighter">Change Portrait</span>
+                        </div>
                       </div>
                     )}
                     <input 
@@ -230,23 +229,23 @@ export const CharactersView: React.FC = () => {
                     <button
                       onClick={() => setIsAdjusting(!isAdjusting)}
                       className={cn(
-                        "absolute -bottom-2 -right-2 p-4 rounded-[20px] shadow-2xl transition-all z-10 border border-white/10",
-                        isAdjusting ? "bg-emerald-500 text-white" : "bg-slate-900 text-slate-400 hover:text-emerald-400"
+                        "absolute -bottom-3 -right-3 p-3 rounded-2xl shadow-xl transition-all z-10",
+                        isAdjusting ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-500"
                       )}
                     >
-                      <TrendingUp className={cn("w-4 h-4 transition-transform duration-500", isAdjusting && "rotate-90")} />
+                      <TrendingUp className={cn("w-4 h-4 transition-transform", isAdjusting && "rotate-90")} />
                     </button>
                   )}
                 </div>
 
                 {/* Name & Actions */}
-                <div className="flex-1 flex flex-col items-center md:items-start pb-2 min-w-0">
+                <div className="flex-1 flex flex-col items-center md:items-start pb-2">
                   {isAdjusting ? (
-                    <div className="w-full max-w-sm space-y-5 mb-8 p-6 bg-white/[0.03] rounded-[32px] border border-emerald-500/20 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-500">
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-[9px] font-bold text-emerald-500 uppercase tracking-[0.2em]">
+                    <div className="w-full max-w-xs space-y-4 mb-6 p-4 glass rounded-2xl border border-blue-500/30">
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[10px] font-bold text-blue-400 uppercase tracking-widest">
                           <span>Orizzontale</span>
-                          <span className="font-mono">{posX}%</span>
+                          <span>{posX}%</span>
                         </div>
                         <input 
                           type="range" 
@@ -254,13 +253,13 @@ export const CharactersView: React.FC = () => {
                           max="100" 
                           value={posX}
                           onChange={(e) => setPosX(parseInt(e.target.value))}
-                          className="w-full h-1 bg-slate-800 rounded-full appearance-none cursor-pointer accent-emerald-500"
+                          className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-[9px] font-bold text-emerald-500 uppercase tracking-[0.2em]">
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[10px] font-bold text-blue-400 uppercase tracking-widest">
                           <span>Verticale</span>
-                          <span className="font-mono">{posY}%</span>
+                          <span>{posY}%</span>
                         </div>
                         <input 
                           type="range" 
@@ -268,33 +267,33 @@ export const CharactersView: React.FC = () => {
                           max="100" 
                           value={posY}
                           onChange={(e) => setPosY(parseInt(e.target.value))}
-                          className="w-full h-1 bg-slate-800 rounded-full appearance-none cursor-pointer accent-emerald-500"
+                          className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
                         />
                       </div>
                       <button 
                         onClick={() => setIsAdjusting(false)}
-                        className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg"
+                        className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-xs font-bold rounded-lg transition-all"
                       >
-                        Salva Inquadratura
+                        Conferma Posizione
                       </button>
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="px-4 py-1.5 bg-emerald-500/5 text-emerald-500 text-[9px] font-bold uppercase tracking-[0.2em] rounded-full border border-emerald-500/10">
-                          Identità Protagonista
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-blue-500/20">
+                          Protagonist Identity
                         </span>
                         {selectedChar.avatar_url && (
                           <button 
                             onClick={() => updateCharacter(selectedChar.id, { avatar_url: '' })}
-                            className="text-slate-700 hover:text-red-400 p-1.5 transition-colors bg-white/5 rounded-lg"
-                            title="Rimuovi foto"
+                            className="text-slate-600 hover:text-red-400 p-1 transition-colors"
+                            title="Remove photo"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         )}
                       </div>
-                      <h2 className="text-6xl font-medium font-display text-white tracking-tighter mb-8 truncate w-full">
+                      <h2 className="text-5xl font-bold font-serif text-white tracking-tight mb-6">
                         {selectedChar.name}
                       </h2>
                     </>
@@ -305,18 +304,18 @@ export const CharactersView: React.FC = () => {
                       <button 
                         onClick={handleInterview}
                         disabled={isInterviewing}
-                        className="flex items-center gap-4 px-10 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-[20px] text-xs font-bold transition-all disabled:opacity-50 shadow-[0_15px_40px_-10px_rgba(16,185,129,0.3)] active:scale-95"
+                        className="flex items-center gap-3 px-8 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-2xl text-sm font-bold transition-all disabled:opacity-50 shadow-lg shadow-purple-900/30 active:scale-95"
                       >
                         <MessageSquare className="w-4 h-4" />
-                        {isInterviewing ? 'In ascolto...' : 'Intervista Creatura'}
+                        {isInterviewing ? 'Consulting Muse...' : 'Interview Character'}
                       </button>
                       
                       <button 
                         onClick={() => addToast('Analisi tratti in arrivo...', 'info')}
-                        className="flex items-center gap-4 px-10 py-4 bg-white/5 hover:bg-white/10 text-slate-300 rounded-[24px] text-xs font-bold transition-all active:scale-95 border border-white/5"
+                        className="flex items-center gap-3 px-8 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl text-sm font-bold transition-all active:scale-95 border border-slate-700"
                       >
                         <TrendingUp className="w-4 h-4" />
-                        Analisi Statistiche
+                        Analyze Stats
                       </button>
                     </div>
                   )}
@@ -324,41 +323,41 @@ export const CharactersView: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-12 space-y-12 scrollbar-hide">
-              <section className="space-y-6">
-                <div className="flex items-center gap-3 text-emerald-500/50">
+            <div className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-hide">
+              <section className="space-y-4">
+                <div className="flex items-center gap-2 text-blue-400">
                   <FileText className="w-4 h-4" />
-                  <h4 className="text-[10px] font-bold uppercase tracking-[0.3em]">Biografia & Origini</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-widest">Biography</h4>
                 </div>
                 <textarea 
-                  className="w-full h-40 bg-white/[0.02] border border-white/5 rounded-[32px] p-8 text-sm text-slate-300 focus:outline-none focus:border-emerald-500/30 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide"
-                  placeholder="Descrivi le origini, il passato e i segreti del personaggio..."
+                  className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-2xl p-5 text-sm text-slate-200 focus:outline-none focus:border-blue-500 focus:bg-slate-900/80 transition-all placeholder:opacity-20"
+                  placeholder="Describe the character's origin story, personality, and background..."
                   value={localBio}
                   onChange={(e) => setLocalBio(e.target.value)}
                 />
               </section>
 
-              <section className="space-y-6">
-                <div className="flex items-center gap-3 text-emerald-700">
+              <section className="space-y-4">
+                <div className="flex items-center gap-2 text-purple-400">
                   <Brain className="w-4 h-4" />
-                  <h4 className="text-[10px] font-bold uppercase tracking-[0.3em]">Psicologia & Conflitti</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-widest">Psychology</h4>
                 </div>
                 <textarea 
-                  className="w-full h-40 bg-white/[0.02] border border-white/5 rounded-[32px] p-8 text-sm text-slate-300 focus:outline-none focus:border-emerald-700/30 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide"
-                  placeholder="Cosa spinge questo personaggio? Quali sono le sue paure più profonde?"
+                  className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-2xl p-5 text-sm text-slate-200 focus:outline-none focus:border-purple-500 focus:bg-slate-900/80 transition-all placeholder:opacity-20"
+                  placeholder="What drives them? What are their fears and core beliefs?"
                   value={localPsychology}
                   onChange={(e) => setLocalPsychology(e.target.value)}
                 />
               </section>
 
-              <section className="space-y-6">
-                <div className="flex items-center gap-3 text-emerald-900">
+              <section className="space-y-4">
+                <div className="flex items-center gap-2 text-orange-400">
                   <TrendingUp className="w-4 h-4" />
-                  <h4 className="text-[10px] font-bold uppercase tracking-[0.3em]">Arco Narrativo & Evoluzione</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-widest">Arc & Evolution</h4>
                 </div>
                 <textarea 
-                  className="w-full h-40 bg-white/[0.02] border border-white/5 rounded-[32px] p-8 text-sm text-slate-300 focus:outline-none focus:border-emerald-900/30 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide"
-                  placeholder="Come cambia il personaggio dall'inizio alla fine del viaggio?"
+                  className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-2xl p-5 text-sm text-slate-200 focus:outline-none focus:border-orange-500 focus:bg-slate-900/80 transition-all placeholder:opacity-20"
+                  placeholder="How does their journey change them from the beginning to the end?"
                   value={localEvolution}
                   onChange={(e) => setLocalEvolution(e.target.value)}
                 />
@@ -366,14 +365,11 @@ export const CharactersView: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-slate-800 space-y-8 animate-in fade-in duration-1000">
-            <div className="w-32 h-32 rounded-[40px] border border-white/5 flex items-center justify-center opacity-10 bg-white/5">
-              <User className="w-14 h-14" />
+          <div className="h-full flex flex-col items-center justify-center text-slate-700 space-y-6">
+            <div className="w-24 h-24 rounded-full border-2 border-slate-800 flex items-center justify-center opacity-20">
+              <User className="w-12 h-12" />
             </div>
-            <div className="text-center">
-                <h3 className="text-lg font-medium text-slate-500">Archivio Personaggi</h3>
-                <p className="text-xs opacity-50 max-w-[200px] mx-auto mt-2 tracking-wide font-light">Seleziona un attore per consultare la sua scheda tecnica e psicofisica.</p>
-            </div>
+            <p className="text-sm italic opacity-50 tracking-wide font-serif">Select a character to reveal their details</p>
           </div>
         )}
       </div>
@@ -382,8 +378,8 @@ export const CharactersView: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleConfirmAdd}
-        title="Creazione Attore"
-        placeholder="Nome del personaggio..."
+        title="Nuovo Personaggio"
+        placeholder="Esempio: Arthur Pendragon..."
       />
     </div>
   );

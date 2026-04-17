@@ -52,39 +52,39 @@ export const AuthView: React.FC<AuthViewProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4 selection:bg-emerald-500/30">
-      <div className="glass p-12 rounded-[40px] border border-white/5 max-w-md w-full relative overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.5)]">
-        <div className="absolute top-0 left-0 w-full h-1.5 bg-emerald-600" />
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4">
+      <div className="glass p-8 rounded-3xl border border-slate-700 max-w-md w-full relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-600" />
         
         <button 
           onClick={onBack}
-          className="absolute top-8 left-8 text-slate-600 hover:text-emerald-500 transition-all p-2 hover:bg-white/5 rounded-xl"
+          className="absolute top-6 left-6 text-slate-500 hover:text-slate-300 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
 
-        <div className="text-center mb-10 pt-6">
-          <div className="w-20 h-20 bg-emerald-500/5 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-emerald-500/20 shadow-inner group transition-all hover:scale-110">
-            <ShieldAlert className="w-10 h-10 text-emerald-500" />
+        <div className="text-center mb-8 pt-4">
+          <div className="w-20 h-20 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
+            <ShieldAlert className="w-10 h-10 text-blue-500" />
           </div>
-          <h2 className="text-3xl font-medium font-display tracking-tight text-slate-50">
-            Varco di Sicurezza
+          <h2 className="text-2xl font-bold font-serif">
+            Accesso Riservato
           </h2>
-          <p className="text-slate-500 text-xs mt-3 uppercase tracking-widest font-bold">
-            Identificazione Richiesta
+          <p className="text-slate-400 text-sm mt-2">
+            Questa istanza di Muse è privata. Inserisci le tue credenziali per continuare.
           </p>
         </div>
 
-        <form onSubmit={handleAuth} className="space-y-6">
+        <form onSubmit={handleAuth} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] pl-1">Protocollo Email</label>
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Email Proprietario</label>
             <div className="relative">
-              <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input 
                 type="email" 
                 required
-                className="w-full bg-slate-900/40 border border-white/5 rounded-[20px] py-4 pl-14 pr-6 text-sm focus:outline-none focus:border-emerald-500/30 focus:bg-slate-900/60 transition-all text-white placeholder:text-slate-800"
-                placeholder="proprietario@muse.ai"
+                className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-blue-500 transition-all text-white"
+                placeholder="la-tua-email@esempio.it"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -92,13 +92,13 @@ export const AuthView: React.FC<AuthViewProps> = ({ onBack }) => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] pl-1">Chiave d'Accesso</label>
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Password</label>
             <div className="relative">
-              <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input 
                 type="password" 
                 required
-                className="w-full bg-slate-900/40 border border-white/5 rounded-[20px] py-4 pl-14 pr-6 text-sm focus:outline-none focus:border-emerald-500/30 focus:bg-slate-900/60 transition-all text-white placeholder:text-slate-800"
+                className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-blue-500 transition-all text-white"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -107,7 +107,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onBack }) => {
           </div>
 
           {error && (
-            <div className="p-4 bg-red-500/5 border border-red-500/20 rounded-2xl text-red-400 text-[11px] text-center font-bold tracking-tight animate-in fade-in slide-in-from-top-1">
+            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs text-center font-medium animate-in fade-in slide-in-from-top-1">
               {error}
             </div>
           )}
@@ -115,22 +115,22 @@ export const AuthView: React.FC<AuthViewProps> = ({ onBack }) => {
           <button 
             type="submit"
             disabled={loading}
-            className="w-full py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-[24px] font-bold flex items-center justify-center gap-3 transition-all shadow-2xl shadow-emerald-950/40 disabled:opacity-50 mt-6 active:scale-95 uppercase tracking-widest text-xs"
+            className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/20 disabled:opacity-50 mt-4"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <>
                 <LogIn className="w-5 h-5" />
-                Sincronizza Core
+                Accedi come Proprietario
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-10 pt-8 border-t border-white/5 text-center">
-          <p className="text-[10px] text-slate-600 font-bold uppercase tracking-[0.1em]">
-            Sorgente Protetta <a href="https://github.com/warhamster8/Muse" className="text-emerald-500/50 hover:text-emerald-500 ml-1">v4.0.0-emerald</a>
+        <div className="mt-8 pt-6 border-t border-slate-800 text-center">
+          <p className="text-xs text-slate-500">
+            Sei uno sviluppatore? Puoi clonare questo progetto su <a href="https://github.com/warhamster8/Muse" className="text-blue-500 hover:underline">GitHub</a>.
           </p>
         </div>
       </div>

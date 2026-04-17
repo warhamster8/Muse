@@ -105,142 +105,164 @@ export const ConfigView: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col p-8 space-y-8 max-w-4xl mx-auto">
-      <div className="flex items-center gap-4">
-        <div className="p-3 bg-blue-600/20 rounded-2xl border border-blue-500/30">
-          <Settings className="w-8 h-8 text-blue-400" />
+    <div className="h-full flex flex-col p-10 space-y-10 max-w-5xl mx-auto overflow-y-auto scrollbar-hide animate-in fade-in duration-700">
+      <div className="flex items-center gap-6 bg-white/[0.02] p-8 rounded-[40px] border border-white/5">
+        <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
+          <Settings className="w-8 h-8 text-emerald-500" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold font-display tracking-tight">Impostazioni AI</h1>
-          <p className="text-slate-400">Configura il tuo architetto narrativo</p>
+          <h1 className="text-4xl font-medium font-display tracking-tight text-white">Configurazione Nucleo AI</h1>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.2em] mt-2">Architettura Narrativa & Parametri Motore</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Groq Card */}
         <button
           onClick={() => handleProviderChange('groq')}
-          className={`relative p-6 rounded-3xl border text-left transition-all duration-300 overflow-hidden group ${
+          className={`relative p-8 rounded-[40px] border text-left transition-all duration-500 overflow-hidden group shadow-sm ${
             aiConfig.provider === 'groq' 
-              ? 'bg-blue-600/10 border-blue-500 shadow-lg shadow-blue-900/20' 
-              : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'
+              ? 'bg-emerald-500/10 border-emerald-500/30 shadow-2xl shadow-emerald-950/20' 
+              : 'bg-white/[0.02] border-white/5 hover:border-white/10'
           }`}
         >
-          <div className="flex items-start justify-between mb-4">
-            <div className={`p-3 rounded-xl ${aiConfig.provider === 'groq' ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-400'}`}>
+          <div className="flex items-start justify-between mb-6">
+            <div className={`p-4 rounded-2xl transition-colors ${aiConfig.provider === 'groq' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-slate-900 border border-white/5 text-slate-600'}`}>
               <Zap className="w-6 h-6" />
             </div>
             {aiConfig.provider === 'groq' && (
-              <span className="text-[10px] font-black uppercase tracking-widest bg-blue-500 text-white px-2 py-1 rounded-md">Attivo</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-full shadow-lg">Attivo</span>
             )}
           </div>
-          <h3 className="text-xl font-bold mb-2">Groq (Llama 3.3)</h3>
-          <p className="text-sm text-slate-400 leading-relaxed">
-            Velocità estrema e latenza quasi zero. Ideale per suggerimenti rapidi e scrittura fluida.
+          <h3 className={cn("text-2xl font-medium mb-3 tracking-tight transition-colors", aiConfig.provider === 'groq' ? "text-emerald-400" : "text-white")}>
+            Groq <span className="text-sm opacity-50 ml-2">(Llama 3.3)</span>
+          </h3>
+          <p className="text-sm text-slate-500 leading-relaxed font-light">
+            Velocità di elaborazione estrema e latenza minima. Consigliato per brainstorming rapido e riscrittura istantanea.
           </p>
-          <div className="mt-4 flex gap-2">
-            <span className="text-[10px] px-2 py-1 bg-slate-800 rounded text-slate-500 border border-slate-700">70B Parameters</span>
-            <span className="text-[10px] px-2 py-1 bg-slate-800 rounded text-slate-500 border border-slate-700">LPU Optimized</span>
+          <div className="mt-8 flex gap-3">
+            <span className="text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 bg-slate-900 rounded-lg text-slate-600 border border-white/5">70B Parametri</span>
+            <span className="text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 bg-slate-900 rounded-lg text-slate-600 border border-white/5">LPU Optimized</span>
           </div>
         </button>
 
         {/* DeepSeek Card */}
         <button
           onClick={() => handleProviderChange('deepseek')}
-          className={`relative p-6 rounded-3xl border text-left transition-all duration-300 overflow-hidden group ${
+          className={`relative p-8 rounded-[40px] border text-left transition-all duration-500 overflow-hidden group shadow-sm ${
             aiConfig.provider === 'deepseek' 
-              ? 'bg-emerald-600/10 border-emerald-500 shadow-lg shadow-emerald-900/20' 
-              : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'
+              ? 'bg-emerald-500/10 border-emerald-500/30 shadow-2xl shadow-emerald-950/20' 
+              : 'bg-white/[0.02] border-white/5 hover:border-white/10'
           }`}
         >
-          <div className="flex items-start justify-between mb-4">
-            <div className={`p-3 rounded-xl ${aiConfig.provider === 'deepseek' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-400'}`}>
+          <div className="flex items-start justify-between mb-6">
+            <div className={`p-4 rounded-2xl transition-colors ${aiConfig.provider === 'deepseek' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-slate-900 border border-white/5 text-slate-600'}`}>
               <Cpu className="w-6 h-6" />
             </div>
             {aiConfig.provider === 'deepseek' && (
-              <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-2 py-1 rounded-md">Attivo</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-full shadow-lg">Attivo</span>
             )}
           </div>
-          <h3 className="text-xl font-bold mb-2">DeepSeek V3</h3>
-          <p className="text-sm text-slate-400 leading-relaxed">
-            Potenza incredibile e ragionamento avanzato. Il miglior rapporto qualità/prezzo per l'editing creativo.
+          <h3 className={cn("text-2xl font-medium mb-3 tracking-tight transition-colors", aiConfig.provider === 'deepseek' ? "text-emerald-400" : "text-white")}>
+            DeepSeek <span className="text-sm opacity-50 ml-2">V3</span>
+          </h3>
+          <p className="text-sm text-slate-500 leading-relaxed font-light">
+            Ragionamento analitico superiore e profondità creativa. Eccellente per analisi strutturali e editing di alta qualità.
           </p>
-          <div className="mt-4 flex gap-2">
-            <span className="text-[10px] px-2 py-1 bg-slate-800 rounded text-slate-500 border border-slate-700">671B Total Parameters</span>
-            <span className="text-[10px] px-2 py-1 bg-slate-800 rounded text-slate-500 border border-slate-700">OpenAI Compatible</span>
+          <div className="mt-8 flex gap-3">
+            <span className="text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 bg-slate-900 rounded-lg text-slate-600 border border-white/5">671B Parametri</span>
+            <span className="text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 bg-slate-900 rounded-lg text-slate-600 border border-white/5">MoE Architecture</span>
           </div>
         </button>
       </div>
 
-      <div className="glass p-8 rounded-3xl border border-slate-800 space-y-6">
-        <h3 className="text-lg font-bold flex items-center gap-2">
-           <ShieldCheck className="w-5 h-5 text-emerald-400" />
-           Stato Sicurezza API
-        </h3>
+      <div className="bg-white/[0.02] p-10 rounded-[48px] border border-white/5 space-y-10 shadow-sm">
+        <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+                <div className="p-3 bg-emerald-500/10 rounded-xl">
+                    <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                </div>
+                <div>
+                    <h3 className="text-xl font-medium text-white tracking-tight">Infrastruttura di Sicurezza</h3>
+                    <p className="text-[10px] uppercase font-bold text-slate-600 tracking-[0.2em] mt-1">Gestione chiavi & diagnostica</p>
+                </div>
+            </div>
+            <div className="flex items-center gap-4 px-6 py-3 bg-white/[0.03] rounded-2xl border border-white/5">
+                <div className={cn("w-2 h-2 rounded-full", aiConfig.provider ? "bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" : "bg-slate-800")} />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Sistema Operativo</span>
+            </div>
+        </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-           <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-2xl">
-              <p className="text-[10px] uppercase tracking-tighter text-slate-500 font-bold mb-1">Status Chiave DeepSeek</p>
-               <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${aiConfig.deepseekKey ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-                  <span className="font-mono text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+           <div className="p-6 bg-slate-950/40 border border-white/5 rounded-3xl hover:border-white/10 transition-all group">
+              <p className="text-[9px] uppercase tracking-[0.2em] text-slate-700 font-bold mb-3 group-hover:text-slate-500 transition-colors">Endpoint DeepSeek</p>
+               <div className="flex items-center gap-4">
+                  <div className={`w-2.5 h-2.5 rounded-full ${aiConfig.deepseekKey ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]' : 'bg-amber-900'}`} />
+                  <span className="font-mono text-sm text-slate-300">
                      {aiConfig.deepseekKey 
-                        ? `Configurata (${aiConfig.deepseekKey.substring(0, 4)}...${aiConfig.deepseekKey.slice(-4)})` 
-                        : 'Non Trovata'}
+                        ? `sk-...${aiConfig.deepseekKey.slice(-6)}` 
+                        : 'Identità non configurata'}
                   </span>
                </div>
             </div>
             
-            <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-2xl flex items-center justify-between">
+            <div className="p-6 bg-slate-950/40 border border-white/5 rounded-3xl flex items-center justify-between hover:border-white/10 transition-all">
                <div>
-                  <p className="text-[10px] uppercase tracking-tighter text-slate-500 font-bold mb-1">Diagnostica</p>
-                  <span className="text-sm text-slate-300">Testa risposta grezza</span>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-slate-700 font-bold mb-3">Diagnostica Core</p>
+                  <span className="text-sm font-medium text-slate-400">Esegui ping di sistema</span>
                </div>
                <button 
                 onClick={handleTestDeepSeek}
                 disabled={isTesting}
-                className="p-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-xl transition-all"
+                className="p-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded-2xl transition-all shadow-xl shadow-emerald-950/40 active:scale-90"
                >
                  <Activity className={`w-5 h-5 text-white ${isTesting ? 'animate-spin' : ''}`} />
                </button>
             </div>
         </div>
 
-        {testResult && (
-          <div className="p-4 bg-black/40 border border-slate-700 rounded-2xl space-y-3 animate-in fade-in slide-in-from-top-2">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
-              <Terminal className="w-4 h-4" />
-              <span>Risposta Grezza Google</span>
-            </div>
-            <pre className="text-[10px] font-mono bg-black/60 p-4 rounded-xl overflow-x-auto text-slate-300 border border-slate-800/50">
-              {JSON.stringify(testResult, null, 2)}
-            </pre>
-          </div>
-        )}
+        <AnimatePresence>
+          {testResult && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="p-8 bg-black/40 border border-white/5 rounded-[32px] space-y-4 shadow-inner"
+            >
+              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-500/50">
+                <Terminal className="w-4 h-4" />
+                <span>Console Log / Risposta Server</span>
+              </div>
+              <pre className="text-[11px] font-mono bg-slate-950/50 p-6 rounded-2xl overflow-x-auto text-emerald-400 border border-white/5 leading-relaxed">
+                {JSON.stringify(testResult, null, 2)}
+              </pre>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {!aiConfig.deepseekKey && (
-          <div className="space-y-4">
-            <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-200/80 text-xs">
-              <AlertTriangle className="w-5 h-5 shrink-0" />
+          <div className="space-y-6 pt-4">
+            <div className="flex items-start gap-4 p-6 bg-amber-500/5 border border-amber-500/10 rounded-3xl text-amber-500/60 text-xs leading-relaxed">
+              <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
               <p>
-                Non è stata rilevata una chiave DeepSeek nel tuo profilo. Incollala qui sotto per attivarla.
+                La chiave DeepSeek non è attiva nel modulo corrente. Per sbloccare le funzionalità di ragionamento avanzato (V3), autenticare l'accesso tramite protocollo sk-key.
               </p>
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex gap-4">
               <input 
                 type="password"
                 value={keyInput}
                 onChange={(e) => setKeyInput(e.target.value)}
-                placeholder="Incolla qui la tua chiave sk-..."
-                className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:border-blue-500 outline-none transition-all"
+                placeholder="Incolla chiave segreta (sk-...)"
+                className="flex-1 bg-slate-900/60 border border-white/5 rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:border-emerald-500/30 focus:bg-slate-900 transition-all font-mono"
               />
               <button
                 onClick={handleSaveKey}
                 disabled={isSaving || !keyInput}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-xl text-sm font-bold text-white transition-all shadow-lg shadow-blue-900/40"
+                className="px-10 py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded-2xl text-[10px] font-bold text-white uppercase tracking-widest transition-all shadow-2xl shadow-emerald-950/40 active:scale-95"
               >
-                {isSaving ? 'Salvataggio...' : 'Salva Chiave'}
+                {isSaving ? 'Sincronizzazione...' : 'Attiva Modulo'}
               </button>
             </div>
           </div>
@@ -249,3 +271,8 @@ export const ConfigView: React.FC = () => {
     </div>
   );
 };
+
+// Simple AnimatePresence polyfill since we don't have the full component here
+// but can keep it if we import it, otherwise replace with simple ternary if needed.
+const AnimatePresence = ({ children }: { children: React.ReactNode }) => <>{children}</>;
+const motion = { div: ({ children, className, ...props }: any) => <div className={className} {...props}>{children}</div> };

@@ -94,38 +94,37 @@ function App() {
   // 1. Landing Screen (Not logged in, Not in Auth view)
   if (!user && !showAuth) {
     return (
-      <div className="h-screen flex items-center justify-center bg-slate-950 p-4 selection:bg-emerald-500/30">
-        <div className="glass p-12 rounded-[40px] border border-white/5 max-w-xl w-full text-center space-y-10 relative overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)]">
-          <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-600/5 blur-[120px] rounded-full" />
-          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-emerald-600/5 blur-[120px] rounded-full" />
+      <div className="h-screen flex items-center justify-center bg-slate-950 p-4">
+        <div className="glass p-12 rounded-3xl border border-slate-700 max-w-lg w-full text-center space-y-8 relative overflow-hidden">
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/10 blur-3xl rounded-full" />
+          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-600/10 blur-3xl rounded-full" />
           
-          <div className="w-56 h-56 mx-auto rounded-[32px] glass flex items-center justify-center p-6 mb-10 logo-glow border-white/5 shadow-inner">
-            <img src="/logo.png" alt="Project Muse Logo" className="w-full h-full object-contain logo-blend scale-110" />
+          <div className="w-48 h-48 mx-auto rounded-full glass flex items-center justify-center p-4 mb-8 logo-glow border-white/5">
+            <img src="/logo.png" alt="Project Muse Logo" className="w-full h-full object-contain logo-blend" />
           </div>
           <div>
-            <h1 className="text-6xl font-medium font-display text-slate-50 tracking-tight leading-tight">Project Muse</h1>
-            <p className="text-slate-500 mt-3 text-xl font-light tracking-wide">L'architetto della tua visione narrativa</p>
+            <h1 className="text-4xl font-bold font-display bg-gradient-to-br from-white to-slate-400 bg-clip-text text-transparent">Project Muse</h1>
+            <p className="text-slate-400 mt-2 text-lg">Il tuo architetto narrativo privato</p>
           </div>
           
-          <div className="grid grid-cols-1 gap-6 px-10">
+          <div className="grid grid-cols-1 gap-4">
              <button 
                 onClick={() => setShowAuth(true)}
-                className="group relative w-full py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-[24px] text-lg font-bold transition-all shadow-2xl shadow-emerald-950/40 flex items-center justify-center gap-3 overflow-hidden"
+                className="group relative w-full py-5 bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 rounded-2xl text-lg font-bold transition-all shadow-xl shadow-blue-900/40 flex items-center justify-center gap-3 overflow-hidden"
               >
-                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Cloud className="w-6 h-6 transition-transform group-hover:scale-110" />
-                Accedi alla Libreria
+                <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Cloud className="w-6 h-6" />
+                Accedi alla tua Libreria
               </button>
           </div>
 
-          <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[32px] text-left space-y-3 mx-10">
-             <div className="flex items-center gap-2 text-emerald-500/50">
+          <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl text-left space-y-2">
+             <div className="flex items-center gap-2 text-slate-400">
                 <AlertCircle className="w-4 h-4" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Restricted Core</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Accesso Riservato</span>
              </div>
-             <p className="text-xs text-slate-500 leading-relaxed font-light">
-               Questo portale è configurato per l'accesso esclusivo. <br/>
-               Configurazione di sicurezza: <span className="text-emerald-500/50">Level 4 Encryption</span>.
+             <p className="text-xs text-slate-400 leading-relaxed">
+               Questa istanza è protetta. Se non sei il proprietario, puoi scaricare il codice sorgente su GitHub per creare la tua versione.
              </p>
           </div>
         </div>

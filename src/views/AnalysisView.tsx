@@ -23,25 +23,31 @@ import {
   countCharacterMentions 
 } from '../lib/analysisUtils';
 
-const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#6366f1'];
+const COLORS = ['#10b981', '#059669', '#34d399', '#065f46', '#064e40', '#022c22'];
 
 interface MetricCardProps {
   title: string;
   value: string | number;
-  icon: React.ReactNode;
+  icon: React.ElementType;
   trend?: string;
 }
 
-const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon, trend }) => (
-  <div className="glass p-6 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all group shadow-lg">
-    <div className="flex items-center justify-between mb-2">
-      <div className="p-2 bg-slate-800 rounded-lg text-blue-400 group-hover:scale-110 transition-transform">
-        {icon}
+const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon: Icon, trend }) => (
+  <div className="bg-white/[0.02] p-8 rounded-[32px] border border-white/5 hover:border-emerald-500/20 transition-all group relative overflow-hidden">
+    <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 blur-3xl -mr-12 -mt-12 group-hover:bg-emerald-500/10 transition-all" />
+    <div className="flex items-center justify-between mb-6">
+      <div className="p-3 bg-slate-900 rounded-[18px] text-emerald-500 border border-white/5 group-hover:scale-110 transition-transform shadow-inner">
+        <Icon className="w-5 h-5" />
       </div>
-      {trend && <span className="text-[10px] bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full font-bold">{trend}</span>}
+      {trend && (
+        <div className="flex flex-col items-end">
+          <span className="text-[10px] text-emerald-400 font-bold tracking-widest uppercase">Pacing</span>
+          <span className="text-[9px] text-slate-500">{trend}</span>
+        </div>
+      )}
     </div>
-    <div className="text-2xl font-bold text-slate-100 mb-1">{value}</div>
-    <div className="text-xs text-slate-500 font-medium uppercase tracking-wider">{title}</div>
+    <div className="text-4xl font-medium text-slate-50 mb-1 tracking-tighter">{value}</div>
+    <div className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">{title}</div>
   </div>
 );
 
@@ -73,8 +79,8 @@ export const AnalysisView: React.FC = () => {
       });
       
       chapterData.push({
-        name: `Cap. ${index + 1}`,
-        title: chapter.title,
+        name: `C${index + 1}`,
+        fullName: `Capitolo ${index + 1}`,
         words: chapterWords,
         pacing: chapterSentences > 0 ? (chapterWords / chapterSentences).toFixed(1) : 0
       });
@@ -99,175 +105,191 @@ export const AnalysisView: React.FC = () => {
 
   if (chapters.length === 0) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-slate-600 space-y-4 glass rounded-3xl border border-slate-700">
-        <BarChart3 className="w-16 h-16 opacity-10" />
-        <p className="text-sm">Inizia a scrivere per visualizzare le analisi del tuo manoscritto.</p>
+      <div className="h-full flex flex-col items-center justify-center text-slate-700 space-y-6 bg-slate-900/10 rounded-[40px] border border-white/5">
+        <Activity className="w-16 h-16 opacity-10" />
+        <div className="text-center">
+            <h3 className="text-lg font-medium text-slate-400">Nessun dato disponibile</h3>
+            <p className="text-xs opacity-50 max-w-[200px] mx-auto mt-2">Inizia a scrivere per sbloccare le proiezioni statistiche del tuo manoscritto.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 h-full overflow-y-auto custom-scrollbar space-y-8 animate-in fade-in duration-500">
-      <header className="flex items-center justify-between">
+    <div className="flex flex-col h-full space-y-8 animate-in fade-in duration-700">
+      <header className="flex items-center justify-between bg-white/[0.02] p-8 rounded-[32px] border border-white/5">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-500 bg-clip-text text-transparent">Analisi Manoscritto</h1>
-          <p className="text-slate-500 text-sm mt-1 italic">Approfondimenti statistici sulla tua opera.</p>
+          <div className="flex items-center gap-2 mb-1">
+            <Activity className="w-4 h-4 text-emerald-500" />
+            <span className="text-[10px] font-bold text-emerald-500/50 uppercase tracking-[0.2em]">DASHBOARD ANALITICA</span>
+          </div>
+          <h1 className="text-4xl font-medium tracking-tight">Anatomia del Manoscritto</h1>
         </div>
-        <div className="flex items-center gap-2 bg-slate-800/50 p-1 rounded-xl border border-slate-700">
-           <button className="px-4 py-2 bg-blue-600 rounded-lg text-xs font-bold shadow-lg shadow-blue-900/40">Realtime Stats</button>
-           <button className="px-4 py-2 text-slate-400 text-xs font-bold hover:text-slate-200 transition-colors">Export Report</button>
+        <div className="flex items-center gap-4">
+           <div className="text-right hidden md:block">
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ultimo Update</div>
+              <div className="text-xs text-slate-400 font-mono">Just now</div>
+           </div>
+           <button className="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-2xl shadow-xl shadow-emerald-950/20 transition-all active:scale-95">
+             Genera Report PDF
+           </button>
         </div>
       </header>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard title="Parole Totali" value={stats.totalWords.toLocaleString()} icon={<Book className="w-5 h-5" />} trend="+12%" />
-        <MetricCard title="Tempo di Lettura" value={`${stats.readingTime} min`} icon={<Clock className="w-5 h-5" />} />
-        <MetricCard title="Ricchezza Lessicale" value={stats.diversity} icon={<TrendingUp className="w-5 h-5" />} />
-        <MetricCard title="Lunghezza Media Cap." value={Math.round(stats.totalWords / chapters.length).toLocaleString()} icon={<Layout className="w-5 h-5" />} />
-      </div>
+      <div className="flex-1 overflow-y-auto pr-2 space-y-8 scrollbar-hide">
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <MetricCard title="Parole Totali" value={stats.totalWords.toLocaleString()} icon={Book} trend="+1.2k today" />
+          <MetricCard title="Sessione Lettura" value={`${stats.readingTime}m`} icon={Clock} />
+          <MetricCard title="Ricchezza Lessico" value={stats.diversity} icon={TrendingUp} />
+          <MetricCard title="Draft Volume" value={(stats.totalChars / 1000).toFixed(1) + 'k'} icon={Layout} />
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Chapter Balance Chart */}
-        <div className="lg:col-span-2 glass p-8 rounded-3xl border border-slate-700/50 shadow-xl">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-lg font-bold flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-blue-400" />
-              Bilanciamento Capitoli
-            </h2>
-            <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 bg-slate-800 px-3 py-1 rounded-full">Word Count</div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Chapter Balance Chart */}
+          <div className="lg:col-span-2 bg-white/[0.02] p-10 rounded-[40px] border border-white/5 shadow-sm">
+            <div className="flex items-center justify-between mb-10">
+              <div>
+                <h2 className="text-xl font-medium flex items-center gap-3">
+                  Bilanciamento Capitoli
+                </h2>
+                <p className="text-xs text-slate-500 mt-1">Distribuzione della densità testuale per sezione.</p>
+              </div>
+              <div className="flex gap-2">
+                 <div className="w-3 h-3 rounded-full bg-emerald-500/40" />
+                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Word Count</span>
+              </div>
+            </div>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats.chapterData} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="emeraldGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.6}/>
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0.05}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="0" stroke="#ffffff08" vertical={false} />
+                  <XAxis dataKey="name" stroke="#64748b" fontSize={10} axisLine={false} tickLine={false} dy={15} />
+                  <YAxis stroke="#64748b" fontSize={10} axisLine={false} tickLine={false} />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(16, 185, 129, 0.03)' }}
+                    contentStyle={{ backgroundColor: '#020617', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '12px' }}
+                    itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
+                    labelStyle={{ opacity: 0.5, marginBottom: '4px' }}
+                  />
+                  <Bar dataKey="words" fill="url(#emeraldGradient)" radius={[8, 8, 4, 4]} barSize={40} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.chapterData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                <XAxis dataKey="name" stroke="#64748b" fontSize={10} axisLine={false} tickLine={false} dy={10} />
-                <YAxis stroke="#64748b" fontSize={10} axisLine={false} tickLine={false} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px' }}
-                  itemStyle={{ color: '#fff' }}
-                />
-                <Bar dataKey="words" fill="url(#barGradient)" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+
+          {/* Character Mentions */}
+          <div className="bg-white/[0.02] p-10 rounded-[40px] border border-white/5 shadow-sm flex flex-col">
+            <h2 className="text-xl font-medium mb-10">Focus Protagonisti</h2>
+            <div className="flex-1 min-h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={stats.characterMentions}
+                    innerRadius={80}
+                    outerRadius={105}
+                    paddingAngle={8}
+                    dataKey="count"
+                    stroke="none"
+                  >
+                    {stats.characterMentions.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} opacity={0.8} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#020617', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px' }}
+                  />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    iconType="circle" 
+                    wrapperStyle={{ paddingTop: '30px', fontSize: '10px', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.1em', opacity: 0.5 }} 
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
-        {/* Character Mentions */}
-        <div className="glass p-8 rounded-3xl border border-slate-700/50 shadow-xl flex flex-col">
-          <h2 className="text-lg font-bold flex items-center gap-2 mb-8">
-            <Users className="w-5 h-5 text-purple-400" />
-            Presenza Personaggi
-          </h2>
-          <div className="flex-1 min-h-[250px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={stats.characterMentions}
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="count"
-                >
-                  {stats.characterMentions.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px' }}
-                />
-                <Legend layout="vertical" verticalAlign="middle" align="right" />
-              </PieChart>
-            </ResponsiveContainer>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10">
+          {/* Narrative Pacing Area Chart */}
+          <div className="bg-white/[0.02] p-10 rounded-[40px] border border-white/5 shadow-sm">
+            <div className="flex items-center justify-between mb-10">
+              <div>
+                <h2 className="text-xl font-medium">Ritmo Narrativo</h2>
+                <p className="text-xs text-slate-500 mt-1">Variazione del pacing tra capitoli (Avg w/s).</p>
+              </div>
+              <Activity className="w-5 h-5 text-emerald-500/30" />
+            </div>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={stats.chapterData} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="paceGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.2}/>
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="0" stroke="#ffffff08" vertical={false} />
+                  <XAxis dataKey="name" stroke="#64748b" fontSize={10} axisLine={false} tickLine={false} dy={15} />
+                  <YAxis stroke="#64748b" fontSize={10} axisLine={false} tickLine={false} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#020617', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px' }}
+                  />
+                  <Area type="monotone" dataKey="pacing" stroke="#10b981" strokeWidth={4} fill="url(#paceGradient)" dot={{ r: 5, fill: '#10b981', strokeWidth: 0 }} activeDot={{ r: 8, stroke: '#020617', strokeWidth: 4 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-8">
-        {/* Prose Rhythm / Pacing Line Chart */}
-        <div className="glass p-8 rounded-3xl border border-slate-700/50 shadow-xl">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-lg font-bold flex items-center gap-2">
-              <Activity className="w-5 h-5 text-green-400" />
-              Ritmo Narrativo
-            </h2>
-            <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 bg-slate-800 px-3 py-1 rounded-full">Avg Words per Sentence</div>
-          </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={stats.chapterData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                <XAxis dataKey="name" stroke="#64748b" fontSize={10} axisLine={false} tickLine={false} dy={10} />
-                <YAxis stroke="#64748b" fontSize={10} axisLine={false} tickLine={false} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px' }}
-                />
-                <Area type="monotone" dataKey="pacing" stroke="#10b981" strokeWidth={3} fill="url(#areaGradient)" dot={{ r: 4, fill: '#10b981' }} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-          <p className="mt-6 text-[10px] text-slate-500 italic">
-            I picchi indicano una prosa più analitica o descrittiva (periodi lunghi), le valli indicano scene incalzanti o dialoghi brevissimi.
-          </p>
-        </div>
-
-        {/* Vocabulary Lab */}
-        <div className="grid grid-cols-1 gap-4">
-           <div className="glass p-8 rounded-3xl border border-slate-700/50 shadow-xl">
-              <h2 className="text-lg font-bold flex items-center gap-2 mb-6">
-                <Hash className="w-5 h-5 text-yellow-400" />
-                Laboratorio Vocabolario
-              </h2>
-              <div className="space-y-4">
-                {stats.topWords.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-4">
-                    <span className="text-xs font-mono text-slate-500 w-4">{idx + 1}.</span>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-xs font-bold text-slate-200">{item.word}</span>
-                        <span className="text-[10px] text-slate-500">{item.count} occorrenze</span>
+          {/* Lexical Lab */}
+          <div className="flex flex-col gap-6">
+             <div className="bg-white/[0.02] p-10 rounded-[40px] border border-white/5 shadow-sm flex-1">
+                <h2 className="text-xl font-medium mb-8">Analisi del Lessico</h2>
+                <div className="space-y-6">
+                  {stats.topWords.map((item, idx) => (
+                    <div key={idx} className="group cursor-default">
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-bold text-slate-700 tracking-widest">{idx + 1}</span>
+                            <span className="text-sm font-medium text-slate-200 group-hover:text-emerald-400 transition-colors uppercase tracking-widest">{item.word}</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded-lg">{item.count}</span>
                       </div>
-                      <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+                      <div className="h-0.5 bg-white/5 rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-blue-500/50 rounded-full transition-all duration-1000" 
+                          className="h-full bg-emerald-500 transition-all duration-1000 ease-out" 
                           style={{ width: `${(item.count / stats.topWords[0].count) * 100}%` }}
                         />
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-           </div>
-           
-           <div className="bg-blue-600/10 border border-blue-500/20 p-6 rounded-3xl flex items-center gap-4">
-              <div className="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-900/40">
-                <Zap className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-blue-400">Analisi AI Disponibile</div>
-                <p className="text-xs text-slate-500">Usa l'AI Sidekick per ricevere un report qualitativo sul tono e l'arco narrativo.</p>
-              </div>
-           </div>
+                  ))}
+                </div>
+             </div>
+             
+             <div className="bg-emerald-600 p-10 rounded-[40px] flex items-center gap-6 group hover:shadow-[0_20px_60px_-15px_rgba(16,185,129,0.3)] transition-all cursor-pointer">
+                <div className="p-4 bg-white/20 rounded-[24px] backdrop-blur-md">
+                   <Zap className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                   <div className="text-lg font-bold text-white tracking-tight">AI Insights Engine</div>
+                   <p className="text-sm text-emerald-100 opacity-90 leading-tight mt-1">Analizza la coerenza del tono e il climax della tua opera.</p>
+                </div>
+             </div>
+          </div>
         </div>
       </div>
     </div>
-  );
+);
 };
 
 const Zap: React.FC<{ className?: string }> = ({ className }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor"></polygon>
   </svg>
 );

@@ -65,139 +65,136 @@ export const WorldView: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full gap-6 overflow-hidden">
+    <div className="flex h-full gap-6 overflow-hidden animate-in fade-in duration-700">
       {/* Settings List */}
-      <div className="w-80 flex flex-col gap-4">
+      <div className="w-80 flex flex-col gap-6">
         {/* Category Tabs */}
-        <div className="flex p-1 bg-slate-900/50 border border-slate-700/50 rounded-2xl">
+        <div className="flex p-1.5 bg-white/[0.02] border border-white/5 rounded-[22px] shadow-inner">
           <button
             onClick={() => setActiveCategory('location')}
             className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold transition-all rounded-xl",
+              "flex-1 flex items-center justify-center gap-2 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-[16px]",
               activeCategory === 'location' 
-                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/20" 
+                ? "bg-emerald-600 text-white shadow-xl shadow-emerald-950/40 border border-white/10" 
                 : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
             )}
           >
-            <Compass className="w-3 h-3" />
+            <Compass className="w-3.5 h-3.5" />
             Luoghi
           </button>
           <button
             onClick={() => setActiveCategory('object')}
             className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold transition-all rounded-xl",
+              "flex-1 flex items-center justify-center gap-2 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-[16px]",
               activeCategory === 'object' 
-                ? "bg-amber-600 text-white shadow-lg shadow-amber-900/20" 
+                ? "bg-emerald-600 text-white shadow-xl shadow-emerald-950/40 border border-white/10" 
                 : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
             )}
           >
-            <Package className="w-3 h-3" />
+            <Package className="w-3.5 h-3.5" />
             Oggetti
           </button>
         </div>
 
-        <div className="flex items-center justify-between mt-2">
-          <h2 className="text-xl font-bold font-serif flex items-center gap-2">
-            {activeCategory === 'location' ? (
-              <Map className="w-5 h-5 text-emerald-400" />
-            ) : (
-              <Sword className="w-5 h-5 text-amber-400" />
-            )}
-            {activeCategory === 'location' ? 'Locations' : 'Objects'}
-          </h2>
+        <div className="flex items-center justify-between bg-white/[0.02] p-4 rounded-2xl border border-white/5">
+          <div className="flex items-center gap-3">
+             {activeCategory === 'location' ? (
+                <Map className="w-4 h-4 text-emerald-500" />
+             ) : (
+                <Sword className="w-4 h-4 text-emerald-500" />
+             )}
+             <h2 className="text-sm font-bold font-display tracking-[0.2em] text-slate-400">
+               {activeCategory === 'location' ? 'LOCATIONS' : 'ARTIFACTS'}
+             </h2>
+          </div>
           <button 
             onClick={() => setIsModalOpen(true)} 
-            className={cn(
-              "p-2 rounded-lg transition-colors",
-              activeCategory === 'location' ? "bg-emerald-600 hover:bg-emerald-500" : "bg-amber-600 hover:bg-amber-500"
-            )}
+            className="bg-emerald-600 hover:bg-emerald-500 p-2 rounded-xl transition-all shadow-lg shadow-emerald-950/20 active:scale-90"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-white" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-hide">
           {filteredSettings.map(s => (
             <div 
               key={s.id}
               onClick={() => setSelectedSettingId(s.id)}
               className={cn(
-                "p-4 rounded-xl border transition-all cursor-pointer",
+                "p-5 rounded-[28px] border transition-all cursor-pointer group relative overflow-hidden",
                 selectedSettingId === s.id 
-                  ? activeCategory === 'location'
-                    ? "glass border-emerald-500 bg-emerald-600/10" 
-                    : "glass border-amber-500 bg-amber-600/10"
-                  : "bg-slate-800/50 border-slate-700 hover:border-slate-500"
+                  ? "bg-emerald-500/10 border-emerald-500/30 shadow-xl shadow-emerald-950/20" 
+                  : "bg-white/[0.02] border-white/5 hover:border-white/10"
               )}
             >
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="font-bold text-slate-100">{s.name}</h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className={cn("font-bold tracking-tight transition-colors", selectedSettingId === s.id ? "text-emerald-400" : "text-slate-100")}>
+                    {s.name}
+                </h3>
                 {activeCategory === 'location' ? (
-                  s.type === 'Primary' ? <Landmark className="w-3 h-3 text-emerald-400" /> : <Home className="w-3 h-3 text-slate-500" />
+                  s.type === 'Primary' ? <Landmark className="w-3.5 h-3.5 text-emerald-500/50" /> : <Home className="w-3.5 h-3.5 text-slate-800" />
                 ) : (
-                  s.type === 'Primary' ? <Sparkles className="w-3 h-3 text-amber-400" /> : <Package className="w-3 h-3 text-slate-500" />
+                  s.type === 'Primary' ? <Sparkles className="w-3.5 h-3.5 text-emerald-500/50" /> : <Package className="w-3.5 h-3.5 text-slate-800" />
                 )}
               </div>
-              <p className="text-xs text-slate-500 line-clamp-2">{s.description || 'No description yet...'}</p>
+              <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed font-light">{s.description || 'Nessuna documentazione...'}</p>
             </div>
           ))}
           {filteredSettings.length === 0 && (
-            <div className="py-20 flex flex-col items-center justify-center text-slate-700 opacity-20">
-              {activeCategory === 'location' ? <Map className="w-12 h-12 mb-2" /> : <Package className="w-12 h-12 mb-2" />}
-              <p className="text-xs font-serif italic text-center">Nessun {activeCategory === 'location' ? 'luogo' : 'oggetto'} creato</p>
+            <div className="py-24 flex flex-col items-center justify-center text-slate-800 space-y-4">
+              <div className="w-20 h-20 rounded-[30px] border border-white/5 flex items-center justify-center bg-white/5 opacity-20">
+                 {activeCategory === 'location' ? <Map className="w-8 h-8" /> : <Package className="w-8 h-8" />}
+              </div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-30 text-center">Settore vuoto</p>
             </div>
           )}
         </div>
       </div>
 
       {/* Detail Area */}
-      <div className="flex-1 min-w-0 glass rounded-2xl border border-slate-700 flex flex-col overflow-hidden">
+      <div className="flex-1 min-w-0 bg-white/[0.02] rounded-[40px] border border-white/5 flex flex-col overflow-hidden shadow-sm">
         {selectedSetting ? (
           <div className="flex flex-col h-full">
-            <div className="p-6 border-b border-slate-700 flex items-center justify-between bg-slate-800/20">
-              <div className="flex-1 mr-4">
+            <div className="p-10 border-b border-white/5 bg-white/[0.01] flex items-center justify-between group/detail">
+              <div className="flex-1 mr-8">
+                <div className="flex items-center gap-2 mb-2">
+                    <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[9px] font-bold uppercase tracking-[0.2em] rounded-full border border-emerald-500/10">
+                      {activeCategory === 'location' ? 'Analisi Geografica' : 'Documentazione Oggetto'}
+                    </span>
+                </div>
                 <input 
                   value={localName}
                   onChange={(e) => setLocalName(e.target.value)}
-                  className="w-full bg-transparent text-2xl font-bold font-serif text-white focus:outline-none placeholder:opacity-20"
-                  placeholder={activeCategory === 'location' ? "Nome del luogo..." : "Nome dell'oggetto..."}
+                  className="w-full bg-transparent text-5xl font-medium font-display text-white focus:outline-none placeholder:opacity-5 tracking-tighter"
+                  placeholder={activeCategory === 'location' ? "Coordinate Luogo..." : "Nome Identificativo..."}
                 />
-                <span className={cn(
-                  "text-[10px] uppercase tracking-widest font-bold",
-                  activeCategory === 'location' ? "text-emerald-500/50" : "text-amber-500/50"
-                  )}>
-                  {activeCategory === 'location' ? 'Location Identity' : 'Object Identity'}
-                </span>
               </div>
-              <select 
-                value={selectedSetting.type}
-                onChange={(e) => updateSetting(selectedSetting.id, { type: e.target.value as 'Primary' | 'Secondary' })}
-                className="bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 outline-none focus:border-emerald-500 transition-all font-bold"
-              >
-                <option value="Primary">{activeCategory === 'location' ? 'Primary Location' : 'Legendary/Rare'}</option>
-                <option value="Secondary">{activeCategory === 'location' ? 'Secondary Location' : 'Commonly Used'}</option>
-              </select>
+              <div className="flex flex-col items-end gap-3">
+                  <div className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Importanza</div>
+                  <select 
+                    value={selectedSetting.type}
+                    onChange={(e) => updateSetting(selectedSetting.id, { type: e.target.value as 'Primary' | 'Secondary' })}
+                    className="bg-slate-900 border border-white/10 text-[10px] text-emerald-500 rounded-xl px-5 py-3 outline-none focus:border-emerald-500/50 transition-all font-bold uppercase tracking-widest cursor-pointer shadow-lg"
+                  >
+                    <option value="Primary">{activeCategory === 'location' ? 'Nucleo Primario' : 'Leggendario / Unico'}</option>
+                    <option value="Secondary">{activeCategory === 'location' ? 'Settore Secondario' : 'Comune / Reperibile'}</option>
+                  </select>
+              </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-8 space-y-6 scrollbar-hide">
-              <section className="space-y-4">
-                <div className={cn(
-                  "flex items-center gap-2",
-                  activeCategory === 'location' ? "text-emerald-400" : "text-amber-400"
-                )}>
+            <div className="flex-1 overflow-y-auto p-12 space-y-8 scrollbar-hide">
+              <section className="space-y-6">
+                <div className="flex items-center gap-3 text-emerald-500/50">
                   <Info className="w-4 h-4" />
-                  <h4 className="text-xs font-bold uppercase tracking-widest">
-                    {activeCategory === 'location' ? 'Description & Sensory Details' : 'Description & Properties'}
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.3em]">
+                    {activeCategory === 'location' ? 'Dettagli Sensoriali & Atmosfera' : 'Proprietà & Note Tecniche'}
                   </h4>
                 </div>
                 <textarea 
-                  className={cn(
-                    "w-full h-80 bg-slate-900/50 border border-slate-700 rounded-2xl p-6 text-sm text-slate-200 focus:outline-none leading-relaxed transition-all placeholder:opacity-20",
-                    activeCategory === 'location' ? "focus:border-emerald-500 focus:bg-slate-900/80" : "focus:border-amber-500 focus:bg-slate-900/80"
-                  )}
+                  className="w-full h-96 bg-white/[0.02] border border-white/5 rounded-[40px] p-10 text-sm text-slate-300 focus:outline-none focus:border-emerald-500/30 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide"
                   placeholder={activeCategory === 'location' 
-                    ? "What does it smell like? What are the key features? Is it crowded or silent?" 
-                    : "What is the history of this object? Does it have magical properties? Who owns it?"
+                    ? "Quali profumi pervadono l'aria? Qual è la temperatura? Quali architetture dominano la vista?" 
+                    : "Qual è la storia di questo oggetto? Possiede peculiarità uniche? A chi appartiene attualmente?"
                   }
                   value={localDescription}
                   onChange={(e) => setLocalDescription(e.target.value)}
@@ -206,9 +203,14 @@ export const WorldView: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-slate-700 space-y-4">
-            {activeCategory === 'location' ? <Map className="w-16 h-16 opacity-10" /> : <Package className="w-16 h-16 opacity-10" />}
-            <p className="text-sm italic opacity-50 font-serif">Seleziona un {activeCategory === 'location' ? 'luogo' : 'oggetto'} per visualizzare i dettagli</p>
+          <div className="h-full flex flex-col items-center justify-center text-slate-800 space-y-8 animate-in fade-in duration-1000">
+            <div className="w-32 h-32 rounded-[40px] border border-white/5 flex items-center justify-center opacity-10 bg-white/5">
+              {activeCategory === 'location' ? <Map className="w-14 h-14" /> : <Package className="w-14 h-14" />}
+            </div>
+            <div className="text-center">
+                <h3 className="text-lg font-medium text-slate-500">Mappatura Mondo</h3>
+                <p className="text-xs opacity-50 max-w-[200px] mx-auto mt-2 tracking-wide font-light">Seleziona un'entità per accedere alla sua documentazione topografica o tecnica.</p>
+            </div>
           </div>
         )}
       </div>
@@ -217,8 +219,8 @@ export const WorldView: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleConfirmAdd}
-        title={activeCategory === 'location' ? "Nuovo Luogo" : "Nuovo Oggetto"}
-        placeholder={activeCategory === 'location' ? "Inserisci il nome della location..." : "Inserisci il nome dell'oggetto..."}
+        title={activeCategory === 'location' ? "Nuova Geometria" : "Nuovo Manufatto"}
+        placeholder={activeCategory === 'location' ? "Esempio: Città d'Argento..." : "Esempio: Cronografo di Aethel..."}
       />
     </div>
   );

@@ -64,39 +64,39 @@ const StructuredOutput: React.FC<{
 
     return (
       <div key={key} className={cn(
-        "bg-white/[0.02] border border-white/5 rounded-[24px] overflow-hidden mb-5 shadow-sm group transition-all duration-500 hover:border-emerald-500/20",
-        isPending ? "opacity-70 border-emerald-500/30 ring-1 ring-emerald-500/10" : "animate-in fade-in zoom-in-95"
+        "bg-slate-800/80 border border-slate-700 rounded-xl overflow-hidden mb-4 shadow-lg group transition-all duration-500",
+        isPending ? "opacity-70 border-blue-500/30 ring-1 ring-blue-500/10" : "animate-in fade-in zoom-in-95"
       )}>
-        <div className="bg-white/[0.01] px-4 py-3 flex items-center justify-between border-b border-white/5">
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-600">
+        <div className="bg-slate-700/50 px-3 py-1.5 flex items-center justify-between border-b border-slate-700">
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
               {category || 'Suggerimento'}
             </span>
-            {isPending && <RefreshCw className="w-3 h-3 animate-spin text-emerald-500" />}
+            {isPending && <RefreshCw className="w-2.5 h-2.5 animate-spin text-blue-400" />}
           </div>
           {!isPending && (
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => onReject?.(original)}
-                className="text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:text-red-400 px-3 py-1.5 rounded-xl transition-all flex items-center gap-2 border border-transparent hover:bg-red-500/10"
+                className="text-[10px] bg-slate-600 hover:bg-red-900/40 text-slate-300 hover:text-red-200 px-2 py-0.5 rounded transition-all flex items-center gap-1 border border-transparent hover:border-red-500/30"
               >
-                <X className="w-3 h-3" /> Ignora
+                <X className="w-2.5 h-2.5" /> Ignora
               </button>
               {suggestion && (
                 <button 
                   onClick={() => onApply?.(original, suggestion)}
-                  className="text-[10px] font-bold uppercase tracking-widest bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-emerald-950/20"
+                  className="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded transition-all flex items-center gap-1 shadow-sm shadow-blue-900/20"
                 >
-                  <Zap className="w-3 h-3" /> Applica
+                  <Zap className="w-2.5 h-2.5" /> Applica
                 </button>
               )}
             </div>
           )}
         </div>
-        <div className="p-5 space-y-4">
-          <div className="bg-red-500/5 border border-red-500/10 rounded-2xl px-4 py-3 text-xs text-red-500/80 opacity-90 leading-relaxed font-light italic">
+        <div className="p-3 space-y-2">
+          <div className="bg-red-950/20 border border-red-500/10 rounded-lg px-3 py-2 text-xs text-red-300/80 opacity-90 leading-relaxed">
             {oldParts.map((part, i) => (
-              <span key={i} className={cn(part.removed && "bg-red-500/20 text-red-400 line-through px-0.5 rounded")}>
+              <span key={i} className={cn(part.removed && "bg-red-500/30 text-red-100 line-through px-0.5 rounded")}>
                 {part.value}
               </span>
             ))}
@@ -105,24 +105,24 @@ const StructuredOutput: React.FC<{
             <div 
               onClick={() => !isPending && suggestion && onApply?.(original, suggestion)}
               className={cn(
-                "bg-emerald-600/5 border border-emerald-500/10 rounded-2xl px-4 py-3 text-xs text-emerald-100 leading-relaxed transition-all",
-                !isPending && "hover:border-emerald-500/40 hover:bg-emerald-600/10 cursor-pointer"
+                "bg-green-600/10 border border-green-500/20 rounded-lg px-3 py-2 text-xs text-green-300 leading-relaxed transition-all",
+                !isPending && "hover:border-green-500/40 hover:bg-green-600/20 cursor-pointer"
               )}
             >
               {newParts.map((part, i) => (
-                <span key={i} className={cn(part.added && "bg-emerald-500/20 text-emerald-400 font-bold px-0.5 rounded")}>
+                <span key={i} className={cn(part.added && "bg-green-500/30 text-white font-bold px-0.5 rounded shadow-sm")}>
                   {part.value}
                 </span>
               ))}
             </div>
           ) : isPending && (
-            <div className="h-10 flex items-center px-4 bg-slate-900/40 rounded-2xl border border-dashed border-white/5 animate-pulse">
-               <span className="text-[10px] text-slate-700 font-bold uppercase tracking-widest italic">Elaborazione...</span>
+            <div className="h-8 flex items-center px-3 bg-slate-900/40 rounded-lg border border-dashed border-slate-700 animate-pulse">
+               <span className="text-[10px] text-slate-500 italic">L'IA sta elaborando la correzione...</span>
             </div>
           )}
           {reason && (
-            <p className="text-[11px] text-slate-500 italic px-2 flex items-start gap-2.5 animate-in slide-in-from-left-1 leading-relaxed">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-500/50 shrink-0 mt-0.5" />
+            <p className="text-[10px] text-slate-400 italic px-1 flex items-start gap-1.5 animate-in slide-in-from-left-1">
+              <span className="text-blue-400">💡</span>
               <span>{reason}</span>
             </p>
           )}
@@ -177,11 +177,9 @@ const StructuredOutput: React.FC<{
         currentSuggestion.reason = trimmedLine.replace(/^(?:\d+\.\s*)?💡\s*/, '').trim();
       } else {
         elements.push(
-          <div key={i} className="bg-emerald-500/5 border-l-4 border-emerald-500/30 p-5 rounded-r-3xl mb-6 mt-2">
-            <p className="text-sm text-slate-400 font-light leading-relaxed">
-              {trimmedLine.replace(/^💡\s*/, '')}
-            </p>
-          </div>
+          <p key={i} className="text-[10px] text-slate-400 italic px-1 bg-slate-800/30 p-2 rounded-lg mb-4 border-l-2 border-blue-500/30">
+            {trimmedLine.replace(/^💡\s*/, '')}
+          </p>
         );
       }
     } else if (/^(?:\d+\.\s*)?🏷️/.test(trimmedLine)) {
@@ -190,25 +188,25 @@ const StructuredOutput: React.FC<{
       }
     } else if (trimmedLine.startsWith('S:')) {
       flushCurrent(i);
-      elements.push(renderChips(trimmedLine, "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"));
+      elements.push(renderChips(trimmedLine, "bg-blue-500/10 text-blue-300 border-blue-500/20 hover:bg-blue-500/20"));
     } else if (trimmedLine.startsWith('A:')) {
       flushCurrent(i);
-      elements.push(renderChips(trimmedLine, "bg-white/[0.05] text-slate-500 border-white/5 hover:bg-white/10"));
+      elements.push(renderChips(trimmedLine, "bg-slate-700/50 text-slate-400 border-slate-600/50 hover:bg-slate-700"));
     } else if (trimmedLine.startsWith('M:')) {
       flushCurrent(i);
       elements.push(
-        <div key={i} className="bg-emerald-500/5 border border-emerald-500/10 rounded-[24px] p-5 mb-5 shadow-inner">
-          <p className="text-sm text-white font-medium leading-relaxed italic">{trimmedLine.replace(/^M:\s*/, '')}</p>
+        <div key={i} className="bg-blue-900/10 border border-blue-500/10 rounded-xl p-3 mb-4">
+          <p className="text-xs text-blue-100 font-medium leading-relaxed">{trimmedLine.replace(/^M:\s*/, '')}</p>
         </div>
       );
     } else if (trimmedLine.startsWith('##')) {
       flushCurrent(i);
       elements.push(
-        <div key={i} className="pt-8 pb-3 mb-6 border-b border-white/5 flex items-center justify-between">
-          <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-emerald-500/70">
+        <div key={i} className="pt-6 pb-2 mb-4 border-b border-slate-700/50 flex items-center justify-between">
+          <h3 className="text-[10px] uppercase tracking-[0.2em] font-black text-blue-400">
             {trimmedLine.replace(/^#+\s*/, '')}
           </h3>
-          <div className="h-[1px] flex-1 bg-gradient-to-r from-emerald-500/20 to-transparent ml-6" />
+          <div className="h-[1px] flex-1 bg-gradient-to-r from-blue-500/30 to-transparent ml-4" />
         </div>
       );
     } else if (trimmedLine) {
@@ -229,10 +227,10 @@ const StructuredOutput: React.FC<{
   } else if (text.endsWith('\n') || text.length === 0) {
     // Show a subtle pulse if we just finished a line and might be waiting for the next
     elements.push(
-      <div key="typing" className="flex items-center gap-2 px-4 py-3 opacity-30">
-        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '200ms' }} />
-        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '400ms' }} />
+      <div key="typing" className="flex items-center gap-1.5 px-3 py-2 opacity-40">
+        <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+        <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '200ms' }} />
+        <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '400ms' }} />
       </div>
     );
   }
@@ -708,62 +706,54 @@ Rispondi in italiano. Sii concreto e originale.`;
   const currentLastPhrase = activeSceneId ? lastAnalyzedPhrase[`${activeSceneId}-${activeTab}`] : null;
 
   return (
-    <div className="w-96 h-screen glass border-l border-white/5 flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.5)] z-20">
-      <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-        <div className="flex items-center space-x-4">
-          <div className="p-2.5 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
-             <Sparkles className="w-6 h-6 text-emerald-500" />
-          </div>
-          <div>
-            <h2 className="text-lg font-medium tracking-tight text-white leading-tight">AI Companion</h2>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-700">Analisi In Tempo Reale</p>
-          </div>
+    <div className="w-80 h-screen glass border-l border-slate-700 flex flex-col">
+      <div className="p-4 border-b border-slate-700 flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Sparkles className="w-5 h-5 text-blue-400" />
+          <h2 className="font-semibold text-slate-200">AI Sidekick</h2>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {isAnalyzing && (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 animate-pulse">
-              <RefreshCw className="w-3 h-3 animate-spin text-emerald-500" />
+            <div className="flex items-center gap-2 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 animate-pulse">
+              <span className="text-[9px] font-bold text-blue-400 uppercase tracking-tighter">
+                {aiConfig.provider === 'groq' ? 'Groq Active' : 'DeepSeek Active'}
+              </span>
+              <RefreshCw className="w-2.5 h-2.5 animate-spin text-blue-400" />
             </div>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-1 p-3 bg-white/[0.01] border-b border-white/5">
+      <div className="grid grid-cols-3 gap-1 p-2">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            title={tab.label}
             className={cn(
-              "flex items-center justify-center py-3 rounded-2xl transition-all border border-transparent active:scale-95 group",
-              activeTab === tab.id 
-                ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-inner" 
-                : "text-slate-600 hover:text-slate-400 hover:bg-white/5"
+              "flex items-center justify-center gap-1 text-[9px] uppercase tracking-tighter py-2 rounded transition-all border border-transparent whitespace-nowrap",
+              activeTab === tab.id ? "bg-slate-700/50 text-blue-400 border-slate-600" : "text-slate-500 hover:text-slate-300 hover:bg-slate-800/50"
             )}
           >
-            <div className={cn("transition-transform group-hover:scale-110", activeTab === tab.id ? "scale-110" : "")}>
-                {tab.icon}
-            </div>
+            {tab.icon}
+            {tab.label}
           </button>
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-hide bg-slate-950/20">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {activeTab === 'revision' && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-slate-700 uppercase tracking-[0.2em]">Correzione Bozza</span>
+                <span className="text-xs font-bold text-slate-500 uppercase">Correzione Bozza</span>
                 {activeSelection && (
-                  <span className="text-[9px] text-emerald-500 font-bold uppercase tracking-widest mt-1 animate-pulse flex items-center gap-2">
-                     <div className="w-1 h-1 bg-emerald-500 rounded-full" /> Selezione attiva
-                  </span>
+                  <span className="text-[9px] text-green-400 font-bold animate-pulse">✨ Selezione attiva</span>
                 )}
                 {!activeSelection && currentLastPhrase && (
-                  <span className="text-[9px] text-slate-600/60 truncate max-w-[140px] italic mt-1 uppercase tracking-tighter">Memoria: {currentLastPhrase.slice(0, 15)}...</span>
+                  <span className="text-[9px] text-blue-400/60 truncate max-w-[120px] italic">Memoria: {currentLastPhrase.slice(0, 15)}...</span>
                 )}
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 {activeSceneId && lastAnalyzedPhrase[`${activeSceneId}-revision`] && !activeSelection && (
                   <button 
                     onClick={() => { 
@@ -771,45 +761,40 @@ Rispondi in italiano. Sii concreto e originale.`;
                       setSceneAnalysis(activeSceneId!, '', 'revision'); 
                     }} 
                     title="Reset memory"
-                    className="p-2.5 text-slate-700 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20"
+                    className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
                   >
-                    <RefreshCw className="w-4 h-4" />
+                    <RefreshCw className="w-3.5 h-3.5" />
                   </button>
                 )}
                 <button onClick={runDraftRevision} disabled={isAnalyzing || (activeSelection ? activeSelection.length < 5 : plainText.length < 30)} className={cn(
-                  "text-[10px] font-bold uppercase tracking-widest px-5 py-3 rounded-2xl text-white flex items-center space-x-2 transition-all shadow-2xl active:scale-95 disabled:opacity-50",
-                  activeSelection ? "bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/20" : "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-950/40"
+                  "text-xs px-3 py-1.5 rounded-lg text-white flex items-center space-x-1 transition-all shadow-lg",
+                  activeSelection ? "bg-green-600 hover:bg-green-500 shadow-green-900/30" : "bg-blue-600 hover:bg-blue-500 shadow-blue-900/30"
                 )}>
-                  <Zap className="w-4 h-4" />
-                  <span>{activeSelection ? 'Revisiona' : (currentLastPhrase ? 'Continua' : 'Analizza')}</span>
+                  <Zap className="w-3 h-3" />
+                  <span>{activeSelection ? 'Analizza Selezione' : (currentLastPhrase ? 'Continua' : 'Analizza')}</span>
                 </button>
               </div>
             </div>
             
-            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-[24px] space-y-4 shadow-inner">
+            <div className="bg-blue-900/10 border border-blue-500/20 p-3 rounded-lg space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="p-2.5 bg-emerald-500/10 rounded-xl">
-                    <BookOpen className="w-4 h-4 text-emerald-500 shrink-0" />
-                  </div>
+                <div className="flex items-center space-x-3">
+                  <BookOpen className="w-4 h-4 text-blue-400 shrink-0" />
                   <button 
                     onClick={() => setGlobalTab('config')}
-                    className="flex flex-col text-left group"
+                    className="text-xs text-slate-400 hover:text-blue-400 transition-colors flex items-center gap-1 group"
                   >
-                    <span className="text-[9px] font-bold text-slate-700 uppercase tracking-tighter">Motore Attivo</span>
-                    <div className="flex items-center gap-1">
-                        <span className="text-[11px] text-slate-300 font-medium group-hover:text-emerald-500 transition-colors">{aiConfig.provider === 'groq' ? 'Llama 3.3 70B' : 'DeepSeek V3'}</span>
-                        <ChevronRight className="w-3 h-3 text-slate-700 group-hover:text-emerald-500 transition-all group-hover:translate-x-1" />
-                    </div>
+                    Motore: <span className="text-white font-medium group-hover:text-blue-400">{aiConfig.provider === 'groq' ? 'Llama 3.3 70B' : 'DeepSeek V3'}</span>
+                    <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all" />
                   </button>
                 </div>
                 <button 
                   onClick={handleConvertQuotes}
                   title='Converti " " in « »'
-                  className="p-3 text-emerald-500/40 hover:text-emerald-500 hover:bg-emerald-500/10 rounded-2xl transition-all flex items-center gap-2 group border border-transparent hover:border-emerald-500/20"
+                  className="p-1.5 text-blue-400/60 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-all flex items-center gap-1.5 group"
                 >
-                  <Quote className="w-4 h-4" />
-                  <span className="text-[9px] font-bold uppercase tracking-tight hidden group-hover:block transition-all">Fix « »</span>
+                  <Quote className="w-3.5 h-3.5" />
+                  <span className="text-[9px] font-bold uppercase tracking-tight opacity-0 group-hover:opacity-100 transition-all">Fix « »</span>
                 </button>
               </div>
             </div>
@@ -825,19 +810,19 @@ Rispondi in italiano. Sii concreto e originale.`;
         )}
 
         {activeTab === 'grammar' && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-700 uppercase tracking-[0.2em]">Analisi Ortografica</span>
+              <span className="text-xs font-bold text-slate-500 uppercase">Analisi Ortografica</span>
               <button 
                 onClick={runGrammarAnalysis} 
                 disabled={isAnalyzing || (activeSelection ? activeSelection.length < 5 : plainText.length < 20)}
                 className={cn(
-                  "text-[10px] font-bold uppercase tracking-widest px-5 py-3 rounded-2xl text-white flex items-center space-x-2 transition-all shadow-2xl active:scale-95 disabled:opacity-50",
-                  activeSelection ? "bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/20" : "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-950/40"
+                  "text-xs px-3 py-1.5 rounded-lg text-white flex items-center space-x-1 transition-all shadow-lg",
+                  activeSelection ? "bg-green-600 shadow-green-900/30" : "bg-blue-600 shadow-blue-900/30"
                 )}
               >
-                <CheckCircle className="w-4 h-4" />
-                <span>{activeSelection ? 'Correggi' : 'Trova Errori'}</span>
+                <CheckCircle className="w-3 h-3" />
+                <span>{activeSelection ? 'Correggi Selezione' : 'Trova Errori'}</span>
               </button>
             </div>
             {analysis ? (
@@ -845,105 +830,50 @@ Rispondi in italiano. Sii concreto e originale.`;
                 <StructuredOutput text={analysis} onApply={applySuggestion} onReject={handleReject} appliedSuggestions={appliedSuggestions} rejectedSuggestions={sceneIgnoredSuggestions} />
               </div>
             ) : (
-              !isAnalyzing && <div className="flex flex-col items-center justify-center h-48 text-slate-800 space-y-4 bg-white/[0.01] rounded-[32px] border border-dashed border-white/5"><CheckCircle className="w-10 h-10 opacity-20" /><p className="text-[10px] font-bold border-t border-white/5 pt-4 uppercase tracking-[0.2em]">Nessuna anomalia tecnica rilevata</p></div>
+              !isAnalyzing && <div className="flex flex-col items-center justify-center h-36 text-slate-600 space-y-2"><CheckCircle className="w-8 h-8 opacity-20" /><p className="text-xs text-center border-t border-slate-700/50 pt-3">Nessun errore rilevato finora.</p></div>
             )}
           </div>
         )}
 
         {activeTab === 'braindump' && (
-          <div className="space-y-6">
-            <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-slate-700 uppercase tracking-[0.2em] mb-4">Sviluppo Intuizioni</span>
-                <textarea 
-                    className="w-full h-48 bg-slate-900/60 border border-white/5 rounded-[24px] p-6 text-xs text-slate-300 focus:outline-none focus:border-emerald-500/30 focus:bg-slate-900 transition-all resize-none shadow-inner placeholder:text-slate-800" 
-                    placeholder="Incolla qui pensieri sparsi, frammenti di dialogo o concetti vaghi..." 
-                    value={braindumpInput} 
-                    onChange={(e) => setBraindumpInput(e.target.value)} 
-                />
-            </div>
-            <button 
-                onClick={runBraindump} 
-                disabled={isAnalyzing || !braindumpInput.trim()} 
-                className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded-[20px] text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-2xl shadow-emerald-950/40 active:scale-95"
-            >
-                <Zap className="w-4 h-4" />
-                Espandi Concetti
-            </button>
-            {analysis && (
-                <div className="bg-emerald-500/5 p-6 rounded-[32px] border border-emerald-500/10 animate-in slide-in-from-bottom-2 max-h-[40vh] overflow-y-auto custom-scrollbar shadow-inner">
-                    <StructuredOutput text={analysis} />
-                </div>
-            )}
+          <div className="space-y-4">
+            <textarea className="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-xl p-3 text-xs text-slate-300 focus:outline-none focus:border-blue-500 transition-all resize-none shadow-inner" placeholder="Pensieri sparsi..." value={braindumpInput} onChange={(e) => setBraindumpInput(e.target.value)} />
+            <button onClick={runBraindump} disabled={isAnalyzing || !braindumpInput.trim()} className="w-full py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/30"><Zap className="w-3 h-3" />Espandi Idee</button>
+            {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2 max-h-[40vh] overflow-y-auto custom-scrollbar"><StructuredOutput text={analysis} /></div>}
           </div>
         )}
 
         {activeTab === 'transformer' && (
-          <div className="space-y-6">
-            <span className="text-[10px] font-bold text-slate-700 uppercase tracking-[0.2em] block">Modulazione Stilistica</span>
-            <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-2">
               {Object.keys(stylePrompts).map(key => (
-                <button 
-                    key={key} 
-                    onClick={() => runStyleTransform(key)} 
-                    disabled={isAnalyzing || plainText.length < 10} 
-                    className="bg-white/[0.02] hover:bg-emerald-500/10 disabled:opacity-50 p-5 rounded-[24px] text-left border border-white/5 hover:border-emerald-500/30 transition-all group relative overflow-hidden"
-                >
-                  <div className="absolute top-0 right-0 w-12 h-12 bg-emerald-500/5 blur-xl group-hover:bg-emerald-500/10 transition-all" />
-                  <div className="text-[10px] font-bold text-slate-500 group-hover:text-emerald-400 transition-colors uppercase tracking-widest relative z-10">{key}</div>
+                <button key={key} onClick={() => runStyleTransform(key)} disabled={isAnalyzing || plainText.length < 10} className="bg-slate-800 hover:bg-slate-700 disabled:opacity-50 p-3 rounded-lg text-left border border-slate-700 hover:border-blue-500/50 transition-all group">
+                  <div className="text-xs font-bold text-slate-200 group-hover:text-blue-400 transition-colors uppercase">{key}</div>
                 </button>
               ))}
             </div>
-            {analysis && (
-                <div className="bg-emerald-500/5 p-6 rounded-[32px] border border-emerald-500/10 animate-in fade-in max-h-[40vh] overflow-y-auto custom-scrollbar shadow-inner">
-                    <StructuredOutput text={analysis} />
-                </div>
-            )}
+            {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in fade-in max-h-[40vh] overflow-y-auto custom-scrollbar"><StructuredOutput text={analysis} /></div>}
           </div>
         )}
 
         {activeTab === 'lexicon' && (
-          <div className="space-y-6">
-            <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-slate-700 uppercase tracking-[0.2em] mb-4">Indice Lessicale</span>
-                <div className="relative group">
-                    <Languages className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700 group-focus-within:text-emerald-500 transition-colors" />
-                    <input 
-                        className="w-full bg-slate-900/60 border border-white/5 rounded-[20px] py-4 pl-14 pr-6 text-sm text-white focus:outline-none focus:border-emerald-500/30 focus:bg-slate-900 transition-all shadow-inner placeholder:text-slate-800" 
-                        placeholder="Concetto da analizzare..." 
-                        value={lexiconInput} 
-                        onChange={(e) => setLexiconInput(e.target.value)} 
-                    />
-                </div>
+          <div className="space-y-4">
+            <div className="relative">
+              <input className="w-full bg-slate-900/50 border border-slate-700 rounded-xl p-3 pl-10 text-xs text-slate-300 focus:outline-none focus:border-blue-500 transition-all shadow-inner" placeholder="Parola o concetto..." value={lexiconInput} onChange={(e) => setLexiconInput(e.target.value)} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <button 
-                onClick={() => runLexiconTool('synonyms')} 
-                disabled={isAnalyzing || !lexiconInput.trim()} 
-                className="py-4 bg-white/[0.02] hover:bg-white/[0.05] disabled:opacity-50 rounded-[20px] text-[10px] font-bold uppercase tracking-widest transition-all border border-white/5 hover:border-emerald-500/20"
-              >
-                Sinonimi
-              </button>
-              <button 
-                onClick={() => runLexiconTool('metaphors')} 
-                disabled={isAnalyzing || !lexiconInput.trim()} 
-                className="py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded-[20px] text-[10px] font-bold uppercase tracking-widest text-white transition-all shadow-2xl shadow-emerald-950/40 active:scale-95"
-              >
-                Metafore
-              </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => runLexiconTool('synonyms')} disabled={isAnalyzing || !lexiconInput.trim()} className="py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 rounded-lg text-xs font-bold transition-all border border-slate-700">Sinonimi</button>
+              <button onClick={() => runLexiconTool('metaphors')} disabled={isAnalyzing || !lexiconInput.trim()} className="py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-xs font-bold transition-all shadow-lg shadow-blue-900/30">Metafore</button>
             </div>
-            {analysis && (
-                <div className="bg-emerald-500/5 p-6 rounded-[32px] border border-emerald-500/10 animate-in slide-in-from-bottom-2 max-h-[40vh] overflow-y-auto custom-scrollbar shadow-inner">
-                    <StructuredOutput text={analysis} />
-                </div>
-            )}
+            {analysis && <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 animate-in slide-in-from-bottom-2 max-h-[40vh] overflow-y-auto custom-scrollbar"><StructuredOutput text={analysis} /></div>}
           </div>
         )}
       </div>
 
-      <div className="p-8 border-t border-white/5 flex items-center justify-between bg-white/[0.01]">
-        <div className="flex items-center space-x-3 text-[9px] text-slate-700 uppercase font-bold tracking-[0.2em]">
-          <div className={cn("w-2 h-2 rounded-full", isAnalyzing ? "bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-emerald-900")}></div>
-          <span>Architettura Sincronizzata</span>
+      <div className="p-4 border-t border-slate-700 flex items-center justify-between">
+        <div className="flex items-center space-x-2 text-[10px] text-slate-500 uppercase font-bold">
+          <div className={cn("w-2 h-2 rounded-full", isAnalyzing ? "bg-blue-500 animate-pulse" : "bg-green-500")}></div>
+          <span>API Connected</span>
         </div>
       </div>
     </div>
