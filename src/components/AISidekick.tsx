@@ -67,27 +67,27 @@ const StructuredOutput: React.FC<{
         "bg-[#23282f] border border-white/5 rounded-[28px] overflow-hidden mb-5 shadow-2xl group transition-all duration-500 hover:border-[#5be9b1]/20",
         isPending ? "opacity-70 border-[#5be9b1]/30 ring-1 ring-[#5be9b1]/10" : "animate-in fade-in zoom-in-95"
       )}>
-        <div className="bg-white/[0.02] px-5 py-4 flex items-center justify-between border-b border-white/10">
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600">
+        <div className="bg-white/[0.02] px-4 py-3 flex items-center justify-between border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 truncate max-w-[100px]">
               {category || 'Suggerimento'}
             </span>
-            {isPending && <RefreshCw className="w-3 h-3 animate-spin text-[#5be9b1]" />}
+            {isPending && <RefreshCw className="w-2.5 h-2.5 animate-spin text-[#5be9b1]" />}
           </div>
           {!isPending && (
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onReject?.(original)}
-                className="text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-red-400 px-3 py-1.5 rounded-xl transition-all flex items-center gap-2 border border-transparent hover:bg-red-500/10"
+                className="text-[9px] font-black uppercase tracking-wider text-slate-600 hover:text-red-400 px-2 py-1.5 rounded-xl transition-all flex items-center gap-1.5 border border-transparent hover:bg-red-500/10"
               >
-                <X className="w-3 h-3" /> Ignora
+                <X className="w-2.5 h-2.5" /> Ignora
               </button>
               {suggestion && (
                 <button 
                   onClick={() => onApply?.(original, suggestion)}
-                  className="text-[10px] font-black uppercase tracking-widest bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] px-4 py-2 rounded-xl transition-all flex items-center gap-2"
+                  className="text-[9px] font-black uppercase tracking-wider bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5"
                 >
-                  <Zap className="w-3 h-3" /> Applica
+                  <Zap className="w-2.5 h-2.5" /> Applica
                 </button>
               )}
             </div>
