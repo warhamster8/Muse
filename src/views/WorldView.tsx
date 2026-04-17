@@ -13,6 +13,7 @@ export const WorldView: React.FC = () => {
     settings.find(s => s.id === selectedSettingId) || null,
   [settings, selectedSettingId]);
 
+  const [localName, setLocalName] = React.useState('');
   const [localDescription, setLocalDescription] = React.useState('');
 
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -20,11 +21,23 @@ export const WorldView: React.FC = () => {
   // Sync local state when selection changes
   React.useEffect(() => {
     if (selectedSetting) {
+      setLocalName(selectedSetting.name || '');
       setLocalDescription(selectedSetting.description || '');
     }
   }, [selectedSetting?.id]);
 
-  // Debounce updates to the store
+  // Debounce updates for name
+  React.useEffect(() => {
+    if (!selectedSetting) return;
+    const timer = setTimeout(() => {
+      if (localName !== selectedSetting.name && localName.trim() !== '') {
+        updateSetting(selectedSetting.id, { name: localName });
+      }
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [localName, selectedSetting?.id]);
+
+  // Debounce updates for description
   React.useEffect(() => {
     if (!selectedSetting) return;
     const timer = setTimeout(() => {
@@ -81,9 +94,14 @@ export const WorldView: React.FC = () => {
         {selectedSetting ? (
           <div className="flex flex-col h-full">
             <div className="p-6 border-b border-slate-700 flex items-center justify-between bg-slate-800/20">
-              <div>
-                <h2 className="text-2xl font-bold font-serif text-white">{selectedSetting.name}</h2>
-                <span className="text-xs text-slate-500 uppercase tracking-widest">Location Details</span>
+              <div className="flex-1 mr-4">
+                <input 
+                  value={localName}
+                  onChange={(e) => setLocalName(e.target.value)}
+                  className="w-full bg-transparent text-2xl font-bold font-serif text-white focus:outline-none placeholder:opacity-20"
+                  placeholder="Nome del luogo..."
+                />
+                <span className="text-[10px] text-emerald-500/50 uppercase tracking-widest font-bold">Element Identity</span>
               </div>
               <select 
                 value={selectedSetting.type}
