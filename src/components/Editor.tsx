@@ -61,20 +61,17 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   const { highlightedText } = useStore();
   React.useEffect(() => {
     if (editor) {
-      // 1. Update the suggestion highlight extension options
-      editor.setOptions({
-        extensions: editor.extensionManager.extensions.map(ext => {
-           if (ext.name === 'suggestionHighlight') {
-             return ext.configure({ suggestions: highlightedText ? [highlightedText] : [] });
-           }
-           return ext;
-        })
-      });
-      // Force a re-render of decorations
+      // 1. Update the suggestion highlight extension storage
+      if (editor.storage.suggestionHighlight) {
+        editor.storage.suggestionHighlight.suggestions = highlightedText ? [highlightedText] : [];
+      }
+      
+      // Force a re-render of decorations by dispatching an empty transaction
       editor.view.dispatch(editor.state.tr);
 
       // 2. If there's text to highlight, find it and scroll to center
       if (highlightedText) {
+        // ... (rest of the logic inside useEffect)
         setTimeout(() => {
           const matches = findMatchesInDoc(editor.state.doc, highlightedText);
           if (matches.length > 0) {

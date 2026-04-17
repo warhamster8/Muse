@@ -4,13 +4,17 @@ import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { findMatchesInDoc } from './matchUtils';
 
 export interface SuggestionHighlightOptions {
+  // Empty options as we use storage for dynamic updates
+}
+
+export interface SuggestionHighlightStorage {
   suggestions: string[];
 }
 
-export const SuggestionHighlight = Extension.create<SuggestionHighlightOptions>({
+export const SuggestionHighlight = Extension.create<SuggestionHighlightOptions, SuggestionHighlightStorage>({
   name: 'suggestionHighlight',
 
-  addOptions() {
+  addStorage() {
     return {
       suggestions: [],
     };
@@ -24,7 +28,7 @@ export const SuggestionHighlight = Extension.create<SuggestionHighlightOptions>(
         key: new PluginKey('suggestionHighlight'),
         props: {
           decorations(state) {
-            const { suggestions } = extension.options;
+            const { suggestions } = extension.storage;
             if (!suggestions || suggestions.length === 0) {
               return DecorationSet.empty;
             }
