@@ -77,11 +77,11 @@
 
 /* TipTap Editor Styling: Immersion Focused */
 .ProseMirror {
-    @apply outline-none min-h-[500px] text-xl leading-relaxed text-slate-200 font-serif max-w-none;
+    @apply outline-none min-h-[500px] text-xl leading-normal text-slate-200 font-serif max-w-none;
 }
 
 .ProseMirror p {
-    @apply mb-3;
+    @apply mb-1;
 }
 
 .ProseMirror h1 {
