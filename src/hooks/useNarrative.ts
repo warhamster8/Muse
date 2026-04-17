@@ -122,7 +122,9 @@ export function useNarrative() {
         c.scenes?.map((s, idx) => ({
           id: s.id,
           chapter_id: c.id,
-          order_index: idx
+          order_index: idx,
+          title: s.title,
+          content: s.content
         })) || []
       );
       
@@ -130,7 +132,6 @@ export function useNarrative() {
         const { error } = await supabase.from('scenes').upsert(scenesToUpdate);
         if (error) {
           console.error('Error reordering scenes:', error);
-          alert('Errore Supabase: ' + error.message + ' (Dettagli: ' + error.details + ')');
           fetchNarrative(); // Revert on error
         }
       }

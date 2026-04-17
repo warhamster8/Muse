@@ -116,7 +116,9 @@ export function useNotes() {
       const notesToUpdate = updatedNotes.map((n, idx) => ({
         id: n.id,
         project_id: currentProject?.id,
-        order_index: idx
+        order_index: idx,
+        title: n.title,
+        content: n.content
       }));
       
       const { error } = await supabase.from('notes').upsert(notesToUpdate);
