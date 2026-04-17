@@ -38,49 +38,49 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <div className="w-60 h-screen bg-slate-950 border-r border-white/5 flex flex-col p-4">
-      <div className="p-4 flex flex-col items-center mb-6">
-        <div className="w-16 h-16 rounded-3xl glass flex items-center justify-center p-2 mb-3 border-white/5 shadow-2x logo-glow">
+    <div className="w-60 h-screen bg-[#111418] border-r border-white/5 flex flex-col p-4 shadow-2xl z-30">
+      <div className="p-4 flex flex-col items-center mb-8">
+        <div className="w-16 h-16 rounded-3xl glass flex items-center justify-center p-2 mb-4 border-white/5 shadow-2x logo-glow">
           <img src="/logo.png" alt="Muse Logo" className="w-full h-full object-contain logo-blend scale-110" />
         </div>
-        <h1 className="text-sm font-bold tracking-[0.2em] font-display text-emerald-500">PROJECT MUSE</h1>
+        <h1 className="text-[10px] font-black tracking-[0.4em] font-display text-[#5be9b1] uppercase">Project Muse</h1>
       </div>
 
-      <div className="px-2 mb-8">
+      <div className="px-2 mb-10">
         <button 
           onClick={() => setCurrentProject(null)}
           className="w-full text-left group"
         >
-          <div className="bg-slate-900/40 rounded-2xl p-4 border border-white/5 group-hover:border-emerald-500/30 transition-all hover:bg-slate-900 shadow-sm">
-            <div className="flex items-center gap-2 text-[10px] text-slate-500 uppercase font-bold mb-1.5 tracking-widest">
-              <Library className="w-3 h-3 text-emerald-600" />
+          <div className="bg-[#1a1f24] rounded-2xl p-4 border border-white/5 group-hover:border-[#5be9b1]/30 transition-all shadow-sm">
+            <div className="flex items-center gap-2 text-[10px] text-slate-500 uppercase font-black mb-1.5 tracking-widest">
+              <Library className="w-3 h-3 text-[#5be9b1]" />
               <span>Libreria</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium truncate text-slate-100">{currentProject?.title || 'Seleziona...'}</span>
-              <ChevronRight className="w-3 h-3 text-slate-600 group-hover:text-emerald-400 transition-colors" />
+              <span className="text-sm font-semibold truncate text-slate-100">{currentProject?.title || 'Seleziona...'}</span>
+              <ChevronRight className="w-3 h-3 text-slate-600 group-hover:text-[#5be9b1] transition-colors" />
             </div>
           </div>
         </button>
       </div>
 
       <nav className="flex-1 px-1 space-y-1.5">
-        <div className="px-4 mb-2">
-            <span className="text-[9px] font-bold text-slate-600 uppercase tracking-[0.2em]">Architecture</span>
+        <div className="px-4 mb-3">
+            <span className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">Architecture</span>
         </div>
         {navItems.map((item) => (
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
             className={cn(
-              "w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl transition-all duration-300 group",
+              "w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all duration-300 group",
               activeTab === item.id 
-                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
-                : "text-slate-500 hover:bg-slate-900/50 hover:text-slate-200"
+                ? "bg-[#5be9b1] text-[#0b0e11] shadow-[0_10px_20px_-5px_rgba(91,233,177,0.3)]" 
+                : "text-slate-500 hover:bg-white/5 hover:text-slate-200"
             )}
           >
-            <item.icon className={cn("w-4 h-4 transition-colors", activeTab === item.id ? "text-emerald-400" : "group-hover:text-emerald-500/50")} />
-            <span className="text-sm font-medium">{item.label}</span>
+            <item.icon className={cn("w-4 h-4 transition-colors", activeTab === item.id ? "text-[#0b0e11]" : "group-hover:text-[#5be9b1]/50")} />
+            <span className="text-sm font-bold tracking-tight">{item.label}</span>
           </button>
         ))}
       </nav>

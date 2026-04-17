@@ -1,84 +1,83 @@
-# Project Muse 🖋️✨
+# 🖋️ Project Muse: Inkwell Edition
 
-![Project Muse Hero](public/readme-hero.png)
+**Project Muse** è una suite di scrittura creativa professionale progettata per trasformare frammenti di idee in narrativa strutturata. Con l'edizione *Inkwell*, l'interfaccia si evolve in un ambiente minimalista ad alto contrasto (Charcoal & Mint) studiato per massimizzare la concentrazione e l'immersione editoriale.
 
-> **The Elite Content Intelligence Dashboard for Creative Writers.**  
-> **L'Ecosistema Analitico d'Elite per la Narrazione Professionale.**
-
----
-
-## 💎 The "Creative Dashboard" Evolution (Concept 3)
-Project Muse è stato recentemente evoluto in un **Dashboard Creativo professionale**, adottando il design system **Emerald/Slate**. Un'interfaccia ad alta densità informativa che unisce estetica cinematografica (glassmorphism) e rigore analitico.
-
-Project Muse has evolved into a professional **Creative Dashboard**, adopting the **Emerald/Slate** design system. A high-density information interface blending cinematic aesthetics with analytical precision.
+![Project Muse Preview](public/inkwell_preview.png)
 
 ---
 
-## ✨ Caratteristiche / Key Features
+## 🚀 Visione Narrativa
+L'applicazione non è un semplice editor di testo, ma un **Architetto Narrativo**. Integra intelligenza artificiale avanzata e strumenti di organizzazione gerarchica per supportare lo scrittore dalla prima bozza al manoscritto finale.
 
-### 🖋️ Narrative Intelligence
-- **Cinema-Grade Canvas**: Scrittura immersiva con navigatore strutturale integrato.
-- **Narrative Archetypes**: Organizzazione per scene e capitoli con **reordering persistente** (Drag & Drop).
-- **Immersive Narrative**: Clean, distraction-free editor with integrated structural navigator.
+### 💎 Moduli Chiave
 
-### 👤 Cinematic Characters
-- **Identity Hub**: Gestione profili psicologici, motivazioni e archi evolutivi.
-- **Interactive Portraits**: Visualizzazione in grande formato con **riposizionamento interattivo (X/Y)** per centrare perfettamente il soggetto.
-- **Identity Management**: Advanced psychological profiles and character arc tracking.
+#### 🏰 Manuscript Navigator
+Un sistema di gestione gerarchico che permette di muoversi tra capitoli e scene con estrema agilità. Supporta il reordering drag-and-drop tramite una struttura fluida e organizzata.
 
-### 🌍 World Hub & Analytical Lore
-- **Smart Categorization**: Organizzazione del mondo in **Luoghi** e **Oggetti**.
-- **Lore Analytics**: Griglia strutturata per la gestione granulare degli elementi narrativi.
-- **Lore Management**: Structured grid for granular management of locations and artifacts.
+#### 🖋️ Pro Writing Editor
+Un editor basato su TipTap e ProseMirror, ottimizzato per la modalità "Focus". Offre una tipografia di alta classe (EB Garamond per i contenuti, Outfit per l'interfaccia) e shortcut personalizzate per la punteggiatura narrativa.
 
-### 🧠 AI Sidekick & Side-Dash (Groq, DeepSeek, Gemini)
-- **DeepSeek V3 & Llama 3.3**: Sfrutta i modelli più veloci e intelligenti al mondo per la revisione.
-- **Revisione Chirurgica**: Proposte di modifica su stile, ritmo e coerenza.
-- **Style Modulation**: Trasforma il tono delle scene (Viscerale, Atmosferico, Psicologico).
-- **AI-Powered Insights**: Surgical suggestions for style, pacing, and coherence.
+#### 🤖 AI Sidekick (Concept 3 Engine)
+L'assistente editoriale più avanzato di sempre. Alimentato da **Groq (Llama 3.3 70B)** e **DeepSeek V3**, il Sidekick analizza le tue scene in tempo reale offrendo:
+- **Correzione Bozza**: Analisi ortografica e sintattica contestuale.
+- **Modulazione Stilistica**: Trasforma il tono del testo (es. da "Noir" a "Descrittivo").
+- **Espansione Concetti**: Aiuta a sviluppare intuizioni rapide in paragrafi strutturati.
+- **Lexicon Engine**: Suggerimenti dinamici di sinonimi e metafore.
+
+#### 📊 Analytical Dashboard
+Monitora l'anatomia del tuo manoscritto con metriche in tempo reale:
+- Word Count e densità testuale per capitolo.
+- Analisi delle citazioni dei personaggi.
+- Monitoraggio del pacing narrativo tramite grafici Area & Bar.
+- Analisi del lessico e della ricchezza semantica.
+
+#### 🎭 Character Matrix & World Nexus
+Crea schede personaggi profonde (bio, psicologia, evoluzione) e mappa il tuo mondo (location, oggetti primari) con moduli dedicati che alimentano il contesto dell'intelligenza artificiale.
 
 ---
 
 ## 🛠️ Tech Stack
-
-- **Modern Frontend**: [React 19](https://react.dev/), [Vite](https://vitejs.dev/), [TypeScript](https://www.typescriptlang.org/)
-- **Advanced Styling**: [Vanilla CSS](https://developer.mozilla.org/en-US/docs/Web/CSS), [Framer Motion](https://www.framer.com/motion/)
-- **Backend / Cloud**: [Supabase](https://supabase.com/)
-- **AI Intelligence**: [Groq SDK](https://groq.com/), [DeepSeek API](https://deepseek.com/), [Gemini Flash SDK](https://ai.google.dev/)
-- **Core Components**: [Tiptap](https://tiptap.dev/), [@hello-pangea/dnd](https://github.com/hello-pangea/dnd), [Zustand](https://github.com/pmndrs/zustand)
+- **Frontend**: React 18 + TypeScript + Vite.
+- **Styling**: Tailwind CSS (Custom Inkwell Theme: #0b0e11 / #5be9b1).
+- **State Management**: Zustand (con Persistenza locale).
+- **Backend**: Supabase (Auth, RLS, Database PostgreSQL).
+- **AI Models**: Groq Llama 3.3, DeepSeek V3, Google Gemini Flash.
 
 ---
 
-## 🚀 Setup & Installation
+## 🏗️ Guida all'Installazione (Setup Rapido)
 
-### Configurazione Database (SQL)
-Esegui questo script in Supabase per le nuove funzionalità di posizionamento e categorizzazione:
-
-```sql
--- Reordering e World Building
-ALTER TABLE notes ADD COLUMN IF NOT EXISTS order_index INTEGER DEFAULT 0;
-ALTER TABLE chapters ADD COLUMN IF NOT EXISTS order_index INTEGER DEFAULT 0;
-ALTER TABLE scenes ADD COLUMN IF NOT EXISTS order_index INTEGER DEFAULT 0;
-ALTER TABLE settings ADD COLUMN IF NOT EXISTS category TEXT DEFAULT 'location';
-
--- Image Centering Support
-ALTER TABLE characters 
-ADD COLUMN IF NOT EXISTS avatar_pos_x INTEGER DEFAULT 50,
-ADD COLUMN IF NOT EXISTS avatar_pos_y INTEGER DEFAULT 50;
+### 1. Clona il Repository
+```bash
+git clone https://github.com/warhamster8/Muse.git
+cd Muse
+npm install
 ```
 
-### Getting Started
-1. `git clone https://github.com/your-username/Muse.git`
-2. `npm install`
-3. Configura `.env` con chiavi Supabase, Groq e DeepSeek.
-4. `npm run dev`
+### 2. Configura Supabase
+Importa il file [supabase_init.sql](supabase_init.sql) nel SQL Editor del tuo progetto Supabase. Questo creerà automaticamente:
+- Tabelle e relazioni.
+- Politiche di sicurezza (Row Level Security).
+- Trigger per la creazione automatica dei profili utente.
+
+### 3. Variabili d'Ambiente (.env)
+Crea un file `.env` nella root del progetto:
+```env
+VITE_SUPABASE_URL=tua_url_supabase
+VITE_SUPABASE_ANON_KEY=tua_key_anon_supabase
+VITE_ALLOWED_EMAIL=tua_email_abilitata
+VITE_GROQ_API_KEY=tua_key_groq
+```
+
+### 4. Avvia il Motore
+```bash
+npm run dev
+```
 
 ---
 
-## 📄 License
-Distribuito sotto licenza MIT.
+## 🌑 Estetica Inkwell
+L'estetica **Inkwell** è stata progettata per ridurre l'affaticamento visivo. Utilizza una base carbone profonda con accenti "Mint Tech" che evidenziano solo ciò che conta: la tua storia.
 
-<p align="center">
-  Creato per l'eccellenza narrativa. <br/>
-  Crafted for storytelling excellence.
-</p>
+---
+*Developed with ❤️ by Google Deepmind Team - Advanced Agentic Coding.*

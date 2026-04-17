@@ -108,8 +108,8 @@ export const ConfigView: React.FC = () => {
   return (
     <div className="h-full flex flex-col p-10 space-y-10 max-w-5xl mx-auto overflow-y-auto scrollbar-hide animate-in fade-in duration-700">
       <div className="flex items-center gap-6 bg-white/[0.02] p-8 rounded-[40px] border border-white/5">
-        <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
-          <Settings className="w-8 h-8 text-emerald-500" />
+        <div className="p-4 bg-[#5be9b1]/10 rounded-2xl border border-[#5be9b1]/20">
+          <Settings className="w-8 h-8 text-[#5be9b1]" />
         </div>
         <div>
           <h1 className="text-4xl font-medium font-display tracking-tight text-white">Configurazione Nucleo AI</h1>
@@ -123,19 +123,19 @@ export const ConfigView: React.FC = () => {
           onClick={() => handleProviderChange('groq')}
           className={`relative p-8 rounded-[40px] border text-left transition-all duration-500 overflow-hidden group shadow-sm ${
             aiConfig.provider === 'groq' 
-              ? 'bg-emerald-500/10 border-emerald-500/30 shadow-2xl shadow-emerald-950/20' 
+              ? 'bg-[#5be9b1]/10 border-[#5be9b1]/30 shadow-2xl shadow-emerald-950/20' 
               : 'bg-white/[0.02] border-white/5 hover:border-white/10'
           }`}
         >
           <div className="flex items-start justify-between mb-6">
-            <div className={`p-4 rounded-2xl transition-colors ${aiConfig.provider === 'groq' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-slate-900 border border-white/5 text-slate-600'}`}>
+            <div className={`p-4 rounded-2xl transition-colors ${aiConfig.provider === 'groq' ? 'bg-[#5be9b1] text-white shadow-lg' : 'bg-slate-900 border border-white/5 text-slate-600'}`}>
               <Zap className="w-6 h-6" />
             </div>
             {aiConfig.provider === 'groq' && (
-              <span className="text-[9px] font-bold uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-full shadow-lg">Attivo</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest bg-[#5be9b1] text-white px-3 py-1.5 rounded-full shadow-lg">Attivo</span>
             )}
           </div>
-          <h3 className={cn("text-2xl font-medium mb-3 tracking-tight transition-colors", aiConfig.provider === 'groq' ? "text-emerald-400" : "text-white")}>
+          <h3 className={cn("text-2xl font-medium mb-3 tracking-tight transition-colors", aiConfig.provider === 'groq' ? "text-[#5be9b1]" : "text-white")}>
             Groq <span className="text-sm opacity-50 ml-2">(Llama 3.3)</span>
           </h3>
           <p className="text-sm text-slate-500 leading-relaxed font-light">
@@ -152,19 +152,19 @@ export const ConfigView: React.FC = () => {
           onClick={() => handleProviderChange('deepseek')}
           className={`relative p-8 rounded-[40px] border text-left transition-all duration-500 overflow-hidden group shadow-sm ${
             aiConfig.provider === 'deepseek' 
-              ? 'bg-emerald-500/10 border-emerald-500/30 shadow-2xl shadow-emerald-950/20' 
+              ? 'bg-[#5be9b1]/10 border-[#5be9b1]/30 shadow-2xl shadow-emerald-950/20' 
               : 'bg-white/[0.02] border-white/5 hover:border-white/10'
           }`}
         >
           <div className="flex items-start justify-between mb-6">
-            <div className={`p-4 rounded-2xl transition-colors ${aiConfig.provider === 'deepseek' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-slate-900 border border-white/5 text-slate-600'}`}>
+            <div className={`p-4 rounded-2xl transition-colors ${aiConfig.provider === 'deepseek' ? 'bg-[#5be9b1] text-white shadow-lg' : 'bg-slate-900 border border-white/5 text-slate-600'}`}>
               <Cpu className="w-6 h-6" />
             </div>
             {aiConfig.provider === 'deepseek' && (
-              <span className="text-[9px] font-bold uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-full shadow-lg">Attivo</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest bg-[#5be9b1] text-white px-3 py-1.5 rounded-full shadow-lg">Attivo</span>
             )}
           </div>
-          <h3 className={cn("text-2xl font-medium mb-3 tracking-tight transition-colors", aiConfig.provider === 'deepseek' ? "text-emerald-400" : "text-white")}>
+          <h3 className={cn("text-2xl font-medium mb-3 tracking-tight transition-colors", aiConfig.provider === 'deepseek' ? "text-[#5be9b1]" : "text-white")}>
             DeepSeek <span className="text-sm opacity-50 ml-2">V3</span>
           </h3>
           <p className="text-sm text-slate-500 leading-relaxed font-light">
@@ -180,8 +180,8 @@ export const ConfigView: React.FC = () => {
       <div className="bg-white/[0.02] p-10 rounded-[48px] border border-white/5 space-y-10 shadow-sm">
         <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-                <div className="p-3 bg-emerald-500/10 rounded-xl">
-                    <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                <div className="p-3 bg-[#5be9b1]/10 rounded-xl">
+                    <ShieldCheck className="w-5 h-5 text-[#5be9b1]" />
                 </div>
                 <div>
                     <h3 className="text-xl font-medium text-white tracking-tight">Infrastruttura di Sicurezza</h3>
@@ -189,7 +189,7 @@ export const ConfigView: React.FC = () => {
                 </div>
             </div>
             <div className="flex items-center gap-4 px-6 py-3 bg-white/[0.03] rounded-2xl border border-white/5">
-                <div className={cn("w-2 h-2 rounded-full", aiConfig.provider ? "bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" : "bg-slate-800")} />
+                <div className={cn("w-2 h-2 rounded-full", aiConfig.provider ? "bg-[#5be9b1] animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" : "bg-slate-800")} />
                 <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Sistema Operativo</span>
             </div>
         </div>
@@ -198,7 +198,7 @@ export const ConfigView: React.FC = () => {
            <div className="p-6 bg-slate-950/40 border border-white/5 rounded-3xl hover:border-white/10 transition-all group">
               <p className="text-[9px] uppercase tracking-[0.2em] text-slate-700 font-bold mb-3 group-hover:text-slate-500 transition-colors">Endpoint DeepSeek</p>
                <div className="flex items-center gap-4">
-                  <div className={`w-2.5 h-2.5 rounded-full ${aiConfig.deepseekKey ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]' : 'bg-amber-900'}`} />
+                  <div className={`w-2.5 h-2.5 rounded-full ${aiConfig.deepseekKey ? 'bg-[#5be9b1] shadow-[0_0_8px_rgba(16,185,129,0.3)]' : 'bg-amber-900'}`} />
                   <span className="font-mono text-sm text-slate-300">
                      {aiConfig.deepseekKey 
                         ? `sk-...${aiConfig.deepseekKey.slice(-6)}` 
@@ -215,7 +215,7 @@ export const ConfigView: React.FC = () => {
                <button 
                 onClick={handleTestDeepSeek}
                 disabled={isTesting}
-                className="p-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded-2xl transition-all shadow-xl shadow-emerald-950/40 active:scale-90"
+                className="p-4 bg-[#5be9b1] hover:bg-[#5be9b1] disabled:opacity-50 rounded-2xl transition-all shadow-xl shadow-emerald-950/40 active:scale-90"
                >
                  <Activity className={`w-5 h-5 text-white ${isTesting ? 'animate-spin' : ''}`} />
                </button>
@@ -230,11 +230,11 @@ export const ConfigView: React.FC = () => {
               exit={{ opacity: 0, scale: 0.95 }}
               className="p-8 bg-black/40 border border-white/5 rounded-[32px] space-y-4 shadow-inner"
             >
-              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-500/50">
+              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.3em] text-[#5be9b1]/50">
                 <Terminal className="w-4 h-4" />
                 <span>Console Log / Risposta Server</span>
               </div>
-              <pre className="text-[11px] font-mono bg-slate-950/50 p-6 rounded-2xl overflow-x-auto text-emerald-400 border border-white/5 leading-relaxed">
+              <pre className="text-[11px] font-mono bg-slate-950/50 p-6 rounded-2xl overflow-x-auto text-[#5be9b1] border border-white/5 leading-relaxed">
                 {JSON.stringify(testResult, null, 2)}
               </pre>
             </motion.div>
@@ -256,12 +256,12 @@ export const ConfigView: React.FC = () => {
                 value={keyInput}
                 onChange={(e) => setKeyInput(e.target.value)}
                 placeholder="Incolla chiave segreta (sk-...)"
-                className="flex-1 bg-slate-900/60 border border-white/5 rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:border-emerald-500/30 focus:bg-slate-900 transition-all font-mono"
+                className="flex-1 bg-slate-900/60 border border-white/5 rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:border-[#5be9b1]/30 focus:bg-slate-900 transition-all font-mono"
               />
               <button
                 onClick={handleSaveKey}
                 disabled={isSaving || !keyInput}
-                className="px-10 py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded-2xl text-[10px] font-bold text-white uppercase tracking-widest transition-all shadow-2xl shadow-emerald-950/40 active:scale-95"
+                className="px-10 py-4 bg-[#5be9b1] hover:bg-[#5be9b1] disabled:opacity-50 rounded-2xl text-[10px] font-bold text-white uppercase tracking-widest transition-all shadow-2xl shadow-emerald-950/40 active:scale-95"
               >
                 {isSaving ? 'Sincronizzazione...' : 'Attiva Modulo'}
               </button>

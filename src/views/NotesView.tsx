@@ -56,20 +56,20 @@ export const NotesView: React.FC = () => {
   return (
     <div className="h-full flex flex-col space-y-8 overflow-hidden animate-in fade-in duration-700">
       {/* Header & Search */}
-      <div className="flex items-center justify-between gap-6 bg-white/[0.02] p-6 rounded-[32px] border border-white/5">
+      <div className="flex items-center justify-between gap-6 bg-[#171b1f] p-6 rounded-[32px] border border-white/5">
         <div className="flex-1 relative max-w-xl group">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-emerald-500 transition-colors" />
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[#5be9b1] transition-colors" />
           <input 
             type="text"
             placeholder="Analizza le tue note..."
-            className="w-full bg-slate-900/40 border border-white/5 rounded-[20px] py-3.5 pl-14 pr-6 text-sm focus:outline-none focus:border-emerald-500/30 focus:bg-slate-900/60 transition-all shadow-inner placeholder:text-slate-700"
+            className="w-full bg-[#171b1f]/40 border border-white/5 rounded-[20px] py-3.5 pl-14 pr-6 text-sm focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#171b1f]/60 transition-all shadow-inner placeholder:text-slate-700"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         <button 
           onClick={handleCreateNote}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3.5 rounded-[20px] font-bold text-xs flex items-center gap-3 transition-all shadow-2xl shadow-emerald-950/40 active:scale-95 uppercase tracking-widest"
+          className="bg-[#5be9b1] hover:bg-[#5be9b1] text-white px-8 py-3.5 rounded-[20px] font-bold text-xs flex items-center gap-3 transition-all shadow-2xl shadow-emerald-950/40 active:scale-95 uppercase tracking-widest"
         >
           <Plus className="w-4 h-4" />
           Nuova Intuizione
@@ -160,14 +160,14 @@ const NoteCard: React.FC<{
       exit={{ opacity: 0, scale: 0.95 }}
       onClick={onClick}
       className={cn(
-        "bg-white/[0.02] border border-white/5 rounded-[32px] p-8 hover:border-emerald-500/20 transition-all cursor-pointer group relative flex flex-col h-64 overflow-hidden shadow-sm hover:shadow-[0_20px_50px_-15px_rgba(16,185,129,0.1)]",
-        isDragging && "bg-slate-900 border-emerald-500/30 shadow-2xl scale-105 z-50"
+        "bg-[#171b1f] border border-white/5 rounded-[32px] p-8 hover:border-[#5be9b1]/20 transition-all cursor-pointer group relative flex flex-col h-64 overflow-hidden shadow-sm hover:shadow-[0_20px_50px_-15px_rgba(16,185,129,0.1)]",
+        isDragging && "bg-[#171b1f] border-[#5be9b1]/30 shadow-2xl scale-105 z-50"
       )}
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4 flex-1 min-w-0">
-          <div {...dragHandleProps} className="p-2 hover:bg-emerald-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all active:scale-90 border border-transparent hover:border-emerald-500/20">
-            <GripVertical className="w-4 h-4 text-emerald-600" />
+          <div {...dragHandleProps} className="p-2 hover:bg-[#5be9b1]/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all active:scale-90 border border-transparent hover:border-[#5be9b1]/20">
+            <GripVertical className="w-4 h-4 text-[#5be9b1]" />
           </div>
           <h3 className="text-lg font-medium text-slate-100 truncate pr-10 tracking-tight">{note.title || 'Untitled Thought'}</h3>
         </div>
@@ -183,7 +183,7 @@ const NoteCard: React.FC<{
       </p>
       <div className="mt-8 flex items-center justify-between text-[9px] text-slate-700 font-bold uppercase tracking-[0.2em]">
         <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/30" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#5be9b1]/30" />
             <span>{new Date(note.created_at).toLocaleDateString()}</span>
         </div>
         <Maximize2 className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-all" />
@@ -218,7 +218,7 @@ const MenuBar: React.FC<{ editor: Editor }> = ({ editor }) => {
       title={title}
       className={cn(
         "p-2.5 rounded-xl transition-all hover:bg-white/5",
-        isActive ? "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20" : "text-slate-600"
+        isActive ? "text-[#5be9b1] bg-[#5be9b1]/10 border border-[#5be9b1]/20" : "text-slate-600"
       )}
     >
       <Icon className="w-4 h-4" />
@@ -364,13 +364,13 @@ const NoteModal: React.FC<{ note: Note; onClose: () => void; onSave: (updates: P
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.98, y: 30 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="relative w-full max-w-6xl h-[90vh] bg-slate-900 border border-white/5 rounded-[48px] shadow-[0_30px_100px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden"
+        className="relative w-full max-w-6xl h-[90vh] bg-[#171b1f] border border-white/5 rounded-[48px] shadow-[0_30px_100px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden"
       >
         {/* Header */}
         <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
           <div className="flex-1 flex items-center gap-6">
-            <div className="p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
-               <Quote className="w-5 h-5 text-emerald-500" />
+            <div className="p-3 bg-[#5be9b1]/10 rounded-2xl border border-[#5be9b1]/20">
+               <Quote className="w-5 h-5 text-[#5be9b1]" />
             </div>
             <input 
               value={title}
@@ -379,7 +379,7 @@ const NoteModal: React.FC<{ note: Note; onClose: () => void; onSave: (updates: P
               placeholder="Titolo dell'intuizione..."
             />
             {isSaving && (
-              <div className="flex items-center gap-3 text-emerald-500/50 text-[10px] font-bold uppercase tracking-[0.2em] animate-pulse pr-6">
+              <div className="flex items-center gap-3 text-[#5be9b1]/50 text-[10px] font-bold uppercase tracking-[0.2em] animate-pulse pr-6">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                 Sincronizzazione...
               </div>

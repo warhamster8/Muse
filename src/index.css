@@ -7,23 +7,26 @@
   --font-display: 'Outfit', sans-serif;
   --font-sans: 'Outfit', 'Inter', sans-serif;
   
-  --emerald-400: #34d399;
-  --emerald-500: #10b981;
-  --emerald-600: #059669;
+  --primary-mint: #5be9b1;
+  --primary-mint-hover: #4ade80;
+  
+  --bg-deep: #0b0e11;
+  --bg-surface: #121519;
+  --bg-card: #171b1f;
+  
   --slate-50: #f8fafc;
   --slate-100: #f1f5f9;
-  --slate-200: #e2e8f0;
   --slate-400: #94a3b8;
   --slate-500: #64748b;
   --slate-700: #334155;
   --slate-800: #1e293b;
   --slate-900: #0f172a;
-  --slate-950: #020617;
+  --slate-950: #0b0e11;
 }
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-200 font-sans antialiased selection:bg-emerald-500/30 selection:text-emerald-200;
+    @apply bg-slate-950 text-slate-200 font-sans antialiased selection:bg-[#5be9b1]/30 selection:text-[#5be9b1];
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -41,16 +44,36 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-800 rounded-full hover:bg-emerald-900/50 transition-colors border-2 border-slate-950;
+  @apply bg-slate-900 rounded-full hover:bg-[#5be9b1]/20 transition-colors border-2 border-slate-950;
 }
 
-/* Concept 3 Glassmorphism: Minimalist & Layered */
+/* Concept 3 / Inkwell Glass: Flatter & Deeper */
 .glass {
-  @apply bg-slate-900/40 backdrop-blur-xl border border-white/5 shadow-2xl;
+  @apply bg-[#121519]/80 backdrop-blur-xl border border-white/5 shadow-2xl;
 }
 
 .glass-emerald {
-  @apply bg-emerald-500/5 backdrop-blur-xl border border-emerald-500/20 shadow-xl;
+  @apply bg-[#5be9b1]/5 backdrop-blur-xl border border-[#5be9b1]/20 shadow-xl;
+}
+
+.bg-inkwell {
+  background-color: var(--bg-deep);
+}
+
+.bg-inkwell-surface {
+  background-color: var(--bg-surface);
+}
+
+.text-mint {
+  color: var(--primary-mint);
+}
+
+.bg-mint {
+  background-color: var(--primary-mint);
+}
+
+.border-mint {
+  border-color: var(--primary-mint);
 }
 
 /* TipTap Editor Styling: Immersion Focused */
@@ -71,7 +94,7 @@
 }
 
 .ProseMirror blockquote {
-    @apply border-l-2 border-emerald-500/50 pl-8 my-10 italic text-slate-400 font-serif text-2xl leading-loose;
+    @apply border-l-2 border-[#5be9b1]/50 pl-8 my-10 italic text-slate-400 font-serif text-2xl leading-loose;
 }
 
 .ProseMirror ul, .ProseMirror ol {
@@ -86,18 +109,18 @@
     @apply list-decimal;
 }
 
-/* Logo Blending: Pure Smerald */
+/* Logo Blending: Pure Mint */
 .logo-blend {
     mix-blend-mode: color-dodge;
-    filter: brightness(1.2) contrast(1.1) hue-rotate(90deg);
+    filter: brightness(1.2) contrast(1.1) grayscale(0.5) hue-rotate(110deg);
 }
 
 .logo-glow {
-    box-shadow: 0 0 50px rgba(16, 185, 129, 0.15);
-    background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 70%);
+    box-shadow: 0 0 50px rgba(91, 233, 177, 0.1);
+    background: radial-gradient(circle, rgba(91, 233, 177, 0.03) 0%, transparent 70%);
 }
 
-/* Suggestion Highlights: Soft Emerald */
+/* Suggestion Highlights: Soft Mint */
 .suggestion-highlight {
-    @apply bg-emerald-500/10 border-b border-emerald-500/40 rounded-sm text-emerald-100 transition-colors duration-300;
+    @apply bg-[#5be9b1]/10 border-b border-[#5be9b1]/40 rounded-sm text-slate-100 transition-colors duration-300;
 }

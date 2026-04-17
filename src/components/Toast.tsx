@@ -39,12 +39,12 @@ export const ToastContainer: React.FC = () => {
           key={toast.id}
           className={cn(
             "flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-2xl animate-in slide-in-from-right-full duration-300",
-            toast.type === 'success' && "bg-emerald-500/10 border-emerald-500/20 text-emerald-400",
+            toast.type === 'success' && "bg-[#5be9b1]/10 border-[#5be9b1]/20 text-[#5be9b1]",
             toast.type === 'error' && "bg-red-500/10 border-red-500/20 text-red-400",
             toast.type === 'info' && "bg-blue-500/10 border-blue-500/20 text-blue-400"
           )}
         >
-          {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
+          {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-[#5be9b1]" />}
           {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-red-500" />}
           {toast.type === 'info' && <Info className="w-5 h-5 text-blue-500" />}
           

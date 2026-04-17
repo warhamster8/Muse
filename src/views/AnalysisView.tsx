@@ -20,7 +20,7 @@ import {
   countCharacterMentions 
 } from '../lib/analysisUtils';
 
-const COLORS = ['#10b981', '#059669', '#34d399', '#065f46', '#064e40', '#022c22'];
+const COLORS = ['#5be9b1', '#4ade80', '#2dd4bf', '#0d9488', '#115e59', '#064e3b'];
 
 interface MetricCardProps {
   title: string;
@@ -30,15 +30,15 @@ interface MetricCardProps {
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon: Icon, trend }) => (
-  <div className="bg-white/[0.02] p-8 rounded-[32px] border border-white/5 hover:border-emerald-500/20 transition-all group relative overflow-hidden">
-    <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 blur-3xl -mr-12 -mt-12 group-hover:bg-emerald-500/10 transition-all" />
+  <div className="bg-[#171b1f] p-8 rounded-[32px] border border-white/5 hover:border-[#5be9b1]/20 transition-all group relative overflow-hidden">
+    <div className="absolute top-0 right-0 w-24 h-24 bg-[#5be9b1]/5 blur-3xl -mr-12 -mt-12 group-hover:bg-[#5be9b1]/10 transition-all" />
     <div className="flex items-center justify-between mb-6">
-      <div className="p-3 bg-slate-900 rounded-[18px] text-emerald-500 border border-white/5 group-hover:scale-110 transition-transform shadow-inner">
+      <div className="p-3 bg-slate-950 rounded-[18px] text-[#5be9b1] border border-white/5 group-hover:scale-110 transition-transform shadow-inner">
         <Icon className="w-5 h-5" />
       </div>
       {trend && (
         <div className="flex flex-col items-end">
-          <span className="text-[10px] text-emerald-400 font-bold tracking-widest uppercase">Pacing</span>
+          <span className="text-[10px] text-[#5be9b1] font-black tracking-widest uppercase">Pacing</span>
           <span className="text-[9px] text-slate-500">{trend}</span>
         </div>
       )}
@@ -114,21 +114,21 @@ export const AnalysisView: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full space-y-8 animate-in fade-in duration-700">
-      <header className="flex items-center justify-between bg-white/[0.02] p-8 rounded-[32px] border border-white/5">
+      <header className="flex items-center justify-between bg-[#171b1f] p-8 rounded-[32px] border border-white/5">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Activity className="w-4 h-4 text-emerald-500" />
-            <span className="text-[10px] font-bold text-emerald-500/50 uppercase tracking-[0.2em]">DASHBOARD ANALITICA</span>
+            <Activity className="w-4 h-4 text-[#5be9b1]" />
+            <span className="text-[10px] font-black text-[#5be9b1]/50 uppercase tracking-[0.2em]">DASHBOARD ANALITICA</span>
           </div>
-          <h1 className="text-4xl font-medium tracking-tight">Anatomia del Manoscritto</h1>
+          <h1 className="text-4xl font-semibold tracking-tight">Anatomia del Manoscritto</h1>
         </div>
         <div className="flex items-center gap-4">
            <div className="text-right hidden md:block">
               <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ultimo Update</div>
               <div className="text-xs text-slate-400 font-mono">Just now</div>
            </div>
-           <button className="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-2xl shadow-xl shadow-emerald-950/20 transition-all active:scale-95">
-             Genera Report PDF
+           <button className="px-8 py-3 bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] text-xs font-black rounded-2xl shadow-xl shadow-[#5be9b1]/10 transition-all active:scale-95 uppercase tracking-widest">
+             Salva Report
            </button>
         </div>
       </header>
@@ -144,10 +144,10 @@ export const AnalysisView: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Chapter Balance Chart */}
-          <div className="lg:col-span-2 bg-white/[0.02] p-10 rounded-[40px] border border-white/5 shadow-sm">
+          <div className="lg:col-span-2 bg-[#171b1f] p-10 rounded-[40px] border border-white/5 shadow-sm">
             <div className="flex items-center justify-between mb-10">
               <div>
-                <h2 className="text-xl font-medium flex items-center gap-3">
+                <h2 className="text-xl font-bold flex items-center gap-3">
                   Bilanciamento Capitoli
                 </h2>
                 <p className="text-xs text-slate-500 mt-1">Distribuzione della densità testuale per sezione.</p>
@@ -162,17 +162,17 @@ export const AnalysisView: React.FC = () => {
                 <BarChart data={stats.chapterData} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
                   <defs>
                     <linearGradient id="emeraldGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.6}/>
-                      <stop offset="100%" stopColor="#10b981" stopOpacity={0.05}/>
+                      <stop offset="0%" stopColor="#5be9b1" stopOpacity={0.6}/>
+                      <stop offset="100%" stopColor="#5be9b1" stopOpacity={0.05}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="0" stroke="#ffffff08" vertical={false} />
                   <XAxis dataKey="name" stroke="#64748b" fontSize={10} axisLine={false} tickLine={false} dy={15} />
                   <YAxis stroke="#64748b" fontSize={10} axisLine={false} tickLine={false} />
                   <Tooltip 
-                    cursor={{ fill: 'rgba(16, 185, 129, 0.03)' }}
-                    contentStyle={{ backgroundColor: '#020617', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '12px' }}
-                    itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
+                    cursor={{ fill: 'rgba(91, 233, 177, 0.03)' }}
+                    contentStyle={{ backgroundColor: '#121519', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '12px' }}
+                    itemStyle={{ color: '#5be9b1', fontWeight: 'bold' }}
                     labelStyle={{ opacity: 0.5, marginBottom: '4px' }}
                   />
                   <Bar dataKey="words" fill="url(#emeraldGradient)" radius={[8, 8, 4, 4]} barSize={40} />
@@ -182,8 +182,8 @@ export const AnalysisView: React.FC = () => {
           </div>
 
           {/* Character Mentions */}
-          <div className="bg-white/[0.02] p-10 rounded-[40px] border border-white/5 shadow-sm flex flex-col">
-            <h2 className="text-xl font-medium mb-10">Focus Protagonisti</h2>
+          <div className="bg-[#171b1f] p-10 rounded-[40px] border border-white/5 shadow-sm flex flex-col">
+            <h2 className="text-xl font-bold mb-10">Focus Protagonisti</h2>
             <div className="flex-1 min-h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -200,7 +200,7 @@ export const AnalysisView: React.FC = () => {
                     ))}
                   </Pie>
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#020617', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px' }}
+                    contentStyle={{ backgroundColor: '#121519', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px' }}
                   />
                   <Legend 
                     verticalAlign="bottom" 
@@ -215,30 +215,30 @@ export const AnalysisView: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10">
           {/* Narrative Pacing Area Chart */}
-          <div className="bg-white/[0.02] p-10 rounded-[40px] border border-white/5 shadow-sm">
+          <div className="bg-[#171b1f] p-10 rounded-[40px] border border-white/5 shadow-sm">
             <div className="flex items-center justify-between mb-10">
               <div>
-                <h2 className="text-xl font-medium">Ritmo Narrativo</h2>
+                <h2 className="text-xl font-bold">Ritmo Narrativo</h2>
                 <p className="text-xs text-slate-500 mt-1">Variazione del pacing tra capitoli (Avg w/s).</p>
               </div>
-              <Activity className="w-5 h-5 text-emerald-500/30" />
+              <Activity className="w-5 h-5 text-[#5be9b1]/30" />
             </div>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={stats.chapterData} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
                   <defs>
                     <linearGradient id="paceGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.2}/>
-                      <stop offset="100%" stopColor="#10b981" stopOpacity={0}/>
+                      <stop offset="0%" stopColor="#5be9b1" stopOpacity={0.2}/>
+                      <stop offset="100%" stopColor="#5be9b1" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="0" stroke="#ffffff08" vertical={false} />
                   <XAxis dataKey="name" stroke="#64748b" fontSize={10} axisLine={false} tickLine={false} dy={15} />
                   <YAxis stroke="#64748b" fontSize={10} axisLine={false} tickLine={false} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#020617', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px' }}
+                    contentStyle={{ backgroundColor: '#121519', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px' }}
                   />
-                  <Area type="monotone" dataKey="pacing" stroke="#10b981" strokeWidth={4} fill="url(#paceGradient)" dot={{ r: 5, fill: '#10b981', strokeWidth: 0 }} activeDot={{ r: 8, stroke: '#020617', strokeWidth: 4 }} />
+                  <Area type="monotone" dataKey="pacing" stroke="#5be9b1" strokeWidth={4} fill="url(#paceGradient)" dot={{ r: 5, fill: '#5be9b1', strokeWidth: 0 }} activeDot={{ r: 8, stroke: '#121519', strokeWidth: 4 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -246,8 +246,8 @@ export const AnalysisView: React.FC = () => {
 
           {/* Lexical Lab */}
           <div className="flex flex-col gap-6">
-             <div className="bg-white/[0.02] p-10 rounded-[40px] border border-white/5 shadow-sm flex-1">
-                <h2 className="text-xl font-medium mb-8">Analisi del Lessico</h2>
+             <div className="bg-[#171b1f] p-10 rounded-[40px] border border-white/5 shadow-sm flex-1">
+                <h2 className="text-xl font-bold mb-8">Analisi del Lessico</h2>
                 <div className="space-y-6">
                   {stats.topWords.map((item, idx) => (
                     <div key={idx} className="group cursor-default">
@@ -260,7 +260,7 @@ export const AnalysisView: React.FC = () => {
                       </div>
                       <div className="h-0.5 bg-white/5 rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-emerald-500 transition-all duration-1000 ease-out" 
+                          className="h-full bg-[#5be9b1] transition-all duration-1000 ease-out" 
                           style={{ width: `${(item.count / stats.topWords[0].count) * 100}%` }}
                         />
                       </div>
@@ -269,15 +269,15 @@ export const AnalysisView: React.FC = () => {
                 </div>
              </div>
              
-             <div className="bg-emerald-600 p-10 rounded-[40px] flex items-center gap-6 group hover:shadow-[0_20px_60px_-15px_rgba(16,185,129,0.3)] transition-all cursor-pointer">
-                <div className="p-4 bg-white/20 rounded-[24px] backdrop-blur-md">
-                   <Zap className="w-8 h-8 text-white" />
+              <div className="bg-[#5be9b1] p-10 rounded-[40px] flex items-center gap-6 group hover:shadow-[0_20px_60px_-15px_rgba(91,233,177,0.3)] transition-all cursor-pointer">
+                <div className="p-4 bg-black/20 rounded-[24px] backdrop-blur-md">
+                   <Zap className="w-8 h-8 text-black" />
                 </div>
                 <div>
-                   <div className="text-lg font-bold text-white tracking-tight">AI Insights Engine</div>
-                   <p className="text-sm text-emerald-100 opacity-90 leading-tight mt-1">Analizza la coerenza del tono e il climax della tua opera.</p>
+                   <div className="text-lg font-black text-[#0b0e11] tracking-tight">AI Insights Engine</div>
+                   <p className="text-sm text-[#0b0e11] opacity-60 font-bold leading-tight mt-1">Analizza la coerenza del tono e il climax della tua opera.</p>
                 </div>
-             </div>
+              </div>
           </div>
         </div>
       </div>
