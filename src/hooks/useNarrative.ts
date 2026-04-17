@@ -130,6 +130,7 @@ export function useNarrative() {
         const { error } = await supabase.from('scenes').upsert(scenesToUpdate);
         if (error) {
           console.error('Error reordering scenes:', error);
+          alert('Errore Supabase: ' + error.message + ' (Dettagli: ' + error.details + ')');
           fetchNarrative(); // Revert on error
         }
       }
