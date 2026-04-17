@@ -226,13 +226,11 @@ const StructuredOutput: React.FC<{
               {trimmedLine}
             </p>
           </div>
-        )});
-      }
-    }
   });
 
-  if (currentSuggestion && currentSuggestion.original) {
-    items.push({ type: 'suggestion', key: 'pending-last', content: { ...currentSuggestion } });
+  const finalSug = currentSuggestion as any;
+  if (finalSug && finalSug.original) {
+    items.push({ type: 'suggestion', key: 'pending-last', content: { ...finalSug } });
   }
 
   // Find the first available suggestion to show
