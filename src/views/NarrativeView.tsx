@@ -1,4 +1,4 @@
-import { Plus, ChevronDown, ChevronRight, FileText, Folder, GripVertical } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, FileText, Folder, GripVertical, Library } from 'lucide-react';
 import { useNarrative } from '../hooks/useNarrative';
 import { useStore } from '../store/useStore';
 import { Editor } from '../components/Editor';

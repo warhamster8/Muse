@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { Settings, Cpu, Zap, ShieldCheck, AlertTriangle, Activity, Terminal } from 'lucide-react';
 import { useToast } from '../components/Toast';
 import { deepseekService } from '../lib/deepseek';
+import { cn } from '../lib/utils';
 
 export const ConfigView: React.FC = () => {
   const { user, aiConfig, setAIConfig } = useStore();

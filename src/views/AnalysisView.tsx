@@ -4,12 +4,9 @@ import {
   PieChart, Pie, Cell, Legend, AreaChart, Area
 } from 'recharts';
 import { 
-  BarChart3, 
   Book, 
   Clock, 
-  Users, 
   TrendingUp, 
-  Hash, 
   Layout,
   Activity
 } from 'lucide-react';
