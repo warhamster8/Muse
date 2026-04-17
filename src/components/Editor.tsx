@@ -13,9 +13,11 @@ import {
 
 import { useStore } from '../store/useStore';
 
-import { Plugin, PluginKey } from '@tiptap/pm/state';
-import { Decoration, DecorationSet } from '@tiptap/pm/view';
+// Removed unused imports Plugin, PluginKey, Decoration, DecorationSet
 
+import { SuggestionHighlight } from '../lib/tiptap/SuggestionHighlight';
+
+// Custom shortcuts extension... (kept same as before)
 const CustomShortcuts = Extension.create({
   name: 'customShortcuts',
   addKeyboardShortcuts() {
@@ -23,74 +25,6 @@ const CustomShortcuts = Extension.create({
       'Mod-Alt-1': () => this.editor.commands.insertContent('«'),
       'Mod-Alt-2': () => this.editor.commands.insertContent('»'),
     }
-  },
-});
-
-const HighlightExtension = Extension.create({
-  name: 'activeSuggestionHighlight',
-
-  addOptions() {
-    return {
-      highlightedText: null as string | null,
-    }
-  },
-
-  addProseMirrorPlugins() {
-    return [
-      new Plugin({
-        key: new PluginKey('activeSuggestionHighlight'),
-        props: {
-          decorations: (state) => {
-            const { highlightedText } = this.options;
-            if (!highlightedText) return DecorationSet.empty;
-
-            const normalize = (str: string) => str
-              .replace(/[\u201C\u201D\u201E\u201F«»]/g, '"')
-              .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
-              .replace(/[\u2013\u2014]/g, '-')
-              .replace(/\s+/g, ' ')
-              .trim();
-
-            const target = normalize(highlightedText);
-            if (target.length < 2) return DecorationSet.empty;
-
-            const decorations: Decoration[] = [];
-            const { doc } = state;
-
-            doc.descendants((node, pos) => {
-              if (node.isText) {
-                const text = node.text || '';
-                const normalizedText = normalize(text);
-                const hasMatch = normalizedText.indexOf(target) !== -1;
-                
-                if (!hasMatch) return;
-                
-                // If direct normalized match fails, we stick to direct match as fallback
-                // but usually normalized is more robust for AI suggestions.
-                // However, mapping back normalized index to original text pos is tricky.
-                // For now, let's use the simple indexOf on original text but normalize the target.
-                
-                const searchStr = text; 
-                let searchIdx = searchStr.indexOf(highlightedText);
-                
-                while (searchIdx !== -1) {
-                  const start = pos + searchIdx;
-                  const end = start + highlightedText.length;
-                  decorations.push(
-                    Decoration.inline(start, end, {
-                      class: 'suggestion-highlight-pulse',
-                    })
-                  );
-                  searchIdx = searchStr.indexOf(highlightedText, searchIdx + 1);
-                }
-              }
-            });
-
-            return DecorationSet.create(doc, decorations);
-          },
-        },
-      }),
-    ]
   },
 });
 
@@ -103,7 +37,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
       StarterKit,
       CharacterCount,
       CustomShortcuts,
-      HighlightExtension.configure({ highlightedText: null }),
+      SuggestionHighlight.configure({ suggestions: [] }),
     ],
     content: initialContent,
     editorProps: {
@@ -112,7 +46,6 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
       },
     },
     onUpdate: ({ editor }) => {
-      // Don't emit changes back to the parent if we're currently syncing from the parent
       if (isExternallyUpdating.current) return;
       onChange(editor.getHTML());
     },
@@ -127,19 +60,17 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
     },
   });
 
-  // Handle suggestion highlighting from the store
   const { highlightedText } = useStore();
   React.useEffect(() => {
     if (editor) {
       editor.setOptions({
         extensions: editor.extensionManager.extensions.map(ext => {
-           if (ext.name === 'activeSuggestionHighlight') {
-             return ext.configure({ highlightedText });
+           if (ext.name === 'suggestionHighlight') {
+             return ext.configure({ suggestions: highlightedText ? [highlightedText] : [] });
            }
            return ext;
         })
       });
-      // Force a re-render/re-decoration
       editor.view.dispatch(editor.state.tr);
     }
   }, [highlightedText, editor]);

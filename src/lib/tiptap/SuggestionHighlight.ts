@@ -16,72 +16,74 @@ export const SuggestionHighlight = Extension.create<SuggestionHighlightOptions>(
   },
 
   addProseMirrorPlugins() {
-    const { suggestions } = this.options;
+    const extension = this;
 
     return [
       new Plugin({
         key: new PluginKey('suggestionHighlight'),
-        state: {
-          init(_, { doc }) {
-            const decorations: Decoration[] = [];
-            
+        props: {
+          decorations(state) {
+            const { suggestions } = extension.options;
             if (!suggestions || suggestions.length === 0) {
               return DecorationSet.empty;
             }
+
+            const decorations: Decoration[] = [];
+            const { doc } = state;
+
 
             doc.descendants((node, pos) => {
               if (node.isText) {
                 const text = node.text || '';
                 
-                // Normalizziamo il testo del nodo (come in AISidekick)
-                const normalizeIt = (str: string) => str
-                    .replace(/[\u201C\u201D]/g, '"')
-                    .replace(/[\u2018\u2019]/g, "'")
-                    .replace(/E['’]/g, 'È')
-                    .replace(/\u00A0/g, ' ')
-                    .trim();
-                const removeAccents = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                
-                const searchNodeText = removeAccents(normalizeIt(text));
-
                 suggestions.forEach((suggestion) => {
-                  const searchSuggestion = removeAccents(normalizeIt(suggestion));
+                  if (!suggestion || suggestion.length < 3) return;
+
+                  // Create a regex that searches the RAW text but is flexible with spaces/quotes
+                  // Normalize parts of the suggestion
+                  const cleanSuggestion = suggestion
+                    .replace(/[\u201C\u201D\u201E\u201F«»]/g, '["“«»”]')
+                    .replace(/[\u2018\u2019\u201A\u201B']/g, "['’]")
+                    .replace(/[\u2013\u2014-]/g, '[-—–]')
+                    .replace(/\s+/g, '[\\s\\u00A0]+');
+
+                  const parts = cleanSuggestion.split(/\.\.\.|…/);
+                  const gapPattern = '[\\s\\W]*';
                   
-                  // Regex flessibile come in AISidekick
-                  const gapPattern = '[^a-zA-Z0-9]*';
-                  const parts = searchSuggestion.split(/\.\.\.|…/);
-                  let regexStr = parts.map(part => {
-                      const words = part.match(/[a-zA-Z0-9]+/g) || [];
-                      return words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(gapPattern);
+                  // Build a regex that matches the suggestion even with formatting or quote variations
+                  const regexStr = parts.map(part => {
+                      // Break into words/tokens to allow flexible gaps
+                      const tokens = part.match(/[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúÁÉÍÓÚ]+|[^\s\w]/g) || [];
+                      return tokens.map(t => {
+                          // If it's a word, match it literally (already escaped or normalized)
+                          // If it's a special quote/char already handled by our normalization above, keep it
+                          return t;
+                      }).join(gapPattern);
                   }).filter(p => p).join('(?:.|\\n){0,150}?');
 
                   if (regexStr) {
                     try {
+                      // We search in the RAW text (node.text)
                       const regex = new RegExp(regexStr, 'gi');
                       let match;
 
-                      while ((match = regex.exec(searchNodeText)) !== null) {
-                        // Prevent infinite loop on zero-length matches
+                      while ((match = regex.exec(text)) !== null) {
                         if (match[0].length === 0) {
                           regex.lastIndex++;
                           continue;
                         }
                         
-                        const startObj = match.index;
-                        const endObj = startObj + match[0].length;
+                        const start = pos + match.index;
+                        const end = start + match[0].length;
 
-                        // Per mappare l'indice del testo pulito al testo originale è complesso se modifichiamo molto
-                        // Qui assumiamo che il testo non abbia cambiato troppo dimensione. 
-                        // Per una corrispondenza esatta servirebbe la mappa come in AISidekick.
-                        
                         decorations.push(
-                          Decoration.inline(pos + startObj, pos + endObj, {
-                            class: 'suggestion-highlight',
+                          Decoration.inline(start, end, {
+                            class: 'suggestion-highlight-pulse',
                           })
                         );
                       }
                     } catch (e) {
-                       // ignore invalid regex
+                      // ignore invalid regex
                     }
                   }
                 });
@@ -89,14 +91,6 @@ export const SuggestionHighlight = Extension.create<SuggestionHighlightOptions>(
             });
 
             return DecorationSet.create(doc, decorations);
-          },
-          apply(tr, oldState) {
-            return oldState.map(tr.mapping, tr.doc);
-          },
-        },
-        props: {
-          decorations(state) {
-            return this.getState(state);
           },
         },
       }),
