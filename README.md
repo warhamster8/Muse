@@ -2,7 +2,7 @@
 
 **Project Muse** è una suite di scrittura creativa professionale progettata per trasformare frammenti di idee in narrativa strutturata. Con l'edizione *Inkwell*, l'interfaccia si evolve in un ambiente minimalista ad alto contrasto (Charcoal & Mint) studiato per massimizzare la concentrazione e l'immersione editoriale.
 
-![Project Muse Preview](public/inkwell_preview.png)
+![Project Muse Preview](public/inkwell_preview_sharp.png)
 
 ---
 

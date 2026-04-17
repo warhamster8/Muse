@@ -47,7 +47,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon: Icon, trend
     <div className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em]">{title}</div>
   </div>
 );
- bitumen:
+
 export const AnalysisView: React.FC = () => {
   const { chapters } = useStore();
   const { characters } = useCharacters();
