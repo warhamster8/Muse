@@ -8,6 +8,7 @@ export type Note = {
   project_id: string;
   title: string;
   content: string;
+  order_index?: number;
   created_at: string;
   updated_at?: string;
 };
@@ -25,17 +26,25 @@ export function useNotes() {
       const allNotes: Note[] = storage.getCollection('notes');
       const projectNotes = allNotes
         .filter(n => n.project_id === currentProject.id)
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
       setNotes(projectNotes);
     } else {
       const { data, error } = await supabase
         .from('notes')
         .select('*')
         .eq('project_id', currentProject.id)
-        .order('created_at', { ascending: false });
+        .order('order_index', { ascending: true });
 
       if (!error && data) {
         setNotes(data);
+      } else if (error) {
+        // Fallback to created_at if order_index column doesn't exist yet
+        const { data: fallbackData } = await supabase
+          .from('notes')
+          .select('*')
+          .eq('project_id', currentProject.id)
+          .order('created_at', { ascending: true });
+        if (fallbackData) setNotes(fallbackData);
       }
     }
     setLoading(false);
@@ -44,16 +53,18 @@ export function useNotes() {
   const addNote = async (title: string, content: string = '') => {
     if (!currentProject) return null;
     let newNote: Note;
+    const nextOrder = notes.length;
     
     if (isLocalMode) {
-      newNote = storage.insert('notes', { project_id: currentProject.id, title, content }) as Note;
+      newNote = storage.insert('notes', { project_id: currentProject.id, title, content, order_index: nextOrder }) as Note;
       await fetchNotes();
       return newNote;
     } else {
       const { data, error } = await supabase.from('notes').insert([{ 
         project_id: currentProject.id, 
         title, 
-        content 
+        content,
+        order_index: nextOrder
       }]).select().single();
       
       if (!error && data) {
@@ -84,9 +95,41 @@ export function useNotes() {
     }
   };
 
+  const reorderNotes = async (updatedNotes: Note[]) => {
+    setNotes(updatedNotes);
+
+    if (isLocalMode) {
+      const allNotes = storage.getCollection<Note>('notes');
+      const updatedNotesMap = new Map();
+      updatedNotes.forEach((n, idx) => {
+        updatedNotesMap.set(n.id, { ...n, order_index: idx });
+      });
+      
+      const newAllNotes = allNotes.map(n => {
+        if (updatedNotesMap.has(n.id)) {
+          return updatedNotesMap.get(n.id);
+        }
+        return n;
+      });
+      storage.setCollection('notes', newAllNotes);
+    } else {
+      const notesToUpdate = updatedNotes.map((n, idx) => ({
+        id: n.id,
+        project_id: currentProject?.id,
+        order_index: idx
+      }));
+      
+      const { error } = await supabase.from('notes').upsert(notesToUpdate);
+      if (error) {
+        console.error('Error reordering notes:', error);
+        fetchNotes();
+      }
+    }
+  };
+
   useEffect(() => {
     fetchNotes();
   }, [currentProject, isLocalMode]);
 
-  return { notes, loading, addNote, updateNote, deleteNote, refresh: fetchNotes };
+  return { notes, loading, addNote, updateNote, deleteNote, reorderNotes, refresh: fetchNotes };
 }

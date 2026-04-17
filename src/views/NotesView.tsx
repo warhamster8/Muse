@@ -13,9 +13,11 @@ import Image from '@tiptap/extension-image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../components/Toast';
 import { cn } from '../lib/utils';
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
+import { GripVertical } from 'lucide-react';
 
 export const NotesView: React.FC = () => {
-  const { notes, addNote, updateNote, deleteNote, loading } = useNotes();
+  const { notes, addNote, updateNote, deleteNote, reorderNotes, loading } = useNotes();
   const { addToast } = useToast();
   const [editingNote, setEditingNote] = React.useState<Note | null>(null);
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -37,6 +39,18 @@ export const NotesView: React.FC = () => {
     } catch (err) {
       addToast('Errore imprevisto durante la creazione.', 'error');
     }
+  };
+
+  const onDragEnd = (result: DropResult) => {
+    const { source, destination } = result;
+    if (!destination) return;
+    if (source.index === destination.index) return;
+
+    const nextNotes = Array.from(notes);
+    const [movedNote] = nextNotes.splice(source.index, 1);
+    nextNotes.splice(destination.index, 0, movedNote);
+
+    reorderNotes(nextNotes);
   };
 
   return (
@@ -63,31 +77,54 @@ export const NotesView: React.FC = () => {
       </div>
 
       {/* Grid */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide">
-        {loading && notes.length === 0 ? (
-          <div className="h-full flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : filteredNotes.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-slate-600 space-y-4">
-            <Plus className="w-16 h-16 opacity-10" />
-            <p className="text-sm italic">Nessuna nota trovata. Crea la prima!</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
-            <AnimatePresence mode="popLayout">
-              {filteredNotes.map((note) => (
-                <NoteCard 
-                   key={note.id} 
-                   note={note} 
-                   onClick={() => setEditingNote(note)}
-                   onDelete={() => deleteNote(note.id)}
-                />
-              ))}
-            </AnimatePresence>
-          </div>
-        )}
-      </div>
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
+          {loading && notes.length === 0 ? (
+            <div className="h-full flex items-center justify-center">
+              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : filteredNotes.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-slate-600 space-y-4">
+              <Plus className="w-16 h-16 opacity-10" />
+              <p className="text-sm italic">Nessuna nota trovata. Crea la prima!</p>
+            </div>
+          ) : (
+            <DragDropContext onDragEnd={onDragEnd}>
+              <Droppable droppableId="notes-grid" direction="horizontal">
+                {(provided) => (
+                  <div 
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8"
+                  >
+                    {filteredNotes.map((note, index) => (
+                      <Draggable key={note.id} draggableId={note.id} index={index}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className={cn(
+                              "relative",
+                              snapshot.isDragging && "z-50"
+                            )}
+                          >
+                            <NoteCard 
+                               note={note} 
+                               onClick={() => setEditingNote(note)}
+                               onDelete={() => deleteNote(note.id)}
+                               dragHandleProps={provided.dragHandleProps}
+                               isDragging={snapshot.isDragging}
+                            />
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+          )}
+        </div>
 
       {/* Editor Modal */}
       <AnimatePresence>
@@ -106,7 +143,13 @@ export const NotesView: React.FC = () => {
   );
 };
 
-const NoteCard: React.FC<{ note: Note; onClick: () => void; onDelete: () => void }> = ({ note, onClick, onDelete }) => {
+const NoteCard: React.FC<{ 
+  note: Note; 
+  onClick: () => void; 
+  onDelete: () => void;
+  dragHandleProps?: any;
+  isDragging?: boolean;
+}> = ({ note, onClick, onDelete, dragHandleProps, isDragging }) => {
   const preview = note.content.replace(/<[^>]*>/g, '').slice(0, 150) + (note.content.length > 150 ? '...' : '');
 
   return (
@@ -116,10 +159,18 @@ const NoteCard: React.FC<{ note: Note; onClick: () => void; onDelete: () => void
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       onClick={onClick}
-      className="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-5 hover:border-blue-500/30 transition-all cursor-pointer group relative flex flex-col h-48 overflow-hidden glass hover:bg-slate-800/40"
+      className={cn(
+        "bg-slate-900/40 border border-slate-700/50 rounded-2xl p-5 hover:border-blue-500/30 transition-all cursor-pointer group relative flex flex-col h-48 overflow-hidden glass hover:bg-slate-800/40",
+        isDragging && "bg-slate-800 border-blue-500/50 shadow-2xl"
+      )}
     >
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-bold text-slate-200 truncate pr-8">{note.title || 'Senza Titolo'}</h3>
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div {...dragHandleProps} className="p-1 hover:bg-slate-700 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+            <GripVertical className="w-4 h-4 text-slate-500" />
+          </div>
+          <h3 className="font-bold text-slate-200 truncate pr-8">{note.title || 'Senza Titolo'}</h3>
+        </div>
         <button 
           onClick={(e) => { e.stopPropagation(); onDelete(); }}
           className="absolute top-4 right-4 p-2 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-red-950/20"
