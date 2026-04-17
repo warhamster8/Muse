@@ -28,7 +28,6 @@
   body {
     @apply bg-[#1a1e23] text-slate-200 font-sans antialiased selection:bg-[#5be9b1]/30 selection:text-[#5be9b1];
   }
- bitumen:
   h1, h2, h3, h4, h5, h6 {
     @apply font-display text-slate-50 tracking-tighter font-black;
   }
