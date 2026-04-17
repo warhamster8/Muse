@@ -12,12 +12,10 @@ import {
 } from 'lucide-react';
 
 import { useStore } from '../store/useStore';
-
-// Removed unused imports Plugin, PluginKey, Decoration, DecorationSet
-
 import { SuggestionHighlight } from '../lib/tiptap/SuggestionHighlight';
+import { findMatchesInDoc } from '../lib/tiptap/matchUtils';
 
-// Custom shortcuts extension... (kept same as before)
+// Custom shortcuts extension
 const CustomShortcuts = Extension.create({
   name: 'customShortcuts',
   addKeyboardShortcuts() {
@@ -63,6 +61,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   const { highlightedText } = useStore();
   React.useEffect(() => {
     if (editor) {
+      // 1. Update the suggestion highlight extension options
       editor.setOptions({
         extensions: editor.extensionManager.extensions.map(ext => {
            if (ext.name === 'suggestionHighlight') {
@@ -71,7 +70,35 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
            return ext;
         })
       });
+      // Force a re-render of decorations
       editor.view.dispatch(editor.state.tr);
+
+      // 2. If there's text to highlight, find it and scroll to center
+      if (highlightedText) {
+        setTimeout(() => {
+          const matches = findMatchesInDoc(editor.state.doc, highlightedText);
+          if (matches.length > 0) {
+            const { from } = matches[0];
+            try {
+              const dom = editor.view.domAtPos(from);
+              let node = dom.node;
+              
+              if (node.nodeType === Node.TEXT_NODE) {
+                node = node.parentElement as HTMLElement;
+              }
+              
+              if (node instanceof Element) {
+                node.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'center',
+                });
+              }
+            } catch (e) {
+              console.warn('Could not scroll to suggestion:', e);
+            }
+          }
+        }, 10);
+      }
     }
   }, [highlightedText, editor]);
 
@@ -79,10 +106,8 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   React.useEffect(() => {
     if (editor && initialContent.trim() !== editor.getHTML().trim()) {
       isExternallyUpdating.current = true;
-      // The emitUpdate option prevents emitting an update event, breaking the infinite loop
       editor.commands.setContent(initialContent, { emitUpdate: false });
       
-      // Release the lock in the next frame to allow user changes again
       setTimeout(() => {
         isExternallyUpdating.current = false;
       }, 0);
