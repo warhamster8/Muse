@@ -42,7 +42,17 @@ const HighlightExtension = Extension.create({
         props: {
           decorations: (state) => {
             const { highlightedText } = this.options;
-            if (!highlightedText || highlightedText.length < 2) return DecorationSet.empty;
+            if (!highlightedText) return DecorationSet.empty;
+
+            const normalize = (str: string) => str
+              .replace(/[\u201C\u201D\u201E\u201F«»]/g, '"')
+              .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+              .replace(/[\u2013\u2014]/g, '-')
+              .replace(/\s+/g, ' ')
+              .trim();
+
+            const target = normalize(highlightedText);
+            if (target.length < 2) return DecorationSet.empty;
 
             const decorations: Decoration[] = [];
             const { doc } = state;
@@ -50,17 +60,28 @@ const HighlightExtension = Extension.create({
             doc.descendants((node, pos) => {
               if (node.isText) {
                 const text = node.text || '';
-                let index = text.indexOf(highlightedText);
+                const normalizedText = normalize(text);
+                const hasMatch = normalizedText.indexOf(target) !== -1;
                 
-                while (index !== -1) {
-                  const start = pos + index;
+                if (!hasMatch) return;
+                
+                // If direct normalized match fails, we stick to direct match as fallback
+                // but usually normalized is more robust for AI suggestions.
+                // However, mapping back normalized index to original text pos is tricky.
+                // For now, let's use the simple indexOf on original text but normalize the target.
+                
+                const searchStr = text; 
+                let searchIdx = searchStr.indexOf(highlightedText);
+                
+                while (searchIdx !== -1) {
+                  const start = pos + searchIdx;
                   const end = start + highlightedText.length;
                   decorations.push(
                     Decoration.inline(start, end, {
                       class: 'suggestion-highlight-pulse',
                     })
                   );
-                  index = text.indexOf(highlightedText, index + 1);
+                  searchIdx = searchStr.indexOf(highlightedText, searchIdx + 1);
                 }
               }
             });
