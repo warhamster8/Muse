@@ -56,7 +56,7 @@ export const CreationModal: React.FC<CreationModalProps> = ({
             <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Nome</label>
             <input 
               autoFocus
-              className="w-full bg-[#050505] border border-slate-700 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-blue-500 transition-all shadow-inner"
+              className="w-full bg-[#121519] border border-slate-700 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-blue-500 transition-all shadow-inner"
               placeholder={placeholder}
               value={value}
               onChange={(e) => setValue(e.target.value)}

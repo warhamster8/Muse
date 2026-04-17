@@ -56,13 +56,13 @@ export const NotesView: React.FC = () => {
   return (
     <div className="h-full flex flex-col space-y-8 overflow-hidden animate-in fade-in duration-700">
       {/* Header & Search */}
-      <div className="flex items-center justify-between gap-6 bg-[#0a0a0a] p-6 rounded-[32px] border border-white/5">
+      <div className="flex items-center justify-between gap-6 bg-[#171b1f] p-6 rounded-[32px] border border-white/5">
         <div className="flex-1 relative max-w-xl group">
           <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[#5be9b1] transition-colors" />
           <input 
             type="text"
             placeholder="Analizza le tue note..."
-            className="w-full bg-[#0a0a0a]/40 border border-white/5 rounded-[20px] py-3.5 pl-14 pr-6 text-sm focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#0a0a0a]/60 transition-all shadow-inner placeholder:text-slate-700"
+            className="w-full bg-[#171b1f]/40 border border-white/5 rounded-[20px] py-3.5 pl-14 pr-6 text-sm focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#171b1f]/60 transition-all shadow-inner placeholder:text-slate-700"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -160,8 +160,8 @@ const NoteCard: React.FC<{
       exit={{ opacity: 0, scale: 0.95 }}
       onClick={onClick}
       className={cn(
-        "bg-[#0a0a0a] border border-white/5 rounded-[32px] p-8 hover:border-[#5be9b1]/20 transition-all cursor-pointer group relative flex flex-col h-64 overflow-hidden shadow-sm hover:shadow-[0_20px_50px_-15px_rgba(16,185,129,0.1)]",
-        isDragging && "bg-[#0a0a0a] border-[#5be9b1]/30 shadow-2xl scale-105 z-50"
+        "bg-[#171b1f] border border-white/5 rounded-[32px] p-8 hover:border-[#5be9b1]/20 transition-all cursor-pointer group relative flex flex-col h-64 overflow-hidden shadow-sm hover:shadow-[0_20px_50px_-15px_rgba(16,185,129,0.1)]",
+        isDragging && "bg-[#171b1f] border-[#5be9b1]/30 shadow-2xl scale-105 z-50"
       )}
     >
       <div className="flex items-center justify-between mb-6">
@@ -364,7 +364,7 @@ const NoteModal: React.FC<{ note: Note; onClose: () => void; onSave: (updates: P
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.98, y: 30 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="relative w-full max-w-6xl h-[90vh] bg-[#0a0a0a] border border-white/5 rounded-[48px] shadow-[0_30px_100px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden"
+        className="relative w-full max-w-6xl h-[90vh] bg-[#171b1f] border border-white/5 rounded-[48px] shadow-[0_30px_100px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden"
       >
         {/* Header */}
         <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">

@@ -83,7 +83,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onBack }) => {
               <input 
                 type="email" 
                 required
-                className="w-full bg-[#050505]/40 border border-white/5 rounded-[20px] py-4 pl-14 pr-6 text-sm focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#050505]/60 transition-all text-white placeholder:text-slate-800"
+                className="w-full bg-[#121519]/40 border border-white/5 rounded-[20px] py-4 pl-14 pr-6 text-sm focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#121519]/60 transition-all text-white placeholder:text-slate-800"
                 placeholder="proprietario@muse.ai"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -98,7 +98,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onBack }) => {
               <input 
                 type="password" 
                 required
-                className="w-full bg-[#050505]/40 border border-white/5 rounded-[20px] py-4 pl-14 pr-6 text-sm focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#050505]/60 transition-all text-white placeholder:text-slate-800"
+                className="w-full bg-[#121519]/40 border border-white/5 rounded-[20px] py-4 pl-14 pr-6 text-sm focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#121519]/60 transition-all text-white placeholder:text-slate-800"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

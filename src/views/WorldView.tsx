@@ -69,7 +69,7 @@ export const WorldView: React.FC = () => {
       {/* Settings List */}
       <div className="w-80 flex flex-col gap-6">
         {/* Category Tabs */}
-        <div className="flex p-1.5 bg-[#0a0a0a] border border-white/5 rounded-[22px] shadow-inner">
+        <div className="flex p-1.5 bg-[#171b1f] border border-white/5 rounded-[22px] shadow-inner">
           <button
             onClick={() => setActiveCategory('location')}
             className={cn(
@@ -96,7 +96,7 @@ export const WorldView: React.FC = () => {
           </button>
         </div>
 
-        <div className="flex items-center justify-between bg-[#0a0a0a] p-4 rounded-2xl border border-white/5">
+        <div className="flex items-center justify-between bg-[#171b1f] p-4 rounded-2xl border border-white/5">
           <div className="flex items-center gap-3">
              {activeCategory === 'location' ? (
                 <Map className="w-4 h-4 text-[#5be9b1]" />
@@ -124,7 +124,7 @@ export const WorldView: React.FC = () => {
                 "p-5 rounded-[28px] border transition-all cursor-pointer group relative overflow-hidden",
                 selectedSettingId === s.id 
                   ? "bg-[#5be9b1]/10 border-[#5be9b1]/30 shadow-xl shadow-emerald-950/20" 
-                  : "bg-[#0a0a0a] border-white/5 hover:border-white/10"
+                  : "bg-[#171b1f] border-white/5 hover:border-white/10"
               )}
             >
               <div className="flex items-center justify-between mb-2">
@@ -152,7 +152,7 @@ export const WorldView: React.FC = () => {
       </div>
 
       {/* Detail Area */}
-      <div className="flex-1 min-w-0 bg-[#0a0a0a] rounded-[40px] border border-white/5 flex flex-col overflow-hidden shadow-sm">
+      <div className="flex-1 min-w-0 bg-[#171b1f] rounded-[40px] border border-white/5 flex flex-col overflow-hidden shadow-sm">
         {selectedSetting ? (
           <div className="flex flex-col h-full">
             <div className="p-10 border-b border-white/5 bg-white/[0.01] flex items-center justify-between group/detail">
@@ -174,7 +174,7 @@ export const WorldView: React.FC = () => {
                   <select 
                     value={selectedSetting.type}
                     onChange={(e) => updateSetting(selectedSetting.id, { type: e.target.value as 'Primary' | 'Secondary' })}
-                    className="bg-[#0a0a0a] border border-white/10 text-[10px] text-[#5be9b1] rounded-xl px-5 py-3 outline-none focus:border-[#5be9b1]/50 transition-all font-bold uppercase tracking-widest cursor-pointer shadow-lg"
+                    className="bg-[#171b1f] border border-white/10 text-[10px] text-[#5be9b1] rounded-xl px-5 py-3 outline-none focus:border-[#5be9b1]/50 transition-all font-bold uppercase tracking-widest cursor-pointer shadow-lg"
                   >
                     <option value="Primary">{activeCategory === 'location' ? 'Nucleo Primario' : 'Leggendario / Unico'}</option>
                     <option value="Secondary">{activeCategory === 'location' ? 'Settore Secondario' : 'Comune / Reperibile'}</option>
@@ -191,7 +191,7 @@ export const WorldView: React.FC = () => {
                   </h4>
                 </div>
                 <textarea 
-                  className="w-full h-96 bg-[#0a0a0a] border border-white/5 rounded-[40px] p-10 text-sm text-slate-300 focus:outline-none focus:border-[#5be9b1]/30 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide"
+                  className="w-full h-96 bg-[#171b1f] border border-white/5 rounded-[40px] p-10 text-sm text-slate-300 focus:outline-none focus:border-[#5be9b1]/30 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide"
                   placeholder={activeCategory === 'location' 
                     ? "Quali profumi pervadono l'aria? Qual è la temperatura? Quali architetture dominano la vista?" 
                     : "Qual è la storia di questo oggetto? Possiede peculiarità uniche? A chi appartiene attualmente?"

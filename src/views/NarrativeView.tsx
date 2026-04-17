@@ -71,7 +71,7 @@ export const NarrativeView: React.FC = () => {
   return (
     <div className="flex h-full gap-4 overflow-hidden animate-in fade-in duration-700">
       {/* Chapter/Scene Navigator */}
-      <div className="w-72 bg-[#050505] border border-white/10 rounded-[32px] overflow-hidden flex flex-col shadow-sm">
+      <div className="w-72 bg-[#121519] border border-white/10 rounded-[32px] overflow-hidden flex flex-col shadow-sm">
         <div className="p-6 border-b border-white/10 flex items-center justify-between bg-black/20">
           <div className="flex items-center gap-2">
             <Library className="w-4 h-4 text-[#5be9b1]/50" />
@@ -122,7 +122,7 @@ export const NarrativeView: React.FC = () => {
                                   activeSceneId === scene.id 
                                     ? "bg-[#5be9b1]/10 text-[#5be9b1] border-[#5be9b1]/30" 
                                     : "text-slate-500 hover:bg-white/5 hover:text-slate-200 border-transparent",
-                                  snapshot.isDragging && "bg-[#0f0f0f] shadow-2xl border-[#5be9b1]/50 z-50 scale-105"
+                                  snapshot.isDragging && "bg-[#1a1f24] shadow-2xl border-[#5be9b1]/50 z-50 scale-105"
                                 )}
                               >
                                 <div {...provided.dragHandleProps} className="p-1 hover:bg-white/10 rounded-lg opacity-0 group-hover/scene:opacity-100 transition-opacity">
@@ -150,7 +150,7 @@ export const NarrativeView: React.FC = () => {
       {/* Editor Main Area */}
       <div className="flex-1 min-w-0 h-full relative">
         {activeScene ? (
-          <div className="h-full bg-[#050505]/20 rounded-[40px] border border-white/5 overflow-hidden shadow-inner flex flex-col">
+          <div className="h-full bg-[#121519]/20 rounded-[40px] border border-white/5 overflow-hidden shadow-inner flex flex-col">
             <div className="p-4 px-10 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
                <div className="flex items-center gap-4">
                   <div className="p-2 bg-[#5be9b1]/10 rounded-xl border border-[#5be9b1]/20">
@@ -161,7 +161,7 @@ export const NarrativeView: React.FC = () => {
                      <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest leading-none mt-0.5">Edit Mode</p>
                   </div>
                </div>
-               <button className="px-6 py-2 bg-[#5be9b1] hover:bg-[#4ade80] text-[#000000] text-[10px] font-black rounded-xl transition-all shadow-xl shadow-[#5be9b1]/10 uppercase tracking-widest">
+               <button className="px-6 py-2 bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] text-[10px] font-black rounded-xl transition-all shadow-xl shadow-[#5be9b1]/10 uppercase tracking-widest">
                   Save Draft
                </button>
             </div>
@@ -177,7 +177,7 @@ export const NarrativeView: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-slate-700 space-y-6 bg-[#050505]/10 rounded-[40px] border border-white/5">
+          <div className="h-full flex flex-col items-center justify-center text-slate-700 space-y-6 bg-[#121519]/10 rounded-[40px] border border-white/5">
             <div className="w-24 h-24 rounded-full border border-white/5 flex items-center justify-center opacity-20 bg-white/5">
               <FileText className="w-10 h-10" />
             </div>

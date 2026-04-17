@@ -124,7 +124,7 @@ export const ProjectSelector: React.FC = () => {
                     <label className="text-[9px] font-bold text-[#5be9b1] uppercase tracking-widest">Titolo Manoscritto</label>
                     <input 
                       autoFocus
-                      className="w-full bg-[#050505]/60 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:border-[#5be9b1]/50 transition-all placeholder:text-slate-800"
+                      className="w-full bg-[#121519]/60 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:border-[#5be9b1]/50 transition-all placeholder:text-slate-800"
                       placeholder="L'Ombra del Tempo..."
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}

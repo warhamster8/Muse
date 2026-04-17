@@ -30,10 +30,10 @@ interface MetricCardProps {
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon: Icon, trend }) => (
-  <div className="bg-[#0a0a0a] p-8 rounded-[32px] border border-white/10 hover:border-[#5be9b1]/30 transition-all group relative overflow-hidden">
+  <div className="bg-[#23282f] p-8 rounded-[32px] border border-white/5 hover:border-[#5be9b1]/20 transition-all group relative overflow-hidden">
     <div className="absolute top-0 right-0 w-24 h-24 bg-[#5be9b1]/5 blur-3xl -mr-12 -mt-12 group-hover:bg-[#5be9b1]/10 transition-all" />
     <div className="flex items-center justify-between mb-6">
-      <div className="p-3 bg-black rounded-[18px] text-[#5be9b1] border border-white/10 group-hover:scale-110 transition-transform">
+      <div className="p-3 bg-[#13161a] rounded-[18px] text-[#5be9b1] border border-white/10 group-hover:scale-110 transition-transform">
         <Icon className="w-5 h-5" />
       </div>
       {trend && (
@@ -102,7 +102,7 @@ export const AnalysisView: React.FC = () => {
 
   if (chapters.length === 0) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-slate-700 space-y-6 bg-black rounded-[40px] border border-white/10">
+      <div className="h-full flex flex-col items-center justify-center text-slate-700 space-y-6 bg-[#13161a] rounded-[40px] border border-white/10">
         <Activity className="w-16 h-16 opacity-10" />
         <div className="text-center">
             <h3 className="text-lg font-black text-slate-400">Nessun dato disponibile</h3>
@@ -114,7 +114,7 @@ export const AnalysisView: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full space-y-8 animate-in fade-in duration-700">
-      <header className="flex items-center justify-between bg-[#0a0a0a] p-8 rounded-[32px] border border-white/10">
+      <header className="flex items-center justify-between bg-[#23282f] p-8 rounded-[32px] border border-white/5">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Activity className="w-4 h-4 text-[#5be9b1]" />
@@ -127,7 +127,7 @@ export const AnalysisView: React.FC = () => {
               <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ultimo Update</div>
               <div className="text-xs text-slate-400 font-mono">Just now</div>
            </div>
-           <button className="px-8 py-3 bg-[#5be9b1] hover:bg-[#4ade80] text-[#000000] text-xs font-black rounded-2xl shadow-xl shadow-[#5be9b1]/10 transition-all active:scale-95 uppercase tracking-widest">
+           <button className="px-8 py-3 bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] text-xs font-black rounded-2xl shadow-xl shadow-[#5be9b1]/10 transition-all active:scale-95 uppercase tracking-widest">
              Salva Report
            </button>
         </div>
@@ -144,7 +144,7 @@ export const AnalysisView: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Chapter Balance Chart */}
-          <div className="lg:col-span-2 bg-[#0a0a0a] p-10 rounded-[40px] border border-white/10 shadow-sm">
+          <div className="lg:col-span-2 bg-[#1a1e23]/60 backdrop-blur-md p-10 rounded-[40px] border border-white/10 shadow-sm">
             <div className="flex items-center justify-between mb-10">
               <div>
                 <h2 className="text-xl font-black flex items-center gap-3">
@@ -171,7 +171,7 @@ export const AnalysisView: React.FC = () => {
                   <YAxis stroke="#64748b" fontSize={10} axisLine={false} tickLine={false} />
                   <Tooltip 
                     cursor={{ fill: 'rgba(91, 233, 177, 0.03)' }}
-                    contentStyle={{ backgroundColor: '#050505', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '12px' }}
+                    contentStyle={{ backgroundColor: '#121519', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '12px' }}
                     itemStyle={{ color: '#5be9b1', fontWeight: 'bold' }}
                     labelStyle={{ opacity: 0.5, marginBottom: '4px' }}
                   />
@@ -182,7 +182,7 @@ export const AnalysisView: React.FC = () => {
           </div>
 
           {/* Character Mentions */}
-          <div className="bg-[#0a0a0a] p-10 rounded-[40px] border border-white/5 shadow-sm flex flex-col">
+          <div className="bg-[#171b1f] p-10 rounded-[40px] border border-white/5 shadow-sm flex flex-col">
             <h2 className="text-xl font-bold mb-10">Focus Protagonisti</h2>
             <div className="flex-1 min-h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -200,7 +200,7 @@ export const AnalysisView: React.FC = () => {
                     ))}
                   </Pie>
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#050505', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px' }}
+                    contentStyle={{ backgroundColor: '#121519', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px' }}
                   />
                   <Legend 
                     verticalAlign="bottom" 
@@ -215,7 +215,7 @@ export const AnalysisView: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10">
           {/* Narrative Pacing Area Chart */}
-          <div className="bg-[#0a0a0a] p-10 rounded-[40px] border border-white/5 shadow-sm">
+          <div className="bg-[#171b1f] p-10 rounded-[40px] border border-white/5 shadow-sm">
             <div className="flex items-center justify-between mb-10">
               <div>
                 <h2 className="text-xl font-bold">Ritmo Narrativo</h2>
@@ -236,9 +236,9 @@ export const AnalysisView: React.FC = () => {
                   <XAxis dataKey="name" stroke="#64748b" fontSize={10} axisLine={false} tickLine={false} dy={15} />
                   <YAxis stroke="#64748b" fontSize={10} axisLine={false} tickLine={false} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#050505', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px' }}
+                    contentStyle={{ backgroundColor: '#121519', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px' }}
                   />
-                  <Area type="monotone" dataKey="pacing" stroke="#5be9b1" strokeWidth={4} fill="url(#paceGradient)" dot={{ r: 5, fill: '#5be9b1', strokeWidth: 0 }} activeDot={{ r: 8, stroke: '#050505', strokeWidth: 4 }} />
+                  <Area type="monotone" dataKey="pacing" stroke="#5be9b1" strokeWidth={4} fill="url(#paceGradient)" dot={{ r: 5, fill: '#5be9b1', strokeWidth: 0 }} activeDot={{ r: 8, stroke: '#121519', strokeWidth: 4 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -246,7 +246,7 @@ export const AnalysisView: React.FC = () => {
 
           {/* Lexical Lab */}
           <div className="flex flex-col gap-6">
-             <div className="bg-[#0a0a0a] p-10 rounded-[40px] border border-white/5 shadow-sm flex-1">
+             <div className="bg-[#171b1f] p-10 rounded-[40px] border border-white/5 shadow-sm flex-1">
                 <h2 className="text-xl font-bold mb-8">Analisi del Lessico</h2>
                 <div className="space-y-6">
                   {stats.topWords.map((item, idx) => (
@@ -274,8 +274,8 @@ export const AnalysisView: React.FC = () => {
                    <Zap className="w-8 h-8 text-black" />
                 </div>
                 <div>
-                   <div className="text-lg font-black text-[#000000] tracking-tight">AI Insights Engine</div>
-                   <p className="text-sm text-[#000000] opacity-60 font-bold leading-tight mt-1">Analizza la coerenza del tono e il climax della tua opera.</p>
+                   <div className="text-lg font-black text-[#0b0e11] tracking-tight">AI Insights Engine</div>
+                   <p className="text-sm text-[#0b0e11] opacity-60 font-bold leading-tight mt-1">Analizza la coerenza del tono e il climax della tua opera.</p>
                 </div>
               </div>
           </div>
