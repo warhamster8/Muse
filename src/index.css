@@ -110,12 +110,12 @@
 
 /* Logo Blending: Clean & High Clarity */
 .logo-blend {
-    filter: brightness(1.1) contrast(1.05);
+    filter: brightness(1.1) contrast(1.1) drop-shadow(0 0 20px rgba(91, 233, 177, 0.2));
+    transition: all 0.5s ease-in-out;
 }
 
 .logo-glow {
-    box-shadow: 0 0 120px rgba(0, 0, 0, 0.6);
-    background: radial-gradient(circle, rgba(91, 233, 177, 0.08) 0%, transparent 75%);
+    background: radial-gradient(circle at center, rgba(91, 233, 177, 0.15) 0%, rgba(91, 233, 177, 0.05) 50%, transparent 80%);
 }
 
 /* Suggestion Highlights: Soft Mint Pulse */
