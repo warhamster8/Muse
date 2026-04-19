@@ -64,6 +64,8 @@ create table public.characters (
   evolution text default '',
   relations text default '',
   avatar_url text default '',
+  avatar_pos_x integer default 50,
+  avatar_pos_y integer default 50,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

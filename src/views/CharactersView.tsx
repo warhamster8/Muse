@@ -52,7 +52,7 @@ export const CharactersView: React.FC = () => {
 
   // Debounce updates for position
   React.useEffect(() => {
-    if (!selectedChar) return;
+    if (!selectedChar || isAdjusting === false) return; // Salva solo durante l'aggiustamento attivo
     const timer = setTimeout(() => {
       if (posX !== selectedChar.avatar_pos_x || posY !== selectedChar.avatar_pos_y) {
         updateCharacter(selectedChar.id, { avatar_pos_x: posX, avatar_pos_y: posY });
@@ -285,8 +285,12 @@ export const CharactersView: React.FC = () => {
                         />
                       </div>
                       <button 
-                        onClick={() => setIsAdjusting(false)}
-                        className="w-full py-3 bg-[#5be9b1] hover:bg-[#5be9b1] text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg"
+                        onClick={() => {
+                          updateCharacter(selectedChar.id, { avatar_pos_x: posX, avatar_pos_y: posY });
+                          setIsAdjusting(false);
+                          addToast("Inquadratura salvata!", "success");
+                        }}
+                        className="w-full py-3 bg-[#5be9b1] hover:bg-[#5be9b1] text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95"
                       >
                         Salva Inquadratura
                       </button>
