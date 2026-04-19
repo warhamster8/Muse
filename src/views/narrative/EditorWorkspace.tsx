@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FileText, Sparkles } from 'lucide-react';
 import { Editor } from '../../components/Editor';
 import type { Scene } from '../../types/narrative';
+import { useStore } from '../../store/useStore';
 import { cn } from '../../lib/utils';
 
 interface EditorWorkspaceProps {
@@ -20,7 +21,7 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = ({
   onUpdateContent
 }) => {
   const { requestAnalysis } = useStore();
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isAnalyzing] = useState(false);
 
   const onAnalyze = () => {
     requestAnalysis();
