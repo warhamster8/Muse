@@ -19,11 +19,11 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = ({
   activeScene,
   onUpdateContent
 }) => {
+  const { requestAnalysis } = useStore();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const onAnalyze = () => {
-    setIsAnalyzing(true);
-    setTimeout(() => setIsAnalyzing(false), 2000);
+    requestAnalysis();
   };
 
   // Caso 1: Nessuna scena selezionata (Empty State)

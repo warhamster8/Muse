@@ -330,6 +330,14 @@ export const AISidekick: React.FC = () => {
     setIsAnalyzing(false);
   };
 
+  const { analysisRequestToken } = useStore();
+  React.useEffect(() => {
+    if (analysisRequestToken > 0) {
+      setActiveTab('revision'); // Forza il tab di revisione se richiesto dall'editor
+      runDraftRevision();
+    }
+  }, [analysisRequestToken]);
+
   const sceneIgnoredSuggestions = React.useMemo(() => 
     activeSceneId ? (ignoredSuggestions || {})[activeSceneId] || [] : []
   , [ignoredSuggestions, activeSceneId]);

@@ -29,6 +29,7 @@ interface AppState {
   lastAnalyzedPhrase: Record<string, string>;
   sceneAnalysis: Record<string, string>;
   aiConfig: AIConfig;
+  analysisRequestToken: number;
   
   activeSelection: string | null;
   highlightedText: string | null;
@@ -49,6 +50,7 @@ interface AppState {
   setAIConfig: (config: Partial<AIConfig>) => void;
   setActiveSelection: (selection: string | null) => void;
   setHighlightedText: (text: string | null) => void;
+  requestAnalysis: () => void;
 }
 
 export const useStore = create<AppState>()(
@@ -71,6 +73,7 @@ export const useStore = create<AppState>()(
         model: 'llama-3.3-70b-versatile',
         deepseekKey: ''
       },
+      analysisRequestToken: 0,
       activeSelection: null,
       highlightedText: null,
       
@@ -117,6 +120,7 @@ export const useStore = create<AppState>()(
       })),
       setActiveSelection: (selection) => set({ activeSelection: selection }),
       setHighlightedText: (text) => set({ highlightedText: text }),
+      requestAnalysis: () => set((state) => ({ analysisRequestToken: state.analysisRequestToken + 1 })),
     }),
     {
       name: 'muse-storage',

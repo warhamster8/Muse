@@ -109,3 +109,24 @@
 .logo-glow {
     background: radial-gradient(circle at center, rgba(91, 233, 177, 0.15) 0%, rgba(91, 233, 177, 0.05) 50%, transparent 80%);
 }
+
+/* Suggestion Highlighting */
+.suggestion-highlight-pulse {
+  background-color: rgba(91, 233, 177, 0.15);
+  border-bottom: 2px solid rgba(91, 233, 177, 0.6);
+  border-radius: 4px;
+  animation: emerald-glow-pulse 2s infinite ease-in-out;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.suggestion-highlight-pulse:hover {
+  background-color: rgba(91, 233, 177, 0.25);
+  border-bottom-color: rgba(91, 233, 177, 1);
+}
+
+@keyframes emerald-glow-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(91, 233, 177, 0); }
+  50% { box-shadow: 0 0 15px 2px rgba(91, 233, 177, 0.2); }
+  100% { box-shadow: 0 0 0 0 rgba(91, 233, 177, 0); }
+}
