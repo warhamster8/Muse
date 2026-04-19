@@ -146,9 +146,10 @@ function App() {
   // 4. Main App Dashboard
   return (
     <div className="flex h-screen bg-[#1a1e23] text-slate-100 font-sans overflow-hidden relative">
-      {/* Background Atmosphere Gradients */}
-      <div className="absolute -top-[20%] -right-[10%] w-[60%] h-[60%] bg-[#5be9b1]/5 blur-[180px] rounded-full pointer-events-none" />
-      <div className="absolute -bottom-[20%] -left-[10%] w-[60%] h-[60%] bg-[#5be9b1]/3 blur-[180px] rounded-full pointer-events-none" />
+      {/* Background Atmosphere Gradients - Inkwell Edition */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#5be9b1]/5 blur-[120px] rounded-full pointer-events-none opacity-40" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#5be9b1]/3 blur-[120px] rounded-full pointer-events-none opacity-30" />
+      <div className="absolute top-[20%] right-[5%] w-[30%] h-[30%] bg-emerald-900/10 blur-[150px] rounded-full pointer-events-none" />
       
       <ErrorBoundary>
         <Sidebar />

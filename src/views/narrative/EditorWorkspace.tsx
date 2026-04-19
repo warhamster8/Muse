@@ -37,34 +37,50 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = ({
 
   // Caso 2: Scena attiva, mostriamo l'editor
   return (
-    <div className="flex-1 min-w-0 h-full relative animate-in fade-in duration-500">
-      <div className="h-full bg-[#121519]/20 rounded-[40px] border border-white/5 overflow-hidden shadow-inner flex flex-col">
-        {/* Header dell'Area Editor */}
-        <div className="p-4 px-10 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-           <div className="flex items-center gap-4">
-              <div className="p-2 bg-[#5be9b1]/10 rounded-xl border border-[#5be9b1]/20">
-                 <FileText className="w-4 h-4 text-[#5be9b1]" />
-              </div>
-              <div>
-                 <h2 className="text-sm font-black text-slate-200 tracking-tight">{activeScene.title}</h2>
-                 <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest leading-none mt-0.5">Nucleo di Scrittura</p>
-              </div>
-           </div>
-           <button 
-             className="px-6 py-2 bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] text-[10px] font-black rounded-xl transition-all shadow-xl shadow-[#5be9b1]/10 uppercase tracking-widest active:scale-95"
-             title="Salvataggio manuale bozza"
-           >
-              Salva Bozza
-           </button>
-        </div>
+    <div className="flex-1 min-w-0 flex flex-col bg-[#111418] relative">
+      {/* Background Decorative Element */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-[#5be9b1]/5 blur-[100px] pointer-events-none" />
 
-        {/* Componente Core Editor */}
-        <div className="flex-1 min-h-0">
-           <Editor 
-             key={activeScene.id} 
-             initialContent={activeScene.content || ''} 
-             onChange={(html) => onUpdateContent(activeScene.id, html)} 
-           />
+      {/* Toolbar Premium */}
+      <div className="h-20 bg-white/[0.01] border-b border-white/5 flex items-center justify-between px-10 backdrop-blur-md z-10">
+        <div className="flex items-center gap-6">
+          <div className="flex flex-col">
+            <span className="text-[9px] font-black text-[#5be9b1] uppercase tracking-[0.4em] mb-1">Editing Mode</span>
+            <h2 className="text-xl font-black text-slate-100 tracking-tighter uppercase truncate max-w-[300px]">
+              {activeScene.title}
+            </h2>
+          </div>
+          <div className="h-8 w-[1px] bg-white/5 mx-2" />
+          <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
+            <div className="w-1.5 h-1.5 bg-[#5be9b1] rounded-full animate-pulse" />
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Live Sync</span>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={onAnalyze}
+            disabled={isAnalyzing}
+            className={cn(
+              "flex items-center gap-3 px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl group",
+              isAnalyzing 
+                ? "bg-slate-800 text-slate-500" 
+                : "bg-[#5be9b1] text-[#0b0e11] hover:scale-105 shadow-[0_10px_30px_-5px_rgba(91,233,177,0.3)]"
+            )}
+          >
+            <Sparkles className={cn("w-4 h-4", !isAnalyzing && "group-hover:rotate-12 transition-transform")} />
+            {isAnalyzing ? 'Analisi in Corso...' : 'AI Sidekick'}
+          </button>
+        </div>
+      </div>
+
+      {/* Editor Area */}
+      <div className="flex-1 overflow-y-auto p-12 lg:p-20 scrollbar-hide bg-[#0b0e11]">
+        <div className="max-w-4xl mx-auto glass border border-white/5 rounded-[48px] p-16 lg:p-24 shadow-inner min-h-full">
+          <Editor 
+            initialContent={activeScene.content || ''} 
+            onChange={(newContent) => onUpdateContent(activeScene.id, newContent)} 
+          />
         </div>
       </div>
     </div>

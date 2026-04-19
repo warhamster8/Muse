@@ -54,38 +54,43 @@ export const NotesView: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col space-y-8 overflow-hidden animate-in fade-in duration-700">
+    <div className="h-full flex flex-col space-y-10 overflow-hidden animate-in fade-in duration-1000">
       {/* Header & Search */}
-      <div className="flex items-center justify-between gap-6 bg-[#171b1f] p-6 rounded-[32px] border border-white/5">
-        <div className="flex-1 relative max-w-xl group">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[#5be9b1] transition-colors" />
+      <div className="flex items-center justify-between gap-8 glass-dark p-8 rounded-[40px] border border-white/5 shadow-2xl relative overflow-hidden">
+        {/* Background Accent */}
+        <div className="absolute top-0 right-0 w-64 h-full bg-[#5be9b1]/5 blur-[60px] pointer-events-none" />
+        
+        <div className="flex-1 relative max-w-2xl group">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700 group-focus-within:text-[#5be9b1] transition-all duration-500" />
           <input 
             type="text"
-            placeholder="Analizza le tue note..."
-            className="w-full bg-[#171b1f]/40 border border-white/5 rounded-[20px] py-3.5 pl-14 pr-6 text-sm focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#171b1f]/60 transition-all shadow-inner placeholder:text-slate-700"
+            placeholder="Search through your narrative fragments..."
+            className="w-full bg-black/40 border border-white/5 rounded-[24px] py-4 pl-16 pr-8 text-sm text-slate-200 focus:outline-none focus:border-[#5be9b1]/30 focus:bg-black/60 transition-all shadow-inner placeholder:text-slate-800 tracking-tight"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         <button 
           onClick={handleCreateNote}
-          className="bg-[#5be9b1] hover:bg-[#5be9b1] text-white px-8 py-3.5 rounded-[20px] font-bold text-xs flex items-center gap-3 transition-all shadow-2xl shadow-emerald-950/40 active:scale-95 uppercase tracking-widest"
+          className="bg-[#5be9b1] hover:bg-[#5be9b1] text-[#0b0e11] px-10 py-4 rounded-[24px] font-black text-[10px] flex items-center gap-4 transition-all shadow-2xl shadow-emerald-950/40 active:scale-95 uppercase tracking-[0.2em] group"
         >
-          <Plus className="w-4 h-4" />
-          Nuova Intuizione
+          <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+          Initial Fragment
         </button>
       </div>
 
       {/* Grid */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide">
+        <div className="flex-1 overflow-y-auto scrollbar-hide pb-20">
           {loading && notes.length === 0 ? (
             <div className="h-full flex items-center justify-center">
-              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-12 h-12 border-2 border-[#5be9b1]/20 border-t-[#5be9b1] rounded-full animate-spin" />
             </div>
           ) : filteredNotes.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-600 space-y-4">
-              <Plus className="w-16 h-16 opacity-10" />
-              <p className="text-sm italic">Nessuna nota trovata. Crea la prima!</p>
+            <div className="h-full flex flex-col items-center justify-center text-slate-800 space-y-8">
+              <div className="w-24 h-24 rounded-[32px] glass border border-white/5 flex items-center justify-center opacity-20">
+                <Plus className="w-10 h-10" />
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-30">No cognitive fragments detected</p>
             </div>
           ) : (
             <DragDropContext onDragEnd={onDragEnd}>
@@ -94,7 +99,7 @@ export const NotesView: React.FC = () => {
                   <div 
                     {...provided.droppableProps}
                     ref={provided.innerRef}
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8"
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                   >
                     {filteredNotes.map((note, index) => (
                       <Draggable key={note.id} draggableId={note.id} index={index}>

@@ -31,18 +31,19 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
   onCreateScene,
   onReorder
 }) => {
-  return (
-    <div className="w-80 bg-[#121519] border border-white/10 rounded-[32px] overflow-hidden flex flex-col shadow-sm">
+  return (    <div className="w-80 glass rounded-[32px] overflow-hidden flex flex-col shadow-2xl border border-white/5 mx-2">
       {/* Header del Navigatore */}
-      <div className="p-6 border-b border-white/10 flex items-center justify-between bg-black/20">
-        <div className="flex items-center gap-2">
-          <Library className="w-4 h-4 text-[#5be9b1]/50" />
-          <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Manoscritto</span>
+      <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-[#5be9b1]/10 rounded-lg">
+            <Library className="w-4 h-4 text-[#5be9b1]" />
+          </div>
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Navigator</span>
         </div>
         <button 
           onClick={onCreateChapter} 
-          className="p-2 hover:bg-[#5be9b1]/10 rounded-xl text-[#5be9b1] transition-colors border border-transparent hover:border-[#5be9b1]/30"
-          title="Aggiungi Capitolo"
+          className="p-2.5 hover:bg-[#5be9b1]/10 rounded-xl text-[#5be9b1] transition-all border border-white/5 hover:border-[#5be9b1]/30 active:scale-90"
+          title="Nuovo Capitolo"
         >
           <Plus className="w-4 h-4" />
         </button>
@@ -56,22 +57,32 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
               {/* Riga Capitolo */}
               <div 
                 onClick={() => onToggleChapter(chapter.id)}
-                className="flex items-center space-x-3 px-4 py-2.5 hover:bg-white/[0.03] rounded-2xl cursor-pointer group transition-all border border-transparent hover:border-white/5"
+                className={cn(
+                  "flex items-center space-x-3 px-5 py-3.5 rounded-2xl cursor-pointer group transition-all border",
+                  expandedChapters.has(chapter.id) 
+                    ? "bg-white/[0.03] border-white/5 shadow-inner" 
+                    : "border-transparent hover:bg-white/[0.02] hover:border-white/5"
+                )}
               >
                 <div className="w-4 h-4 flex items-center justify-center">
                   {expandedChapters.has(chapter.id) ? 
-                    <ChevronDown className="w-3 h-3 text-slate-600" /> : 
-                    <ChevronRight className="w-3 h-3 text-slate-600" />
+                    <ChevronDown className="w-3.5 h-3.5 text-[#5be9b1]" /> : 
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-700" />
                   }
                 </div>
-                <Folder className={cn("w-4 h-4 transition-colors", expandedChapters.has(chapter.id) ? "text-[#5be9b1]" : "text-slate-700")} />
-                <span className="text-sm font-black text-slate-300 flex-1 truncate uppercase tracking-tighter">{chapter.title}</span>
+                <Folder className={cn("w-4 h-4 transition-colors duration-500", expandedChapters.has(chapter.id) ? "text-[#5be9b1]" : "text-slate-800")} />
+                <span className={cn(
+                  "text-[11px] font-black flex-1 truncate uppercase tracking-tighter transition-colors duration-500",
+                  expandedChapters.has(chapter.id) ? "text-slate-100" : "text-slate-500 group-hover:text-slate-300"
+                )}>
+                  {chapter.title}
+                </span>
                 <Plus 
                   onClick={(e) => {
                     e.stopPropagation();
                     onCreateScene(chapter.id);
                   }} 
-                  className="w-3.5 h-3.5 text-slate-600 opacity-0 group-hover:opacity-100 hover:text-[#5be9b1] transition-all" 
+                  className="w-4 h-4 text-slate-700 opacity-0 group-hover:opacity-100 hover:text-[#5be9b1] transition-all translate-x-1 group-hover:translate-x-0" 
                 />
               </div>
 
@@ -82,8 +93,11 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
                     <div 
                       {...provided.droppableProps}
                       ref={provided.innerRef}
-                      className="pl-8 space-y-1 min-h-[8px] py-1"
+                      className="pl-6 space-y-1.5 min-h-[12px] py-2 relative"
                     >
+                      {/* Vertical line indicator */}
+                      <div className="absolute left-3 top-0 bottom-0 w-[1px] bg-white/5" />
+                      
                       {chapter.scenes?.map((scene, index) => (
                         <Draggable key={scene.id} draggableId={scene.id} index={index}>
                           {(provided, snapshot) => (
@@ -92,18 +106,24 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
                               {...provided.draggableProps}
                               onClick={() => onSelectScene(scene.id)}
                               className={cn(
-                                "flex items-center space-x-3 px-4 py-2.5 rounded-xl cursor-pointer transition-all group/scene border",
+                                "flex items-center space-x-4 px-5 py-3 rounded-xl cursor-pointer transition-all group/scene border relative",
                                 activeSceneId === scene.id 
-                                  ? "bg-[#5be9b1]/10 text-[#5be9b1] border-[#5be9b1]/30" 
-                                  : "text-slate-500 hover:bg-white/5 hover:text-slate-200 border-transparent",
+                                  ? "bg-[#5be9b1] text-[#0b0e11] border-transparent shadow-[0_8px_16px_rgba(91,233,177,0.2)]" 
+                                  : "text-slate-600 hover:bg-white/5 hover:text-slate-300 border-transparent",
                                 snapshot.isDragging && "bg-[#1a1f24] shadow-2xl border-[#5be9b1]/50 z-50 scale-105"
                               )}
                             >
-                              <div {...provided.dragHandleProps} className="p-1 hover:bg-white/10 rounded-lg opacity-0 group-hover/scene:opacity-100 transition-opacity">
-                                <GripVertical className="w-3.5 h-3.5 text-slate-700" />
+                              <div {...provided.dragHandleProps} className={cn(
+                                "p-1 rounded-lg opacity-0 group-hover/scene:opacity-100 transition-opacity",
+                                activeSceneId === scene.id ? "hover:bg-black/10" : "hover:bg-white/10"
+                              )}>
+                                <GripVertical className={cn("w-3.5 h-3.5", activeSceneId === scene.id ? "text-black/40" : "text-slate-800")} />
                               </div>
-                              <FileText className={cn("w-3.5 h-3.5", activeSceneId === scene.id ? "text-[#5be9b1]" : "text-slate-600")} />
-                              <span className={cn("text-xs truncate font-bold", activeSceneId === scene.id ? "text-slate-100" : "text-slate-500 group-hover/scene:text-slate-300")}>
+                              <FileText className={cn("w-4 h-4 transition-colors duration-500", activeSceneId === scene.id ? "text-[#0b0e11]/70" : "text-slate-800 group-hover/scene:text-[#5be9b1]/50")} />
+                              <span className={cn(
+                                "text-[11px] truncate font-black uppercase tracking-tight transition-all duration-500",
+                                activeSceneId === scene.id ? "text-[#0b0e11] translate-x-1" : "text-slate-600"
+                              )}>
                                 {scene.title}
                               </span>
                             </div>
@@ -120,5 +140,6 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
         </DragDropContext>
       </div>
     </div>
+
   );
 };

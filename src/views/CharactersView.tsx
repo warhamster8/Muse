@@ -24,6 +24,8 @@ export const CharactersView: React.FC = () => {
 
   const [isInterviewing, setIsInterviewing] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Sync local state when selection changes
   React.useEffect(() => {
     if (selectedChar) {
@@ -136,16 +138,16 @@ export const CharactersView: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full gap-6 overflow-hidden animate-in fade-in duration-700">
+    <div className="flex h-[calc(100vh-6rem)] gap-8 p-4 overflow-hidden animate-in fade-in duration-1000">
       {/* Character List */}
       <div className="w-80 flex flex-col gap-6">
-        <div className="flex items-center justify-between bg-[#171b1f] p-4 rounded-2xl border border-white/5">
-          <h2 className="text-sm font-bold font-display flex items-center gap-3 tracking-[0.2em] text-slate-400">
+        <div className="flex items-center justify-between glass-dark p-6 rounded-[32px] border border-white/5 shadow-2xl">
+          <h2 className="text-[11px] font-black font-display flex items-center gap-4 tracking-[0.4em] text-slate-400 uppercase">
             <Users className="w-4 h-4 text-[#5be9b1]" />
-            ATTORI
+            Cast Matrix
           </h2>
-          <button onClick={() => setIsModalOpen(true)} className="bg-[#5be9b1] hover:bg-[#5be9b1] p-2 rounded-xl transition-all shadow-lg shadow-emerald-950/20 active:scale-90">
-            <Plus className="w-4 h-4 text-white" />
+          <button onClick={() => setIsModalOpen(true)} className="bg-[#5be9b1] hover:bg-[#5be9b1] p-2.5 rounded-xl transition-all shadow-lg shadow-emerald-950/20 active:scale-90 group">
+            <Plus className="w-4 h-4 text-[#0b0e11] group-hover:rotate-90 transition-transform" />
           </button>
         </div>
 
@@ -155,13 +157,13 @@ export const CharactersView: React.FC = () => {
               key={char.id}
               onClick={() => setSelectedCharId(char.id)}
               className={cn(
-                "p-4 rounded-[24px] border transition-all cursor-pointer flex gap-4 items-center group",
+                "p-5 rounded-[32px] border transition-all duration-500 cursor-pointer flex gap-5 items-center group relative overflow-hidden",
                 selectedCharId === char.id 
-                  ? "bg-[#5be9b1]/10 border-[#5be9b1]/30 shadow-xl shadow-emerald-950/20" 
-                  : "bg-[#171b1f] border-white/5 hover:border-white/10"
+                  ? "glass-emerald border-[#5be9b1]/30 shadow-xl shadow-emerald-950/40" 
+                  : "glass-dark border-white/5 hover:border-[#5be9b1]/20"
               )}
             >
-              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-[#171b1f] border border-white/5 flex-shrink-0 shadow-inner group-hover:scale-105 transition-transform">
+              <div className="w-16 h-16 rounded-[20px] overflow-hidden bg-black/40 border border-white/5 flex-shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-700">
                 {char.avatar_url ? (
                   <img 
                     src={char.avatar_url} 
@@ -171,17 +173,20 @@ export const CharactersView: React.FC = () => {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-700">
-                    <User className="w-6 h-6" />
+                    <User className="w-8 h-8 opacity-20" />
                   </div>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className={cn("font-bold truncate tracking-tight transition-colors", selectedCharId === char.id ? "text-[#5be9b1]" : "text-slate-100")}>
+                <h3 className={cn("font-black text-sm uppercase tracking-tighter truncate transition-colors duration-500", selectedCharId === char.id ? "text-slate-100" : "text-slate-400 group-hover:text-slate-200")}>
                     {char.name}
                 </h3>
-                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1 opacity-50 truncate">
-                    {char.bio ? 'Scheda Completa' : 'Nessuna bio...'}
-                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className={cn("w-1.5 h-1.5 rounded-full", char.bio ? "bg-[#5be9b1]/40" : "bg-slate-800")} />
+                  <p className="text-[9px] text-slate-600 uppercase tracking-widest font-black opacity-60 truncate">
+                      {char.bio ? 'Profile Locked' : 'Undefined'}
+                  </p>
+                </div>
               </div>
             </div>
           ))}
@@ -189,21 +194,21 @@ export const CharactersView: React.FC = () => {
       </div>
 
       {/* Detail Area */}
-      <div className="flex-1 min-w-0 bg-[#171b1f] rounded-[40px] border border-white/5 flex flex-col overflow-hidden shadow-sm">
+      <div className="flex-1 min-w-0 glass rounded-[64px] border border-white/5 flex flex-col overflow-hidden shadow-2xl relative">
         {selectedChar ? (
-          <div className="flex flex-col h-full">
-            <div className="p-10 border-b border-white/5 bg-white/[0.01] relative overflow-hidden group/header">
+          <div className="flex flex-col h-full bg-black/20">
+            <div className="p-16 border-b border-white/5 relative overflow-hidden group/header">
               {/* Background Glow */}
-              <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#5be9b1]/5 blur-[150px] -mr-48 -mt-48 transition-all group-hover/header:bg-[#5be9b1]/10" />
+              <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#5be9b1]/5 blur-[180px] -mr-48 -mt-48 transition-all group-hover/header:bg-[#5be9b1]/10 pointer-events-none" />
               
-              <div className="relative flex flex-col md:flex-row items-center md:items-end gap-10">
+              <div className="relative flex flex-col md:flex-row items-center md:items-end gap-12">
                 {/* Large Portrait */}
                 <div className="relative">
                   <div 
                     onClick={() => !isAdjusting && fileInputRef.current?.click()}
                     className={cn(
-                      "group relative w-56 h-72 rounded-[40px] bg-black border border-white/5 overflow-hidden transition-all shadow-2xl flex-shrink-0",
-                      isAdjusting ? "ring-2 ring-[#5be9b1] cursor-move" : "cursor-pointer hover:border-[#5be9b1]/30"
+                      "group relative w-64 h-80 rounded-[48px] bg-black border border-white/5 overflow-hidden transition-all duration-700 shadow-2xl flex-shrink-0",
+                      isAdjusting ? "ring-2 ring-[#5be9b1] cursor-move scale-95" : "cursor-pointer hover:border-[#5be9b1]/40 hover:-translate-y-2"
                     )}
                   >
                     {selectedChar.avatar_url ? (
@@ -211,20 +216,20 @@ export const CharactersView: React.FC = () => {
                         src={selectedChar.avatar_url} 
                         alt={selectedChar.name} 
                         className={cn(
-                          "w-full h-full object-cover transition-transform duration-700",
-                          !isAdjusting && "group-hover:scale-105"
+                          "w-full h-full object-cover transition-transform duration-1000",
+                          !isAdjusting && "group-hover:scale-110"
                         )}
                         style={{ objectPosition: `${posX}% ${posY}%` }}
                       />
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center text-slate-800 bg-[#171b1f]/50">
-                        <Camera className="w-12 h-12 mb-2 opacity-10" />
-                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] opacity-10">Capture Portrait</span>
+                        <Camera className="w-16 h-16 mb-4 opacity-5" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-5">Assign Visual</span>
                       </div>
                     )}
                     {!isAdjusting && (
-                      <div className="absolute inset-0 bg-emerald-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-                        <Camera className="w-10 h-10 text-white" />
+                      <div className="absolute inset-0 bg-emerald-950/40 opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center backdrop-blur-md">
+                        <Camera className="w-12 h-12 text-white" />
                       </div>
                     )}
                     <input 
@@ -241,23 +246,23 @@ export const CharactersView: React.FC = () => {
                     <button
                       onClick={() => setIsAdjusting(!isAdjusting)}
                       className={cn(
-                        "absolute -bottom-2 -right-2 p-4 rounded-[20px] shadow-2xl transition-all z-10 border border-white/10",
-                        isAdjusting ? "bg-[#5be9b1] text-white" : "bg-[#171b1f] text-slate-400 hover:text-[#5be9b1]"
+                        "absolute -bottom-4 -right-4 p-5 rounded-[24px] shadow-2xl transition-all z-10 border border-white/10 group/btn",
+                        isAdjusting ? "bg-[#5be9b1] text-[#0b0e11]" : "glass-dark text-slate-400 hover:text-[#5be9b1] hover:scale-110"
                       )}
                     >
-                      <TrendingUp className={cn("w-4 h-4 transition-transform duration-500", isAdjusting && "rotate-90")} />
+                      <TrendingUp className={cn("w-5 h-5 transition-transform duration-700", isAdjusting && "rotate-180")} />
                     </button>
                   )}
                 </div>
 
                 {/* Name & Actions */}
-                <div className="flex-1 flex flex-col items-center md:items-start pb-2 min-w-0">
+                <div className="flex-1 flex flex-col items-center md:items-start pb-4 min-w-0">
                   {isAdjusting ? (
-                    <div className="w-full max-w-sm space-y-5 mb-8 p-6 bg-white/[0.03] rounded-[32px] border border-[#5be9b1]/20 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-500">
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-[9px] font-bold text-[#5be9b1] uppercase tracking-[0.2em]">
-                          <span>Orizzontale</span>
-                          <span className="font-mono">{posX}%</span>
+                    <div className="w-full max-w-sm space-y-6 mb-10 p-8 glass-emerald rounded-[40px] border border-[#5be9b1]/30 backdrop-blur-3xl animate-in slide-in-from-bottom-8 duration-700">
+                      <div className="space-y-4">
+                        <div className="flex justify-between text-[10px] font-black text-[#5be9b1] uppercase tracking-[0.4em]">
+                          <span>Horizon</span>
+                          <span className="font-mono text-xs">{posX}%</span>
                         </div>
                         <input 
                           type="range" 
@@ -265,13 +270,13 @@ export const CharactersView: React.FC = () => {
                           max="100" 
                           value={posX}
                           onChange={(e) => setPosX(parseInt(e.target.value))}
-                          className="w-full h-1 bg-slate-800 rounded-full appearance-none cursor-pointer accent-[#5be9b1]"
+                          className="w-full h-1 bg-black/40 rounded-full appearance-none cursor-pointer accent-[#5be9b1]"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-[9px] font-bold text-[#5be9b1] uppercase tracking-[0.2em]">
-                          <span>Verticale</span>
-                          <span className="font-mono">{posY}%</span>
+                      <div className="space-y-4">
+                        <div className="flex justify-between text-[10px] font-black text-[#5be9b1] uppercase tracking-[0.4em]">
+                          <span>Vertical</span>
+                          <span className="font-mono text-xs">{posY}%</span>
                         </div>
                         <input 
                           type="range" 
@@ -279,7 +284,7 @@ export const CharactersView: React.FC = () => {
                           max="100" 
                           value={posY}
                           onChange={(e) => setPosY(parseInt(e.target.value))}
-                          className="w-full h-1 bg-slate-800 rounded-full appearance-none cursor-pointer accent-[#5be9b1]"
+                          className="w-full h-1 bg-black/40 rounded-full appearance-none cursor-pointer accent-[#5be9b1]"
                         />
                       </div>
                       <button 
@@ -288,53 +293,53 @@ export const CharactersView: React.FC = () => {
                           setIsAdjusting(false);
                           addToast("Inquadratura salvata!", "success");
                         }}
-                        className="w-full py-3 bg-[#5be9b1] hover:bg-[#5be9b1] text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95"
+                        className="w-full py-5 bg-[#5be9b1] hover:bg-opacity-90 text-[#0b0e11] text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl transition-all shadow-2xl shadow-emerald-950/40 active:scale-95"
                       >
-                        Salva Inquadratura
+                        Commit Framework
                       </button>
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="px-4 py-1.5 bg-[#5be9b1]/5 text-[#5be9b1] text-[9px] font-bold uppercase tracking-[0.2em] rounded-full border border-[#5be9b1]/10">
-                          Identità Protagonista
+                      <div className="flex items-center gap-5 mb-6">
+                        <span className="px-6 py-2 bg-white/5 text-[#5be9b1] text-[10px] font-black uppercase tracking-[0.4em] rounded-full border border-white/5 shadow-inner">
+                          Protagonist Signature
                         </span>
                         {selectedChar.avatar_url && (
                           <button 
                             onClick={() => updateCharacter(selectedChar.id, { avatar_url: '' })}
-                            className="text-slate-700 hover:text-red-400 p-1.5 transition-colors bg-white/5 rounded-lg"
+                            className="text-slate-700 hover:text-red-400 p-2.5 transition-all bg-white/5 rounded-xl border border-transparent hover:border-red-500/20"
                             title="Rimuovi foto"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-5 h-5 opacity-40 hover:opacity-100" />
                           </button>
                         )}
                       </div>
                       <input 
                         value={localName}
                         onChange={(e) => setLocalName(e.target.value)}
-                        className="text-6xl font-medium font-display bg-transparent text-white focus:outline-none placeholder:opacity-5 tracking-tighter mb-8 truncate w-full"
-                        placeholder="Nome del Personaggio..."
+                        className="text-7xl font-black font-display bg-transparent text-white focus:outline-none placeholder:opacity-5 tracking-tighter mb-10 truncate w-full uppercase"
+                        placeholder="Unnamed Character"
                       />
                     </>
                   )}
                   
                   {!isAdjusting && (
-                    <div className="flex flex-wrap gap-4">
+                    <div className="flex flex-wrap gap-5">
                       <button 
                         onClick={handleInterview}
                         disabled={isInterviewing}
-                        className="flex items-center gap-4 px-10 py-4 bg-[#5be9b1] hover:bg-[#5be9b1] text-white rounded-[20px] text-xs font-bold transition-all disabled:opacity-50 shadow-[0_15px_40px_-10px_rgba(16,185,129,0.3)] active:scale-95"
+                        className="flex items-center gap-5 px-12 py-5 bg-[#5be9b1] hover:bg-opacity-90 text-[#0b0e11] rounded-[24px] text-[11px] font-black uppercase tracking-[0.2em] transition-all disabled:opacity-50 shadow-[0_20px_50px_-15px_rgba(16,185,129,0.4)] active:scale-95 group"
                       >
-                        <MessageSquare className="w-4 h-4" />
-                        {isInterviewing ? 'In ascolto...' : 'Intervista Creatura'}
+                        <MessageSquare className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                        {isInterviewing ? 'Probing...' : 'Initiate Interview'}
                       </button>
                       
                       <button 
                         onClick={() => addToast('Analisi tratti in arrivo...', 'info')}
-                        className="flex items-center gap-4 px-10 py-4 bg-white/5 hover:bg-white/10 text-slate-300 rounded-[24px] text-xs font-bold transition-all active:scale-95 border border-white/5"
+                        className="flex items-center gap-5 px-12 py-5 glass-dark hover:bg-white/5 text-slate-300 rounded-[28px] text-[11px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 border border-white/5 group"
                       >
-                        <TrendingUp className="w-4 h-4" />
-                        Analisi Statistiche
+                        <TrendingUp className="w-5 h-5 group-hover:scale-125 transition-transform" />
+                        Analytics
                       </button>
                     </div>
                   )}
@@ -342,41 +347,41 @@ export const CharactersView: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-12 space-y-12 scrollbar-hide">
-              <section className="space-y-6">
-                <div className="flex items-center gap-3 text-[#5be9b1]/50">
-                  <FileText className="w-4 h-4" />
-                  <h4 className="text-[10px] font-bold uppercase tracking-[0.3em]">Biografia & Origini</h4>
+            <div className="flex-1 overflow-y-auto p-16 space-y-16 scrollbar-hide">
+              <section className="space-y-8 animate-in slide-in-from-bottom-8 duration-1000 delay-100">
+                <div className="flex items-center gap-4 text-[#5be9b1]/40">
+                  <FileText className="w-5 h-5" />
+                  <h4 className="text-[11px] font-black uppercase tracking-[0.4em]">Historical Context & Roots</h4>
                 </div>
                 <textarea 
-                  className="w-full h-40 bg-[#171b1f] border border-white/5 rounded-[32px] p-8 text-sm text-slate-300 focus:outline-none focus:border-[#5be9b1]/30 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide"
-                  placeholder="Descrivi le origini, il passato e i segreti del personaggio..."
+                  className="w-full h-48 glass-dark border border-white/5 rounded-[40px] p-10 text-base text-slate-300 focus:outline-none focus:border-[#5be9b1]/20 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide shadow-inner"
+                  placeholder="Elaborate on origins, past traumas and core secrets..."
                   value={localBio}
                   onChange={(e) => setLocalBio(e.target.value)}
                 />
               </section>
 
-              <section className="space-y-6">
-                <div className="flex items-center gap-3 text-emerald-700">
-                  <Brain className="w-4 h-4" />
-                  <h4 className="text-[10px] font-bold uppercase tracking-[0.3em]">Psicologia & Conflitti</h4>
+              <section className="space-y-8 animate-in slide-in-from-bottom-8 duration-1000 delay-200">
+                <div className="flex items-center gap-4 text-emerald-700/50">
+                  <Brain className="w-5 h-5" />
+                  <h4 className="text-[11px] font-black uppercase tracking-[0.4em]">Psychological Core & Conflict</h4>
                 </div>
                 <textarea 
-                  className="w-full h-40 bg-[#171b1f] border border-white/5 rounded-[32px] p-8 text-sm text-slate-300 focus:outline-none focus:border-emerald-700/30 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide"
-                  placeholder="Cosa spinge questo personaggio? Quali sono le sue paure più profonde?"
+                  className="w-full h-48 glass-dark border border-white/5 rounded-[40px] p-10 text-base text-slate-300 focus:outline-none focus:border-emerald-700/20 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide shadow-inner"
+                  placeholder="What is the character's engine? Their deepest fears and fatal flaws?"
                   value={localPsychology}
                   onChange={(e) => setLocalPsychology(e.target.value)}
                 />
               </section>
 
-              <section className="space-y-6">
-                <div className="flex items-center gap-3 text-emerald-900">
-                  <TrendingUp className="w-4 h-4" />
-                  <h4 className="text-[10px] font-bold uppercase tracking-[0.3em]">Arco Narrativo & Evoluzione</h4>
+              <section className="space-y-8 animate-in slide-in-from-bottom-8 duration-1000 delay-300">
+                <div className="flex items-center gap-4 text-emerald-900/50">
+                  <TrendingUp className="w-5 h-5" />
+                  <h4 className="text-[11px] font-black uppercase tracking-[0.4em]">Evolutionary Arc</h4>
                 </div>
                 <textarea 
-                  className="w-full h-40 bg-[#171b1f] border border-white/5 rounded-[32px] p-8 text-sm text-slate-300 focus:outline-none focus:border-emerald-900/30 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide"
-                  placeholder="Come cambia il personaggio dall'inizio alla fine del viaggio?"
+                  className="w-full h-48 glass-dark border border-white/5 rounded-[40px] p-10 text-base text-slate-300 focus:outline-none focus:border-emerald-900/20 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide shadow-inner"
+                  placeholder="How does the character transform from the first draft to the finale?"
                   value={localEvolution}
                   onChange={(e) => setLocalEvolution(e.target.value)}
                 />
@@ -384,13 +389,16 @@ export const CharactersView: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-slate-800 space-y-8 animate-in fade-in duration-1000">
-            <div className="w-32 h-32 rounded-[40px] border border-white/5 flex items-center justify-center opacity-10 bg-white/5">
-              <User className="w-14 h-14" />
+          <div className="h-full flex flex-col items-center justify-center text-slate-800 space-y-10 animate-in fade-in duration-1000">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-[#5be9b1]/10 blur-[60px] rounded-full animate-pulse group-hover:bg-[#5be9b1]/20 transition-all duration-1000" />
+              <div className="w-40 h-40 rounded-[48px] glass border border-white/5 flex items-center justify-center opacity-20 group-hover:opacity-40 transition-all duration-700 shadow-2xl">
+                <Users className="w-16 h-16" />
+              </div>
             </div>
-            <div className="text-center">
-                <h3 className="text-lg font-medium text-slate-500">Archivio Personaggi</h3>
-                <p className="text-xs opacity-50 max-w-[200px] mx-auto mt-2 tracking-wide font-light">Seleziona un attore per consultare la sua scheda tecnica e psicofisica.</p>
+            <div className="text-center relative z-10">
+                <h3 className="text-xl font-black text-slate-400 uppercase tracking-[0.4em]">Cast Nexus</h3>
+                <p className="text-[10px] text-slate-600 max-w-[280px] mx-auto mt-4 tracking-[0.2em] font-black uppercase opacity-40 leading-relaxed">Select a character to initialize technical and psychological analysis.</p>
             </div>
           </div>
         )}
