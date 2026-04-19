@@ -36,8 +36,6 @@ export function useCharacters() {
           .eq('project_id', currentProject.id);
         
         if (error) throw error;
-        
-        console.log('[SECURITY LOG] Characters fetched successfully:', data?.length);
         setCharacters(data || []);
       }
     } catch (err: any) {

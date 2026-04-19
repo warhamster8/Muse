@@ -26,13 +26,8 @@ export const CharactersView: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync local state when selection changes
   React.useEffect(() => {
     if (selectedChar) {
-      console.log(`[DEBUG] Selected Character Sync: ${selectedChar.name}`, {
-        pos_x: selectedChar.avatar_pos_x,
-        pos_y: selectedChar.avatar_pos_y
-      });
       setLocalName(selectedChar.name || '');
       setLocalBio(selectedChar.bio || '');
       setLocalPsychology(selectedChar.psychology || '');
@@ -290,7 +285,6 @@ export const CharactersView: React.FC = () => {
                       </div>
                       <button 
                         onClick={async () => {
-                          console.log(`[DEBUG] Explicit Saving Position: ${posX}, ${posY}`);
                           await updateCharacter(selectedChar.id, { avatar_pos_x: posX, avatar_pos_y: posY });
                           setIsAdjusting(false);
                           addToast("Inquadratura salvata!", "success");
