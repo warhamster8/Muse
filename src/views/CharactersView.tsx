@@ -24,8 +24,7 @@ export const CharactersView: React.FC = () => {
 
   const [isInterviewing, setIsInterviewing] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
+  // Sync local state when selection changes
   React.useEffect(() => {
     if (selectedChar) {
       setLocalName(selectedChar.name || '');
