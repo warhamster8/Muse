@@ -742,7 +742,7 @@ Rispondi in italiano. Sii concreto e originale.`;
   const currentLastPhrase = activeSceneId ? lastAnalyzedPhrase[`${activeSceneId}-${activeTab}`] : null;
 
   return (
-    <div className="w-96 h-screen bg-[#121519] border-l border-white/5 flex-shrink-0 flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.5)] z-20">
+    <div className="w-80 h-screen bg-[#121519] border-l border-white/5 flex-shrink-0 flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.5)] z-20">
       <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
         <div className="flex items-center space-x-4">
           <div className="p-2.5 bg-[#5be9b1]/10 rounded-2xl border border-[#5be9b1]/20">

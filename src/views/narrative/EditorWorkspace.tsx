@@ -83,8 +83,8 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = ({
       </div>
 
       {/* Editor Area */}
-      <div className="flex-1 overflow-y-auto p-12 lg:p-20 scrollbar-hide bg-[#0b0e11]">
-        <div className="max-w-4xl mx-auto glass border border-white/5 rounded-[48px] p-16 lg:p-24 shadow-inner min-h-full">
+      <div className="flex-1 overflow-y-auto p-4 lg:p-8 scrollbar-hide bg-[#0b0e11]">
+        <div className="max-w-4xl mx-auto glass border border-white/5 rounded-[48px] p-8 lg:p-14 shadow-inner min-h-full">
           <Editor 
             initialContent={activeScene.content || ''} 
             onChange={(newContent) => onUpdateContent(activeScene.id, newContent)} 

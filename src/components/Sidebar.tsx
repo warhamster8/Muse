@@ -38,7 +38,7 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <div className="w-64 h-[calc(100vh-2rem)] m-4 glass-dark rounded-[40px] flex flex-col p-6 z-30 shadow-2xl relative overflow-hidden">
+    <div className="w-64 h-[calc(100vh-1rem)] m-1 glass-dark rounded-[40px] flex flex-col p-6 z-30 shadow-2xl relative overflow-hidden">
       {/* Sidebar background decorative glow */}
       <div className="absolute top-0 left-0 w-full h-32 bg-[#5be9b1]/5 blur-[60px] pointer-events-none" />
 

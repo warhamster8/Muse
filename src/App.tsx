@@ -153,7 +153,7 @@ function App() {
       
       <ErrorBoundary>
         <Sidebar />
-        <main className="flex-1 h-screen p-6 overflow-hidden flex flex-col">
+        <main className="flex-1 h-screen p-1 overflow-hidden flex flex-col">
           <div className="flex-1 min-h-0">
             {renderView()}
           </div>
