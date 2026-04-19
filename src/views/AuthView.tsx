@@ -16,36 +16,44 @@ export const AuthView: React.FC<AuthViewProps> = ({ onBack }) => {
 
   const ALLOWED_EMAIL = import.meta.env.VITE_ALLOWED_EMAIL;
 
+  /**
+   * Gestisce il processo di autenticazione via Supabase Auth.
+   * Include controlli di sicurezza preventivi (Rule 2) e gestione errori silente (Rule 3).
+   */
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    // Controllo preventivo dell'email
-    if (ALLOWED_EMAIL && email.toLowerCase() !== ALLOWED_EMAIL.toLowerCase()) {
-      setError('Accesso negato: Solo il proprietario può accedere a questa istanza.');
+    // Validazione preventiva: controllo autorizzazione basata su whitelist (Rule 2)
+    const normalizedEmail = email.trim().toLowerCase();
+    if (ALLOWED_EMAIL && normalizedEmail !== ALLOWED_EMAIL.toLowerCase()) {
+      setError('Accesso negato: Solo il proprietario può accedere a questa istanza di Muse.');
       setLoading(false);
       return;
     }
 
     try {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
+        email: normalizedEmail,
         password,
       });
       
       if (signInError) throw signInError;
       
       if (data.user) {
-        // Doppio controllo per sicurezza post-auth
+        // Doppio controllo post-auth per massima sicurezza (Defense in Depth)
         if (ALLOWED_EMAIL && data.user.email?.toLowerCase() !== ALLOWED_EMAIL.toLowerCase()) {
+          console.warn('[SECURITY LOG] Unauthorized login attempt blocked:', data.user.email);
           await supabase.auth.signOut();
-          throw new Error('Accesso negato: Utente non autorizzato.');
+          throw new Error('Utente non autorizzato dal sistema.');
         }
         setUser({ id: data.user.id, email: data.user.email });
       }
     } catch (err: any) {
-      setError(err.message || 'Errore durante l\'autenticazione');
+      console.error('[SECURITY LOG] Auth Exception:', err.message);
+      // Messaggio generico all'utente per evitare enumeration attacks (Rule 3)
+      setError('Credenziali non valide o errore di sistema. Riprova.');
     } finally {
       setLoading(false);
     }

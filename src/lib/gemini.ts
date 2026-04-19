@@ -1,11 +1,30 @@
+/**
+ * Servizio per l'interazione con l'API di Google Gemini.
+ * Gestisce lo streaming SSE e la diagnostica di connessione.
+ */
 export const geminiService = {
+  /**
+   * Avvia una chat completion in streaming via Server-Sent Events (SSE).
+   * 
+   * @param apiKey - Chiave API Google AI Studio
+   * @param messages - Cronologia messaggi {role, content}
+   * @param onChunk - Callback per il testo ricevuto
+   * @param temperature - Creatività della risposta (0.0 - 1.0)
+   * @throws Error in caso di parametri non validi o errori API
+   */
   async streamChatCompletion(
     apiKey: string,
     messages: any[],
     onChunk: (text: string) => void,
     temperature = 0.7
   ) {
-    if (!apiKey) throw new Error('Chiave Gemini mancante');
+    // Validazione rigida: verifica presenza e integrità parametri
+    if (!apiKey || apiKey.length < 10) {
+      throw new Error('Configurazione di sicurezza: Chiave Gemini non valida');
+    }
+    if (!messages || messages.length === 0) {
+      throw new Error('Validazione fallita: Cronologia messaggi vuota');
+    }
 
     const systemInstruction = messages.find((m) => m.role === 'system')?.content || '';
     const chatHistory = messages
@@ -17,7 +36,7 @@ export const geminiService = {
       }));
     const lastMessage = messages[messages.length - 1].content;
 
-    // Costruiamo il payload per l'API di Google
+    // Costruzione payload con impostazioni di sicurezza predefinite
     const payload = {
       contents: [...chatHistory, { role: 'user', parts: [{ text: lastMessage }] }],
       system_instruction: systemInstruction
@@ -25,7 +44,7 @@ export const geminiService = {
         : undefined,
       generationConfig: {
         temperature,
-        maxOutputTokens: 2048,
+        maxOutputTokens: 4096, // Aumentato per maggiore profondità narrativa
       },
       safetySettings: [
         { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
@@ -36,63 +55,70 @@ export const geminiService = {
     };
 
     const trimmedKey = apiKey.trim();
-    // Usiamo v1 (stabile) invece di v1beta
     const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${trimmedKey}`;
 
-    // Creiamo un oggetto Headers pulito e rimuoviamo esplicitamente Authorization
-    // per evitare che estensioni o proxy lo aggiungano a nostra insaputa.
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/json');
-    // x-goog-api-key non è strettamente necessario se usiamo il parametro ?key= nell'URL,
-    // ma lo aggiungiamo per massima compatibilità.
-    headers.append('x-goog-api-key', trimmedKey);
+    try {
+      const headers = new Headers();
+      headers.append('Content-Type', 'application/json');
+      headers.append('x-goog-api-key', trimmedKey);
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: headers,
-      credentials: 'omit', // Cruciale: non inviare cookie di sessione Google
-      body: JSON.stringify(payload),
-    });
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        credentials: 'omit',
+        body: JSON.stringify(payload),
+      });
 
-    console.log(`[DEBUG] Risposta Gemini Status: ${response.status}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('[SECURITY LOG] Gemini API Error:', {
+          status: response.status,
+          detail: errorData.error?.message
+        });
+        throw new Error(`Servizio AI Gemini non disponibile (Status: ${response.status})`);
+      }
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || `Errore API Gemini: ${response.status}`);
-    }
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('Fallimento inizializzazione stream di lettura');
 
-    const reader = response.body?.getReader();
-    if (!reader) throw new Error('Impossibile leggere lo stream di risposta');
+      const decoder = new TextDecoder();
+      let buffer = '';
 
-    const decoder = new TextDecoder();
-    let buffer = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
-
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          try {
-            const json = JSON.parse(line.substring(6));
-            const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (text) {
-              onChunk(text);
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const json = JSON.parse(line.substring(6));
+              const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (text) {
+                onChunk(text);
+              }
+            } catch (e) {
+              // Silenzioso: chunk incompleto
             }
-          } catch (e) {
-            // Ignoriamo pezzi non validi o meta-dati
           }
         }
       }
+    } catch (err: any) {
+      console.error('[SECURITY LOG] Gemini Stream Exception:', err.message);
+      throw err;
     }
   },
 
+  /**
+   * Verifica la connettività con l'endpoint Google.
+   */
   async testConnection(apiKey: string) {
     const trimmedKey = apiKey.trim();
+    if (!trimmedKey) return { ok: false, error: 'Chiave mancante' };
+
     const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${trimmedKey}`;
     
     try {
@@ -105,22 +131,22 @@ export const geminiService = {
         credentials: 'omit',
         headers: headers,
         body: JSON.stringify({
-          contents: [{ parts: [{ text: 'Say hi' }] }]
+          contents: [{ parts: [{ text: 'Ping' }] }]
         }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       return {
         status: response.status,
         ok: response.ok,
-        data,
-        headers: Array.from(response.headers.entries())
+        data: response.ok ? { status: 'authorized' } : data
       };
     } catch (err: any) {
+      console.error('[SECURITY LOG] Gemini Connection Test Failed:', err.message);
       return {
         status: 0,
         ok: false,
-        error: err.message
+        error: 'Connessione al Nucleo Gemini fallita'
       };
     }
   }

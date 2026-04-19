@@ -127,8 +127,10 @@ export const useStore = create<AppState>()(
         activeTab: state.activeTab,
         ignoredSuggestions: state.ignoredSuggestions || {},
         lastAnalyzedPhrase: state.lastAnalyzedPhrase || {},
-        aiConfig: state.aiConfig
-        // activeSelection and sceneAnalysis excluded to prevent visual cache persistence
+        aiConfig: {
+          ...state.aiConfig,
+          deepseekKey: '' // Mai persistere la chiave nel localStorage
+        }
       }),
     }
   )

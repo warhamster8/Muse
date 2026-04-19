@@ -14,28 +14,32 @@ export const ConfigView: React.FC = () => {
   const [keyInput, setKeyInput] = React.useState('');
   const [isSaving, setIsSaving] = React.useState(false);
 
+  /**
+   * Salva la chiave API nel profilo utente su Supabase.
+   * Include validazione formale della chiave (Rule 2) e gestione errori sicura (Rule 3).
+   */
   const handleSaveKey = async () => {
-    if (!keyInput.trim()) {
-      addToast("Inserisci una chiave valida", 'info');
+    const trimmedKey = keyInput.trim();
+
+    // Validazione Rigida (Mega-Prompt Rule 2)
+    if (!trimmedKey || !trimmedKey.startsWith('sk-') || trimmedKey.length < 20) {
+      addToast("Inserisci una chiave valida (deve iniziare con 'sk-' e avere lunghezza minima)", 'error');
       return;
     }
     
     if (!user) {
-      addToast("Devi essere loggato per salvare la chiave", 'error');
+      addToast("Sessione non valida: effettua nuovamente il login", 'error');
       return;
     }
 
     setIsSaving(true);
     try {
-      // Otteniamo le impostazioni attuali per non sovrascriverle tutte
-      const currentSettings = aiConfig;
-      
       const { error } = await supabase
         .from('user_profiles')
         .update({ 
-          deepseek_api_key: keyInput.trim(),
+          deepseek_api_key: trimmedKey,
           ai_settings: {
-            ...currentSettings,
+            ...aiConfig,
             provider: 'deepseek'
           }
         })
@@ -43,20 +47,24 @@ export const ConfigView: React.FC = () => {
 
       if (error) throw error;
       
-      setAIConfig({ deepseekKey: keyInput.trim(), provider: 'deepseek' });
-      addToast("Chiave salvata e DeepSeek attivato!", 'success');
+      // Aggiornamento stato globale (persistenza locale esclusa per sicurezza)
+      setAIConfig({ deepseekKey: trimmedKey, provider: 'deepseek' });
+      addToast("Configurazione sincronizzata!", 'success');
       setKeyInput('');
     } catch (err: any) {
-      console.error(err);
-      addToast("Errore durante il salvataggio", 'error');
+      console.error('[SECURITY LOG] Save Key Error:', err.message);
+      addToast("Impossibile salvare la configurazione. Riprova più tardi.", 'error');
     } finally {
       setIsSaving(false);
     }
   };
 
+  /**
+   * Esegue un test di connettività verso il provider selezionato.
+   */
   const handleTestDeepSeek = async () => {
     if (!aiConfig.deepseekKey) {
-      addToast("Inserisci prima una chiave", 'error');
+      addToast("Configurazione mancante: inserisci prima una chiave", 'error');
       return;
     }
     
@@ -65,43 +73,42 @@ export const ConfigView: React.FC = () => {
     try {
       const result = await deepseekService.testConnection(aiConfig.deepseekKey);
       setTestResult(result);
+      
       if (result.ok) {
-        addToast("Connessione DeepSeek riuscita!", 'success');
+        addToast("Ping di sistema riuscito!", 'success');
       } else {
-        addToast(`Errore connessione: ${result.status}`, 'error');
+        addToast(`Diagnostica fallita: ${result.status}`, 'error');
       }
     } catch (err: any) {
-      setTestResult({ error: err.message });
-      addToast("Errore durante il test", 'error');
+      console.error('[SECURITY LOG] Test Connection Exception:', err.message);
+      addToast("Errore durante la diagnostica di rete", 'error');
     } finally {
       setIsTesting(false);
     }
   };
 
+  /**
+   * Cambia il provider AI attivo e persiste la preferenza.
+   */
   const handleProviderChange = async (provider: 'groq' | 'deepseek') => {
+    // Aggiornamento immediato UI
     setAIConfig({ provider });
     
-    // Salvataggio automatico nel profilo Supabase
-    if (user) {
-      try {
-        const { error } = await supabase
-          .from('user_profiles')
-          .update({ 
-            ai_settings: { 
-              ...aiConfig, 
-              provider 
-            } 
-          })
-          .eq('user_id', user.id);
-          
-        if (error) throw error;
-        addToast(`Provider aggiornato a ${provider}`, 'success');
-      } catch (err) {
-        console.error("Errore salvataggio config:", err);
-        addToast("Errore durante il salvataggio", 'error');
-      }
-    } else {
-      addToast(`Provider impostato a ${provider} (Sola lettura)`, 'info');
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({ 
+          ai_settings: { ...aiConfig, provider } 
+        })
+        .eq('user_id', user.id);
+        
+      if (error) throw error;
+      addToast(`Motore AI impostato su ${provider}`, 'success');
+    } catch (err: any) {
+      console.error('[SECURITY LOG] Provider Update Error:', err.message);
+      addToast("Errore nel salvataggio della preferenza", 'error');
     }
   };
 
@@ -256,6 +263,8 @@ export const ConfigView: React.FC = () => {
                 value={keyInput}
                 onChange={(e) => setKeyInput(e.target.value)}
                 placeholder="Incolla chiave segreta (sk-...)"
+                autoComplete="off"
+                spellCheck={false}
                 className="flex-1 bg-[#121519]/60 border border-white/5 rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#121519] transition-all font-mono"
               />
               <button
