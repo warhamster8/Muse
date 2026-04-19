@@ -1,7 +1,8 @@
-import React from 'react';
-import { FileText } from 'lucide-react';
+import React, { useState } from 'react';
+import { FileText, Sparkles } from 'lucide-react';
 import { Editor } from '../../components/Editor';
 import type { Scene } from '../../types/narrative';
+import { cn } from '../../lib/utils';
 
 interface EditorWorkspaceProps {
   activeScene: Scene | undefined;
@@ -18,6 +19,13 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = ({
   activeScene,
   onUpdateContent
 }) => {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const onAnalyze = () => {
+    setIsAnalyzing(true);
+    setTimeout(() => setIsAnalyzing(false), 2000);
+  };
+
   // Caso 1: Nessuna scena selezionata (Empty State)
   if (!activeScene) {
     return (
