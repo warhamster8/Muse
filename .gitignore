@@ -26,3 +26,6 @@ supabase_setup.sql
 *.njsproj
 *.sln
 *.sw?
+
+# Security and Optimization
+Optimization/
