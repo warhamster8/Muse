@@ -86,7 +86,7 @@ export const NarrativeView: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full gap-4 overflow-hidden animate-in fade-in duration-700">
+    <div className="flex h-full gap-2 overflow-hidden animate-in fade-in duration-700 bg-black/20 p-2">
       {/* Mattoncino: Navigazione */}
       <ManuscriptNavigator 
         chapters={chapters}

@@ -45,7 +45,7 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = ({
 
   // Caso 2: Scena attiva, mostriamo l'editor
   return (
-    <div className="flex-1 min-w-0 flex flex-col bg-[#111418] relative">
+    <div className="flex-1 min-w-0 flex flex-col bg-[#111418] relative rounded-[32px] overflow-hidden shadow-soft border border-white/5 my-1 mr-1">
       {/* Background Decorative Element */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-[#5be9b1]/5 blur-[100px] pointer-events-none" />
 

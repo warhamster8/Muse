@@ -31,7 +31,8 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
   onCreateScene,
   onReorder
 }) => {
-  return (    <div className="w-80 glass rounded-[32px] overflow-hidden flex flex-col shadow-2xl border border-white/5 mx-2">
+  return (
+    <div className="w-80 glass rounded-[32px] overflow-hidden flex flex-col shadow-soft border border-white/5 mx-1 my-1">
       {/* Header del Navigatore */}
       <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
         <div className="flex items-center gap-3">
