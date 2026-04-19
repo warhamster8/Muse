@@ -25,17 +25,26 @@ export function useCharacters() {
     if (!currentProject) return;
     setLoading(true);
     
-    if (isLocalMode) {
-      const all: Character[] = storage.getCollection('characters');
-      setCharacters(all.filter(c => c.project_id === currentProject.id));
-    } else {
-      const { data, error } = await supabase
-        .from('characters')
-        .select('*')
-        .eq('project_id', currentProject.id);
-      if (!error) setCharacters(data);
+    try {
+      if (isLocalMode) {
+        const all: Character[] = storage.getCollection('characters');
+        setCharacters(all.filter(c => c.project_id === currentProject.id));
+      } else {
+        const { data, error } = await supabase
+          .from('characters')
+          .select('*')
+          .eq('project_id', currentProject.id);
+        
+        if (error) throw error;
+        
+        console.log('[SECURITY LOG] Characters fetched successfully:', data?.length);
+        setCharacters(data || []);
+      }
+    } catch (err: any) {
+      console.error('[SECURITY LOG] Fetch Characters Error:', err.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const addCharacter = async (name: string) => {
