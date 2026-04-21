@@ -1,7 +1,7 @@
 import React from 'react';
 import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
-import { Settings, Cpu, Zap, ShieldCheck, AlertTriangle, Activity, Terminal, Loader2 } from 'lucide-react';
+import { Settings, Cpu, Zap, ShieldCheck, Activity, Loader2 } from 'lucide-react';
 import { useToast } from '../components/Toast';
 import { deepseekService } from '../lib/deepseek';
 import { cn } from '../lib/utils';
