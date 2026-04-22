@@ -40,17 +40,25 @@ export const TimelineView: React.FC = () => {
     try {
       const allScenes = chapters.flatMap(c => c.scenes || []);
       
-      // 1. Identifichiamo le scene che sono cambiate o mai analizzate
-      const scenesToAnalyze = allScenes.filter(s => {
+      // 1. Filtriamo solo le scene NON escluse (non bozze)
+      const activeScenes = allScenes.filter(s => !s.exclude_from_timeline);
+
+      // 2. Identifichiamo le scene che sono cambiate o mai analizzate tra quelle attive
+      const scenesToAnalyze = activeScenes.filter(s => {
         const currentText = cleanHtml(s.content || '').trim();
         return currentText !== (s.last_analyzed_content || '').trim();
       });
 
-      if (scenesToAnalyze.length === 0) {
+      // 3. Verifichiamo se ci sono scene da rimuovere (perché escluse di recente)
+      const activeSceneIds = new Set(activeScenes.map(s => s.id));
+      const hasExcludedScenesToRemove = timelineEvents.some(e => e.sceneId && !activeSceneIds.has(e.sceneId));
+
+      if (scenesToAnalyze.length === 0 && !hasExcludedScenesToRemove) {
         addToast("Nessuna modifica rilevata nel manoscritto dall'ultima analisi.", "info");
         setIsAnalyzing(false);
         return;
       }
+
 
       addToast(`Analisi incrementale in corso: ${scenesToAnalyze.length} scene nuove o modificate...`, "info");
 
@@ -70,11 +78,14 @@ export const TimelineView: React.FC = () => {
         }
       }
 
-      // 3. Uniamo i risultati: rimuoviamo i vecchi eventi delle scene ricalcolate
+      // 3. Uniamo i risultati: rimuoviamo i vecchi eventi delle scene ricalcolate O rimosse
       const modifiedSceneIds = new Set(scenesToAnalyze.map(s => s.id));
-      const preservedEvents = timelineEvents.filter(e => e.sceneId && !modifiedSceneIds.has(e.sceneId));
+      const preservedEvents = timelineEvents.filter(e => 
+        e.sceneId && activeSceneIds.has(e.sceneId) && !modifiedSceneIds.has(e.sceneId)
+      );
       
       const combinedEvents = [...preservedEvents, ...newEvents];
+
       const conflictMap = timelineUtils.detectOverlaps(combinedEvents);
       
       const finalEvents = combinedEvents.map(e => ({

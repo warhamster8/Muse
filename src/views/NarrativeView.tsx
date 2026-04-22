@@ -24,8 +24,10 @@ export const NarrativeView: React.FC = React.memo(() => {
     reorderScenes, 
     reorderChapters,
     renameChapter,
-    renameScene
+    renameScene,
+    updateSceneMetadata
   } = useNarrative();
+
   
   // Selettori granulari per evitare re-render inutili
   const activeSceneId = useStore(s => s.activeSceneId);
@@ -157,9 +159,11 @@ export const NarrativeView: React.FC = React.memo(() => {
               onReorder={handleReorder}
               onRenameChapter={renameChapter}
               onRenameScene={renameScene}
+              onToggleSceneExclusion={(id, exclude) => updateSceneMetadata(id, { exclude_from_timeline: exclude })}
               onExport={handleExport}
               isExporting={isExporting}
             />
+
           </motion.div>
         )}
       </AnimatePresence>

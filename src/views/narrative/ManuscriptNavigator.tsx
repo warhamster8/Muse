@@ -1,5 +1,6 @@
 import React from 'react';
-import { Plus, ChevronDown, ChevronRight, FileText, Folder, GripVertical, Library, FileDown } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, FileText, Folder, GripVertical, Library, FileDown, Eye, EyeOff } from 'lucide-react';
+
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { cn } from '../../lib/utils';
 import type { Chapter } from '../../types/narrative';
@@ -15,9 +16,11 @@ interface ManuscriptNavigatorProps {
   onReorder: (result: DropResult) => void;
   onRenameChapter: (id: string, title: string) => void;
   onRenameScene: (id: string, title: string) => void;
+  onToggleSceneExclusion: (id: string, exclude: boolean) => void;
   onExport: () => void;
   isExporting: boolean;
 }
+
 
 /**
  * Mattoncino: ManuscriptNavigator
@@ -36,9 +39,11 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
   onReorder,
   onRenameChapter,
   onRenameScene,
+  onToggleSceneExclusion,
   onExport,
   isExporting
 }) => {
+
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [editTitle, setEditTitle] = React.useState('');
 
@@ -220,13 +225,38 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
                                             onDoubleClick={(e) => handleStartRename(e, scene.id, scene.title)}
                                             className={cn(
                                               "text-[11px] truncate font-black uppercase tracking-tight transition-all duration-500",
-                                              activeSceneId === scene.id ? "text-[#0b0e11] translate-x-1" : "text-slate-600"
+                                              activeSceneId === scene.id ? "text-[#0b0e11] translate-x-1" : "text-slate-600",
+                                              scene.exclude_from_timeline && "opacity-30 italic"
                                             )}
                                           >
                                             {scene.title}
+                                            {scene.exclude_from_timeline && " (BOZZA)"}
                                           </span>
                                         )}
+                                        
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            onToggleSceneExclusion(scene.id, !scene.exclude_from_timeline);
+                                          }}
+                                          className={cn(
+                                            "flex items-center justify-center p-1.5 rounded-lg transition-all border border-transparent opacity-0 group-hover/scene:opacity-100",
+                                            scene.exclude_from_timeline 
+                                              ? "text-red-400 hover:bg-red-400/10 hover:border-red-400/20" 
+                                              : "text-slate-700 hover:text-[#5be9b1] hover:bg-[#5be9b1]/10",
+                                            activeSceneId === scene.id && "text-black/40 hover:text-black hover:bg-black/10"
+                                          )}
+                                          title={scene.exclude_from_timeline ? "Includi nella timeline" : "Escludi dalla timeline (Bozza)"}
+                                        >
+                                          {scene.exclude_from_timeline ? (
+                                            <EyeOff className="w-3.5 h-3.5" />
+                                          ) : (
+                                            <Eye className="w-3.5 h-3.5" />
+                                          )}
+                                        </button>
                                       </div>
+
+
                                     )}
                                   </Draggable>
                                 ))}

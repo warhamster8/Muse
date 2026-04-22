@@ -10,7 +10,9 @@ export type Scene = {
   order_index: number;
   timeline_events?: SceneTimelineEvent[];
   last_analyzed_content?: string;
+  exclude_from_timeline?: boolean;
 };
+
 
 
 
