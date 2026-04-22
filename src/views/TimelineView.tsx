@@ -43,24 +43,34 @@ export const TimelineView: React.FC = () => {
       // 1. Filtriamo solo le scene NON escluse (non bozze)
       const activeScenes = allScenes.filter(s => !s.exclude_from_timeline);
 
-      // 2. Identifichiamo le scene che sono cambiate o mai analizzate tra quelle attive
+      // 2. Transizione e Pulizia: 
+      // Se ci sono eventi "legacy" (senza sceneId) o scene escluse che hanno ancora eventi, 
+      // dobbiamo procedere con l'analisi.
+      const hasLegacyEvents = timelineEvents.some(e => !e.sceneId);
+      const activeSceneIds = new Set(activeScenes.map(s => s.id));
+      const hasExcludedScenesToRemove = timelineEvents.some(e => e.sceneId && !activeSceneIds.has(e.sceneId));
+
+      // 3. Identifichiamo le scene da analizzare
       const scenesToAnalyze = activeScenes.filter(s => {
+        // Se abbiamo eventi vecchi senza ID, forziamo la ri-analisi di tutto per "taggarli" correttamente
+        if (hasLegacyEvents) return true; 
+        
         const currentText = cleanHtml(s.content || '').trim();
         return currentText !== (s.last_analyzed_content || '').trim();
       });
 
-      // 3. Verifichiamo se ci sono scene da rimuovere (perché escluse di recente)
-      const activeSceneIds = new Set(activeScenes.map(s => s.id));
-      const hasExcludedScenesToRemove = timelineEvents.some(e => e.sceneId && !activeSceneIds.has(e.sceneId));
-
-      if (scenesToAnalyze.length === 0 && !hasExcludedScenesToRemove) {
+      if (scenesToAnalyze.length === 0 && !hasExcludedScenesToRemove && !hasLegacyEvents) {
         addToast("Nessuna modifica rilevata nel manoscritto dall'ultima analisi.", "info");
         setIsAnalyzing(false);
         return;
       }
 
+      const statusMsg = hasLegacyEvents 
+        ? "Aggiornamento sistema: indicizzazione completa della timeline..." 
+        : `Analisi incrementale: ${scenesToAnalyze.length} scene nuove o modificate...`;
+        
+      addToast(statusMsg, "info");
 
-      addToast(`Analisi incrementale in corso: ${scenesToAnalyze.length} scene nuove o modificate...`, "info");
 
       // 2. Analizziamo solo le scene modificate
       const newEvents: GlobalTimelineEvent[] = [];
