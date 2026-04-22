@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   ScanSearch, 
   ChevronDown, 
@@ -8,10 +8,13 @@ import {
   Zap, 
   MessageSquare,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  Cpu,
+  Settings
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useNarrative } from '../hooks/useNarrative';
+import { useToast } from '../components/Toast';
 import { aiService } from '../lib/aiService';
 import { cn } from '../lib/utils';
 import { StructuredOutput } from '../components/analysis/StructuredOutput';
@@ -19,6 +22,8 @@ import { StructuredOutput } from '../components/analysis/StructuredOutput';
 export const DeepAnalysisView: React.FC = () => {
   const { chapters } = useNarrative();
   const aiConfig = useStore(s => s.aiConfig);
+  const setAIConfig = useStore(s => s.setAIConfig);
+  const { addToast } = useToast();
   
   const [selectedSceneId, setSelectedSceneId] = useState<string | null>(null);
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
@@ -31,6 +36,14 @@ export const DeepAnalysisView: React.FC = () => {
     return chapters.flatMap(c => c.scenes || []).find(s => s.id === selectedSceneId);
   }, [chapters, selectedSceneId]);
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+    };
+  }, []);
+
   const toggleChapter = (id: string) => {
     const next = new Set(expandedChapters);
     if (next.has(id)) next.delete(id);
@@ -38,9 +51,21 @@ export const DeepAnalysisView: React.FC = () => {
     setExpandedChapters(next);
   };
 
+  const handleProviderChange = (provider: 'groq' | 'deepseek') => {
+    if (provider === 'deepseek' && !aiConfig.deepseekKey) {
+      addToast("DeepSeek key non trovata. Configurala in Project & AI", 'error');
+      return;
+    }
+    setAIConfig({ provider });
+    addToast(`Motore: ${provider === 'groq' ? 'Groq' : 'DeepSeek'}`, 'success');
+  };
+
   const runAnalysis = async (customQuery?: string) => {
     if (!selectedScene || isAnalyzing) return;
     
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    abortControllerRef.current = new AbortController();
+
     setIsAnalyzing(true);
     setAnalysis('');
     
@@ -51,19 +76,26 @@ export const DeepAnalysisView: React.FC = () => {
     Usa un tono professionale, acuto e costruttivo. 
     Formatta l'output in modo strutturato.`;
 
+    let textToAnalyze = selectedScene.content || '';
+    if (textToAnalyze.length > 30000) textToAnalyze = textToAnalyze.substring(0, 30000);
+
     try {
       await aiService.streamChat(
         aiConfig,
         [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `SCENA: ${selectedScene.title}\n\nCONTENUTO:\n${selectedScene.content}\n\nRICHIESTA: ${prompt}` }
+          { role: 'user', content: `SCENA: ${selectedScene.title}\n\nCONTENUTO:\n${textToAnalyze}\n\nRICHIESTA: ${prompt}` }
         ],
-        (chunk) => setAnalysis(prev => prev + chunk)
+        (chunk) => setAnalysis(prev => prev + chunk),
+        { signal: abortControllerRef.current.signal }
       );
     } catch (err: any) {
-      setAnalysis(`❌ Errore: ${err.message}`);
+      if (err.name === 'AbortError') return;
+      console.error('[ANALYSIS ERROR]', err);
+      setAnalysis(`❌ Errore di Connessione: ${err.message === 'Failed to fetch' ? 'Impossibile contattare il server AI. Verifica la tua connessione o la chiave API.' : err.message}`);
     } finally {
       setIsAnalyzing(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -137,21 +169,53 @@ export const DeepAnalysisView: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {isAnalyzing && (
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#5be9b1]/10 border border-[#5be9b1]/20">
-                <RefreshCw className="w-3 h-3 animate-spin text-[#5be9b1]" />
-                <span className="text-[10px] font-black text-[#5be9b1] uppercase tracking-widest">IA Elaborando...</span>
-              </div>
-            )}
-            <button 
-              onClick={() => runAnalysis()}
-              disabled={!selectedScene || isAnalyzing}
-              className="px-8 py-3 bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all disabled:opacity-30 disabled:grayscale shadow-2xl shadow-[#5be9b1]/20 active:scale-95 flex items-center gap-2"
-            >
-              <Zap className="w-4 h-4" />
-              Scansione Profonda
-            </button>
+          <div className="flex items-center gap-6">
+            {/* Selettore Provider */}
+            <div className="flex items-center bg-black/40 border border-white/5 p-1.5 rounded-2xl gap-1">
+              <button
+                onClick={() => handleProviderChange('groq')}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                  aiConfig.provider === 'groq' 
+                    ? "bg-[#5be9b1] text-[#0b0e11] shadow-lg shadow-[#5be9b1]/20" 
+                    : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
+                )}
+              >
+                <Zap className="w-3 h-3" />
+                <span>Groq</span>
+              </button>
+              <button
+                onClick={() => handleProviderChange('deepseek')}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                  aiConfig.provider === 'deepseek' 
+                    ? "bg-[#5be9b1] text-[#0b0e11] shadow-lg shadow-[#5be9b1]/20" 
+                    : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
+                )}
+              >
+                <Cpu className="w-3 h-3" />
+                <span>DeepSeek</span>
+              </button>
+            </div>
+
+            <div className="w-[1px] h-8 bg-white/5" />
+
+            <div className="flex items-center gap-4">
+              {isAnalyzing && (
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#5be9b1]/10 border border-[#5be9b1]/20">
+                  <RefreshCw className="w-3 h-3 animate-spin text-[#5be9b1]" />
+                  <span className="text-[10px] font-black text-[#5be9b1] uppercase tracking-widest">IA Elaborando...</span>
+                </div>
+              )}
+              <button 
+                onClick={() => runAnalysis()}
+                disabled={!selectedScene || isAnalyzing}
+                className="px-8 py-3 bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all disabled:opacity-30 disabled:grayscale shadow-2xl shadow-[#5be9b1]/20 active:scale-95 flex items-center gap-2"
+              >
+                <Zap className="w-4 h-4" />
+                Scansione Profonda
+              </button>
+            </div>
           </div>
         </div>
 
@@ -189,9 +253,19 @@ export const DeepAnalysisView: React.FC = () => {
                    </div>
                 </div>
               ) : (
-                <div className="h-full flex flex-col items-center justify-center text-center space-y-6 opacity-40">
-                  <Sparkles className="w-12 h-12 text-[#5be9b1] animate-pulse" />
-                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">Avvia il modulo di scansione per approfondire questo segmento</p>
+                <div className="h-full flex flex-col items-center justify-center text-center space-y-6 opacity-40 py-20">
+                  {isAnalyzing ? (
+                    <>
+                      <div className="w-16 h-16 rounded-full border-2 border-[#5be9b1]/20 border-t-[#5be9b1] animate-spin mb-4" />
+                      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#5be9b1] animate-pulse">Sincronizzazione Modulo IA...</p>
+                      <p className="text-[9px] text-slate-600 uppercase tracking-widest">L'elaborazione profonda può richiedere alcuni secondi</p>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-12 h-12 text-[#5be9b1] animate-pulse" />
+                      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">Avvia il modulo di scansione per approfondire questo segmento</p>
+                    </>
+                  )}
                 </div>
               )}
             </>
