@@ -12,8 +12,7 @@ import {
   X,
   ChevronRight,
   Quote,
-  CheckCircle,
-  Maximize2
+  CheckCircle
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useStore } from '../store/useStore';
@@ -22,73 +21,8 @@ import { useToast } from './Toast';
 import { aiService } from '../lib/aiService';
 import { findMatchInText } from '../lib/tiptap/matchUtils';
 import { StructuredOutput } from './analysis/StructuredOutput';
-import { DeepAnalysisModal } from './analysis/DeepAnalysisModal';
+import { getPlainTextForAI } from '../lib/textUtils';
 
-const buildMapping = (html: string) => {
-  const textMap: number[] = [];
-  const charLens: number[] = [];
-  let textStr = '';
-  let i = 0;
-  
-  const blockTags = ['p', 'div', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'ul', 'ol'];
-  
-  while (i < html.length) {
-      if (html[i] === '<') {
-          const end = html.indexOf('>', i);
-          if (end !== -1) {
-              const tagFull = html.substring(i + 1, end).toLowerCase();
-              const tagName = tagFull.split(/\s+/)[0].replace('/', '');
-              
-              // If it's a block tag (closing or opening), and we haven't already added a newline
-              if (blockTags.includes(tagName)) {
-                  // Only add newline if we aren't at the very start and haven't just added a newline
-                  if (textStr.length > 0 && !textStr.endsWith('\n')) {
-                      textStr += '\n';
-                      textMap.push(i); // Map the newline to the start of the tag
-                      charLens.push(0); // It has 0 length in the actual text but represents a break
-                  }
-              }
-              i = end + 1;
-              continue;
-          }
-      }
-      
-      if (html[i] === '&') {
-          const end = html.indexOf(';', i);
-          if (end !== -1 && end - i < 12) {
-              const entity = html.substring(i, end + 1);
-              let char = ' ';
-              if (entity === '&nbsp;') char = ' ';
-              else if (entity === '&lt;') char = '<';
-              else if (entity === '&gt;') char = '>';
-              else if (entity === '&amp;') char = '&';
-              else if (entity === '&quot;' || entity === '&ldquo;' || entity === '&rdquo;') char = '"';
-              else if (entity === '&apos;' || entity === '&lsquo;' || entity === '&rsquo;') char = "'";
-              else if (entity.startsWith('&#')) {
-                 const code = parseInt(entity.slice(2, -1));
-                 char = isNaN(code) ? '?' : String.fromCharCode(code);
-              }
-
-              textStr += char;
-              textMap.push(i);
-              charLens.push(entity.length);
-              i = end + 1;
-              continue;
-          }
-      }
-      
-      textStr += html[i];
-      textMap.push(i);
-      charLens.push(1);
-      i++;
-  }
-  return { textStr, textMap, charLens };
-};
-
-const getPlainTextForAI = (html: string) => {
-  const { textStr } = buildMapping(html);
-  return textStr;
-};
 
 type SidekickTab = 'revision' | 'grammar' | 'braindump' | 'transformer' | 'lexicon';
 
@@ -126,7 +60,6 @@ export const AISidekick: React.FC = React.memo(() => {
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
   const [lexiconInput, setLexiconInput] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
-  const [isDeepModalOpen, setIsDeepModalOpen] = React.useState(false);
   const abortControllerRef = React.useRef<AbortController | null>(null);
 
   const handleStop = () => {
@@ -575,19 +508,6 @@ Rispondi in italiano. Sii concreto e originale.`;
         </div>
       </div>
 
-      {/* Pulsante Espansione Globale - Visibile quando c'è un'analisi */}
-      {analysis && !isAnalyzing && (
-        <div className="px-8 pb-4 animate-in slide-in-from-top-2">
-           <button 
-              onClick={() => setIsDeepModalOpen(true)}
-              className="w-full py-3 bg-[#5be9b1]/10 hover:bg-[#5be9b1]/20 text-[#5be9b1] rounded-2xl transition-all border border-[#5be9b1]/20 shadow-lg active:scale-95 flex items-center justify-center gap-3 group"
-              title="Apri Vista Grande"
-            >
-              <Maximize2 className="w-4 h-4" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Espandi Visuale Per Leggere Meglio</span>
-            </button>
-        </div>
-      )}
 
       <div className="grid grid-cols-6 gap-1 p-3 bg-white/[0.01] border-b border-white/10">
         {tabs.map(tab => (
@@ -867,16 +787,6 @@ Rispondi in italiano. Sii concreto e originale.`;
         </div>
       </div>
 
-      <DeepAnalysisModal 
-        isOpen={isDeepModalOpen}
-        onClose={() => setIsDeepModalOpen(false)}
-        analysis={analysis}
-        onApply={applySuggestion}
-        onReject={handleReject}
-        appliedSuggestions={appliedSuggestions}
-        rejectedSuggestions={sceneIgnoredSuggestions}
-        isAnalyzing={isAnalyzing}
-      />
     </div>
   );
 });

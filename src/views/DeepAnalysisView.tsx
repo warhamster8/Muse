@@ -17,6 +17,7 @@ import { useToast } from '../components/Toast';
 import { aiService } from '../lib/aiService';
 import { cn } from '../lib/utils';
 import { StructuredOutput } from '../components/analysis/StructuredOutput';
+import { getPlainTextForAI } from '../lib/textUtils';
 
 export const DeepAnalysisView: React.FC = () => {
   const { chapters } = useNarrative();
@@ -75,8 +76,8 @@ export const DeepAnalysisView: React.FC = () => {
     Usa un tono professionale, acuto e costruttivo. 
     Formatta l'output in modo strutturato.`;
 
-    let textToAnalyze = selectedScene.content || '';
-    if (textToAnalyze.length > 30000) textToAnalyze = textToAnalyze.substring(0, 30000);
+    let textToAnalyze = getPlainTextForAI(selectedScene.content || '');
+    if (textToAnalyze.length > 25000) textToAnalyze = textToAnalyze.substring(0, 25000);
 
     try {
       await aiService.streamChat(
