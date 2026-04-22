@@ -26,29 +26,30 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
   const setNavigatorOpen = useStore(s => s.setNavigatorOpen);
   const isZenMode = useStore(s => s.isZenMode);
   const setZenMode = useStore(s => s.setZenMode);
+  const theme = useStore(s => s.theme);
 
   return (
-    <div className="flex-1 min-w-0 flex flex-col bg-[#111418] relative overflow-hidden animate-in fade-in duration-500">
+    <div className="flex-1 min-w-0 flex flex-col bg-[var(--bg-surface)] relative overflow-hidden animate-in fade-in duration-500">
       {/* Background Decorative Element */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-[#5be9b1]/5 blur-[100px] pointer-events-none" />
+      <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--accent)]/5 blur-[100px] pointer-events-none opacity-50" />
 
       {/* Toolbar Premium (Sempre visibile per controlli layout) */}
-      <div className="h-20 bg-white/[0.01] border-b border-white/10 flex items-center justify-between px-10 backdrop-blur-md z-10">
+      <div className="h-20 bg-[var(--bg-card)]/50 border-b border-[var(--border-subtle)] flex items-center justify-between px-10 backdrop-blur-md z-10">
         <div className="flex items-center gap-6">
           <div className="flex flex-col">
-            <span className="text-[9px] font-black text-[#5be9b1] uppercase tracking-[0.4em] mb-1">
+            <span className="text-[9px] font-black text-[var(--accent)] uppercase tracking-[0.4em] mb-1">
               {activeScene ? 'Editing Mode' : 'Navigation Mode'}
             </span>
-            <h2 className="text-xl font-black text-slate-100 tracking-tighter uppercase truncate max-w-[300px]">
+            <h2 className="text-xl font-black text-[var(--text-bright)] tracking-tighter uppercase truncate max-w-[300px]">
               {activeScene ? activeScene.title : 'Seleziona Manoscritto'}
             </h2>
           </div>
           {activeScene && (
             <>
-              <div className="h-8 w-[1px] bg-white/5 mx-2" />
-              <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
-                <div className="w-1.5 h-1.5 bg-[#5be9b1] rounded-full animate-pulse" />
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest hidden sm:inline">Live Sync</span>
+              <div className="h-8 w-[1px] bg-[var(--border-subtle)] mx-2" />
+              <div className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-soft)] rounded-full border border-[var(--border-subtle)]">
+                <div className="w-1.5 h-1.5 bg-[var(--accent)] rounded-full animate-pulse" />
+                <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest hidden sm:inline">Live Sync</span>
               </div>
             </>
           )}
@@ -60,8 +61,8 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
             className={cn(
               "p-3 rounded-2xl transition-all border active:scale-95 group",
               isNavigatorOpen 
-                ? "bg-white/5 border-white/5 text-slate-500 hover:text-slate-300" 
-                : "bg-[#5be9b1]/10 border-[#5be9b1]/30 text-[#5be9b1] shadow-[0_0_20px_rgba(91,233,177,0.1)]"
+                ? "bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-bright)]" 
+                : "bg-[var(--accent-soft)] border-[var(--accent)]/30 text-[var(--accent)] shadow-glow-mint"
             )}
             title={isNavigatorOpen ? "Nascondi Navigatore" : "Mostra Navigatore"}
           >
@@ -77,21 +78,21 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
             className={cn(
               "p-3 rounded-2xl transition-all border active:scale-95 group",
               isZenMode 
-                ? "bg-[#5be9b1]/10 border-[#5be9b1]/30 text-[#5be9b1] shadow-[0_0_20px_rgba(91,233,177,0.1)]" 
-                : "bg-white/5 border-white/5 text-slate-500 hover:text-slate-300"
+                ? "bg-[var(--accent-soft)] border-[var(--accent)]/30 text-[var(--accent)] shadow-glow-mint" 
+                : "bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-bright)]"
             )}
             title={isZenMode ? "Esci da Modalità Zen" : "Modalità Zen"}
           >
             {isZenMode ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
           </button>
           
-          <div className="h-8 w-[1px] bg-white/5 mx-1" />
+          <div className="h-8 w-[1px] bg-[var(--border-subtle)] mx-1" />
                   {activeScene ? (
              <button 
                 onClick={() => setSidekickOpen(!isSidekickOpen)}
                 className={cn(
                   "flex items-center gap-3 px-4 xl:px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl group",
-                  "bg-[#5be9b1] text-[#0b0e11] hover:scale-105 shadow-[0_10px_30px_-5px_rgba(91,233,177,0.3)]"
+                  "bg-[var(--accent)] text-[var(--bg-deep)] hover:scale-105 shadow-glow-mint"
                 )}
               >
                 <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" />
@@ -103,8 +104,8 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
               className={cn(
                 "p-3 rounded-2xl transition-all border active:scale-95 group focus:outline-none",
                 isSidekickOpen 
-                  ? "bg-white/5 border-white/5 text-slate-500 hover:text-slate-300" 
-                  : "bg-[#5be9b1]/10 border-[#5be9b1]/30 text-[#5be9b1] shadow-[0_0_20px_rgba(91,233,177,0.1)]"
+                  ? "bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-bright)]" 
+                  : "bg-[var(--accent-soft)] border-[var(--accent)]/30 text-[var(--accent)] shadow-glow-mint"
               )}
             >
               <Sparkles className="w-5 h-5" />
@@ -115,43 +116,43 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
 
       <div className="flex-1 min-h-0 relative">
         {!activeScene ? (
-          <div className="h-full flex flex-col items-center justify-center text-slate-700 space-y-6 bg-[#121519]/10 animate-in fade-in duration-500">
+          <div className="h-full flex flex-col items-center justify-center text-[var(--text-secondary)] space-y-6 bg-[var(--bg-deep)]/10 animate-in fade-in duration-500">
             <div 
               onClick={() => setNavigatorOpen(true)}
-              className="w-24 h-24 rounded-full border border-white/5 flex items-center justify-center opacity-20 bg-white/5 transition-all hover:scale-110 hover:opacity-40 cursor-pointer group"
+              className="w-24 h-24 rounded-full border border-[var(--border-subtle)] flex items-center justify-center opacity-20 bg-[var(--bg-surface)] transition-all hover:scale-110 hover:opacity-40 cursor-pointer group"
             >
-              <LayoutList className="w-10 h-10 group-hover:text-[#5be9b1] transition-colors" />
+              <LayoutList className="w-10 h-10 group-hover:text-[var(--accent)] transition-colors" />
             </div>
             <div className="text-center">
-                <h3 className="text-lg font-medium text-slate-400">Pronto per scrivere?</h3>
+                <h3 className="text-lg font-medium text-[var(--text-bright)]">Pronto per scrivere?</h3>
                 <p className="text-xs opacity-50 max-w-[200px] mx-auto mt-2 tracking-wide font-light">
                   Apri la libreria a sinistra per selezionare una scena o iniziarne una nuova.
                 </p>
                 <button 
                   onClick={() => setNavigatorOpen(true)}
-                  className="mt-6 px-6 py-2 bg-white/5 hover:bg-[#5be9b1]/10 text-white/40 hover:text-[#5be9b1] border border-white/5 hover:border-[#5be9b1]/20 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all"
+                  className="mt-6 px-6 py-2 bg-[var(--bg-surface)]/50 hover:bg-[var(--accent-soft)] text-[var(--text-secondary)] hover:text-[var(--accent)] border border-[var(--border-subtle)] hover:border-[var(--accent)]/20 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all"
                 >
                   Mostra Libreria
                 </button>
             </div>
           </div>
         ) : (
-          <div className="h-full overflow-y-auto custom-scrollbar p-6 lg:p-12 bg-[#0b0e11]">
+          <div className="h-full overflow-y-auto custom-scrollbar p-6 lg:p-12 bg-[var(--bg-deep)] transition-colors duration-500">
             <div className="mx-auto w-full max-w-[1200px]">
               <Editor 
                 initialContent={activeScene.content || ''} 
                 onChange={(newContent) => onUpdateContent(activeScene.id, newContent)} 
               />
               
-              <div className="mt-16 pt-10 border-t border-white/5 flex items-center justify-between opacity-30">
-                <div className="flex items-center gap-4 text-[10px] uppercase font-black tracking-[0.3em] text-slate-600">
+              <div className="mt-16 pt-10 border-t border-[var(--border-subtle)] flex items-center justify-between opacity-30">
+                <div className="flex items-center gap-4 text-[10px] uppercase font-black tracking-[0.3em] text-[var(--text-muted)]">
                   <span>Scene ID: {activeScene.id.slice(0, 8)}</span>
-                  <span className="w-1 h-1 bg-slate-800 rounded-full" />
+                  <span className="w-1 h-1 bg-[var(--text-muted)] rounded-full" />
                   <span>Last Edit: Just now</span>
                 </div>
                 <button 
                   onClick={() => setSidekickOpen(!isSidekickOpen)}
-                  className="flex items-center gap-2 text-[10px] uppercase font-black tracking-[0.3em] text-[#5be9b1] hover:opacity-100 transition-opacity"
+                  className="flex items-center gap-2 text-[10px] uppercase font-black tracking-[0.3em] text-[var(--accent)] hover:opacity-100 transition-opacity"
                 >
                   <Sparkles className="w-3 h-3" />
                   Focus Deep Analysis

@@ -140,7 +140,7 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
                           {editingId === chapter.id ? (
                             <input
                               autoFocus
-                              className="bg-[#121519] text-[11px] font-black text-slate-100 uppercase tracking-tighter flex-1 border border-[#5be9b1]/30 rounded-lg px-2 py-1 outline-none"
+                              className="bg-[var(--bg-deep)] text-[11px] font-black text-[var(--text-bright)] uppercase tracking-tighter flex-1 border border-[var(--accent)]/30 rounded-lg px-2 py-1 outline-none"
                               value={editTitle}
                               onChange={(e) => setEditTitle(e.target.value)}
                               onBlur={() => handleFinishRename(chapter.id, 'CHAPTER')}
@@ -155,7 +155,7 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
                               onDoubleClick={(e) => handleStartRename(e, chapter.id, chapter.title)}
                               className={cn(
                                 "text-[11px] font-black flex-1 truncate uppercase tracking-tighter transition-colors duration-500",
-                                expandedChapters.has(chapter.id) ? "text-slate-100" : "text-slate-500 group-hover:text-slate-300"
+                                expandedChapters.has(chapter.id) ? "text-[var(--text-bright)]" : "text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]"
                               )}
                             >
                               {chapter.title}
@@ -166,7 +166,7 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
                               e.stopPropagation();
                               onCreateScene(chapter.id);
                             }} 
-                            className="w-4 h-4 text-slate-700 opacity-0 group-hover:opacity-100 hover:text-[#5be9b1] transition-all translate-x-1 group-hover:translate-x-0" 
+                            className="w-4 h-4 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 hover:text-[var(--accent)] transition-all translate-x-1 group-hover:translate-x-0" 
                           />
                         </div>
 
@@ -208,8 +208,8 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
                                           <input
                                             autoFocus
                                             className={cn(
-                                              "bg-[#121519] text-[11px] font-black uppercase tracking-tight flex-1 border border-[#5be9b1]/30 rounded-lg px-2 py-1 outline-none",
-                                              activeSceneId === scene.id ? "text-[#5be9b1]" : "text-slate-300"
+                                              "bg-[var(--bg-deep)] text-[11px] font-black uppercase tracking-tight flex-1 border border-[var(--accent)]/30 rounded-lg px-2 py-1 outline-none",
+                                              activeSceneId === scene.id ? "text-[var(--accent)]" : "text-[var(--text-primary)]"
                                             )}
                                             value={editTitle}
                                             onChange={(e) => setEditTitle(e.target.value)}

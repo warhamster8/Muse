@@ -12,15 +12,16 @@
   --bg-surface: #13161a;
   --bg-card: #1a1e23;
   --bg-sidebar: #090c0f;
+  --bg-overlay: rgba(0, 0, 0, 0.85);
   
-  --accent: var(--accent);
+  --accent: #5be9b1;
   --accent-hover: #4ade80;
-  --accent-soft: rgba(45, 106, 79, 0.1);
+  --accent-soft: rgba(91, 233, 177, 0.1);
   
   --text-bright: #f8fafc;
   --text-primary: #cbd5e1;
-  --text-secondary: #64748b;
-  --text-muted: #334155;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
   
   --border-subtle: rgba(255, 255, 255, 0.05);
   --glass-bg: rgba(255, 255, 255, 0.03);
@@ -33,17 +34,18 @@
   --bg-surface: #FFFFFF;
   --bg-card: rgba(255, 255, 255, 0.7);
   --bg-sidebar: #EFEDE9;
+  --bg-overlay: rgba(255, 255, 255, 0.9);
   
   --accent: #2D6A4F;
   --accent-hover: #1B4332;
-  --accent-soft: rgba(45, 106, 79, 0.08);
+  --accent-soft: rgba(45, 106, 79, 0.12);
   
   --text-bright: #1A202C;
   --text-primary: #2D3748;
   --text-secondary: #4A5568;
   --text-muted: #A0AEC0;
   
-  --border-subtle: rgba(45, 106, 79, 0.1);
+  --border-subtle: rgba(45, 106, 79, 0.15);
   --glass-bg: rgba(255, 255, 255, 0.5);
   --glass-blur: 25px;
 }
@@ -156,10 +158,20 @@
 
 .logo-blend {
     filter: brightness(1.2) contrast(1.1) drop-shadow(0 0 30px rgba(45, 106, 79, 0.3));
+    transition: filter 0.5s ease;
+}
+
+[data-theme='light'] .logo-blend {
+    filter: invert(1) brightness(0.8) contrast(1.2) drop-shadow(0 0 30px rgba(45, 106, 79, 0.1));
 }
 
 .logo-glow {
     background: radial-gradient(circle at center, rgba(45, 106, 79, 0.15) 0%, rgba(45, 106, 79, 0.05) 50%, transparent 80%);
+    transition: background 0.5s ease;
+}
+
+[data-theme='light'] .logo-glow {
+    background: radial-gradient(circle at center, rgba(45, 106, 79, 0.1) 0%, rgba(45, 106, 79, 0.02) 50%, transparent 80%);
 }
 
 /* Suggestion Highlighting */

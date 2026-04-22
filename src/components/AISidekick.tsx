@@ -518,7 +518,7 @@ Rispondi in italiano. Sii concreto e originale.`;
                     "py-2 px-1 rounded-[18px] text-[8px] font-black uppercase tracking-widest transition-all duration-300 text-center",
                     activeTab === tab 
                       ? "bg-[var(--accent)] text-[var(--bg-deep)] shadow-lg scale-105" 
-                      : "text-[var(--text-secondary)] hover:text-[var(--text-bright)] hover:bg-white/5"
+                      : "text-[var(--text-secondary)] hover:text-[var(--text-bright)] hover:bg-[var(--accent-soft)]"
                   )}
                >
                  {tab === 'transformer' ? 'Stile' : tab}
@@ -565,6 +565,15 @@ Rispondi in italiano. Sii concreto e originale.`;
                 )}
               </div>
             </div>
+
+            <button 
+              onClick={runDraftRevision} 
+              disabled={isAnalyzing || !content || content.length < 10} 
+              className="w-full py-5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--bg-deep)] disabled:opacity-50 rounded-[28px] text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-2xl active:scale-95 group"
+            >
+              <Wand2 className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+              <span>{isAnalyzing ? 'Elaborazione...' : 'Analisi Strutturale'}</span>
+            </button>
             
             <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] p-5 rounded-[24px] space-y-4 shadow-inner">
               <div className="flex items-center justify-between">
@@ -584,9 +593,9 @@ Rispondi in italiano. Sii concreto e originale.`;
                         }}
                         className="bg-transparent text-[11px] text-[var(--text-secondary)] font-medium hover:text-[var(--accent)] transition-colors outline-none cursor-pointer border-none p-0 appearance-none"
                       >
-                        <option value="groq" className="bg-[#1a1a1a]">Groq (Llama 3.3)</option>
-                        <option value="deepseek" className="bg-[#1a1a1a]">DeepSeek V3</option>
-                        <option value="gemini" className="bg-[#1a1a1a]">Gemini 3 Flash</option>
+                        <option value="groq" className="bg-[var(--bg-card)] text-[var(--text-primary)]">Groq (Llama 3.3)</option>
+                        <option value="deepseek" className="bg-[var(--bg-card)] text-[var(--text-primary)]">DeepSeek V3</option>
+                        <option value="gemini" className="bg-[var(--bg-card)] text-[var(--text-primary)]">Gemini 3 Flash</option>
                       </select>
                       <ChevronRight className="w-3 h-3 text-[var(--text-muted)] opacity-50" />
                     </div>
@@ -622,33 +631,23 @@ Rispondi in italiano. Sii concreto e originale.`;
 
         {activeTab === 'grammar' && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex-1">
-                <button 
-                  onClick={runDraftRevision} 
-                  disabled={isAnalyzing || content.length < 10} 
-                  className="w-full py-5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--bg-deep)] disabled:opacity-50 rounded-[28px] text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-2xl shadow-[var(--accent-soft)] active:scale-95 group"
-                >
-                  <Wand2 className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-                  <span>Analisi Strutturale</span>
-                </button>
-              </div>
-              <div className="ml-3">
-                <button 
-                  onClick={runGrammarAnalysis}
-                  disabled={isAnalyzing} 
-                  className={cn(
-                    "p-5 rounded-28 border transition-all flex items-center gap-3 group px-8",
-                    activeSelection 
-                      ? "bg-[var(--accent-soft)] border-[var(--accent)]/30 text-[var(--accent)]" 
-                      : "bg-[var(--bg-card)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--accent)]/30"
-                  )}
-                >
-                  <PenLine className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">{activeSelection ? 'Correggi' : 'Trova Errori'}</span>
-                </button>
-              </div>
+            <div className="flex flex-col min-w-0 mb-2">
+                <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] truncate">Correzione Tecnica</span>
             </div>
+
+            <button 
+              onClick={runGrammarAnalysis}
+              disabled={isAnalyzing || !content || content.length < 5} 
+              className={cn(
+                "w-full py-5 rounded-[28px] border transition-all flex items-center justify-center gap-3 group px-8 shadow-xl",
+                activeSelection 
+                  ? "bg-[var(--accent)] text-[var(--bg-deep)] border-transparent" 
+                  : "bg-[var(--bg-card)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--accent)]/30"
+              )}
+            >
+              <PenLine className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              <span className="text-[11px] font-black uppercase tracking-widest">{activeSelection ? 'Correggi Selezione' : 'Trova Errori Tecnici'}</span>
+            </button>
             {analysis ? (
               <div className="animate-in slide-in-from-bottom-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                 <StructuredOutput 
@@ -661,7 +660,7 @@ Rispondi in italiano. Sii concreto e originale.`;
                 />
               </div>
             ) : (
-              !isAnalyzing && <div className="flex flex-col items-center justify-center h-48 text-slate-800 space-y-4 bg-white/[0.01] rounded-[32px] border border-dashed border-white/5"><CheckCircle className="w-10 h-10 opacity-20" /><p className="text-[10px] font-bold border-t border-white/5 pt-4 uppercase tracking-[0.2em]">Nessuna anomalia tecnica rilevata</p></div>
+              !isAnalyzing && <div className="flex flex-col items-center justify-center h-48 text-[var(--text-muted)] space-y-4 bg-[var(--accent-soft)] rounded-[32px] border border-dashed border-[var(--border-subtle)]"><CheckCircle className="w-10 h-10 opacity-20" /><p className="text-[10px] font-bold border-t border-[var(--border-subtle)] pt-4 uppercase tracking-[0.2em]">Nessuna anomalia tecnica rilevata</p></div>
             )}
           </div>
         )}
@@ -695,7 +694,7 @@ Rispondi in italiano. Sii concreto e originale.`;
 
         {activeTab === 'transformer' && (
           <div className="space-y-6">
-            <span className="text-[10px] font-bold text-slate-700 uppercase tracking-[0.2em] block">Modulazione Stilistica</span>
+            <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] block">Modulazione Stilistica</span>
             <div className="grid grid-cols-2 gap-4">
               {Object.keys(stylePrompts).map(key => (
                 <button 
@@ -710,7 +709,7 @@ Rispondi in italiano. Sii concreto e originale.`;
               ))}
             </div>
             {analysis && (
-                <div className="bg-[#5be9b1]/5 p-6 rounded-[32px] border border-[#5be9b1]/10 animate-in fade-in max-h-[40vh] overflow-y-auto custom-scrollbar shadow-inner">
+                <div className="bg-[var(--accent-soft)] p-6 rounded-[32px] border border-[var(--accent)]/10 animate-in fade-in max-h-[40vh] overflow-y-auto custom-scrollbar shadow-inner">
                     <StructuredOutput text={analysis} isAnalyzing={isAnalyzing} />
                 </div>
             )}
@@ -736,7 +735,7 @@ Rispondi in italiano. Sii concreto e originale.`;
               <button 
                 onClick={() => runLexiconTool('synonyms')} 
                 disabled={isAnalyzing || !lexiconInput.trim()} 
-                className="py-4 bg-white/[0.02] hover:bg-white/[0.05] disabled:opacity-50 rounded-[20px] text-[10px] font-bold uppercase tracking-widest transition-all border border-[var(--border-subtle)] hover:border-[var(--accent)]/20"
+                className="py-4 bg-[var(--bg-surface)]/40 hover:bg-[var(--accent-soft)] disabled:opacity-50 rounded-[20px] text-[10px] font-bold uppercase tracking-widest transition-all border border-[var(--border-subtle)] hover:border-[var(--accent)]/20 text-[var(--text-secondary)] hover:text-[var(--accent)]"
               >
                 Sinonimi
               </button>

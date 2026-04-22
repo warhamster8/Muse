@@ -288,7 +288,7 @@ Sii acuto, onesto e punta all'eccellenza narrativa.`;
                    <span className="text-[10px] font-black uppercase tracking-[0.3em]">Istruzioni Specifiche per l'Indagine</span>
                 </div>
                 <textarea 
-                  className="w-full h-24 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[28px] p-6 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/30 focus:bg-white/[0.04] transition-all resize-none shadow-inner placeholder:text-[var(--text-muted)]"
+                  className="w-full h-24 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[28px] p-6 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/30 focus:bg-[var(--bg-surface)]/10 transition-all resize-none shadow-inner placeholder:text-[var(--text-muted)]"
                   placeholder="Es: Focalizzati sulla tensione tra i due protagonisti, o analizza se il finale è coerente con la premessa..."
                   value={instructions}
                   onChange={(e) => setInstructions(e.target.value)}
@@ -329,12 +329,12 @@ Sii acuto, onesto e punta all'eccellenza narrativa.`;
           )}
         </div>
 
-        <div className="p-8 border-t border-[var(--border-subtle)] bg-[var(--bg-deep)] backdrop-blur-xl">
+        <div className="p-8 border-t border-[var(--border-subtle)] bg-[var(--bg-deep)]/40 backdrop-blur-xl">
            <div className="max-w-4xl mx-auto relative group">
               <input 
                 type="text"
                 placeholder="Poni una domanda specifica su questa scena... (es: 'Qual è il sottotesto emotivo qui?')"
-                className="w-full bg-white/[0.03] border border-[var(--border-subtle)] rounded-[28px] py-6 pl-8 pr-32 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/30 focus:bg-white/[0.05] transition-all placeholder:text-[var(--text-muted)] shadow-inner"
+                className="w-full bg-[var(--bg-surface)]/10 border border-[var(--border-subtle)] rounded-[28px] py-6 pl-8 pr-32 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/30 focus:bg-[var(--bg-surface)]/20 transition-all placeholder:text-[var(--text-muted)] shadow-inner"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {

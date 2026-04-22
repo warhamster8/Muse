@@ -21,6 +21,7 @@ export const NotesView: React.FC = () => {
   const { addToast } = useToast();
   const [editingNote, setEditingNote] = React.useState<Note | null>(null);
   const [searchQuery, setSearchQuery] = React.useState('');
+  const theme = useStore(s => s.theme);
 
   const filteredNotes = notes.filter(n => 
     (n.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) || 
@@ -54,25 +55,25 @@ export const NotesView: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col space-y-10 overflow-hidden animate-in fade-in duration-1000">
+    <div className="h-full flex flex-col space-y-10 overflow-hidden animate-in fade-in duration-1000 bg-[var(--bg-deep)]">
       {/* Header & Search */}
-      <div className="flex items-center justify-between gap-8 glass-dark p-8 rounded-[40px] border border-white/5 shadow-2xl relative overflow-hidden">
+      <div className="flex items-center justify-between gap-8 glass p-8 rounded-[40px] border border-[var(--border-subtle)] shadow-2xl relative overflow-hidden">
         {/* Background Accent */}
-        <div className="absolute top-0 right-0 w-64 h-full bg-[#5be9b1]/5 blur-[60px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 h-full bg-[var(--accent)]/5 blur-[60px] pointer-events-none" />
         
         <div className="flex-1 relative max-w-2xl group">
-          <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700 group-focus-within:text-[#5be9b1] transition-all duration-500" />
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--accent)] transition-all duration-500" />
           <input 
             type="text"
             placeholder="Search through your narrative fragments..."
-            className="w-full bg-black/40 border border-white/5 rounded-[24px] py-4 pl-16 pr-8 text-sm text-slate-200 focus:outline-none focus:border-[#5be9b1]/30 focus:bg-black/60 transition-all shadow-inner placeholder:text-slate-800 tracking-tight"
+            className="w-full bg-[var(--bg-deep)]/40 border border-[var(--border-subtle)] rounded-[24px] py-4 pl-16 pr-8 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/30 focus:bg-[var(--bg-surface)]/60 transition-all shadow-inner placeholder:text-[var(--text-muted)] tracking-tight"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         <button 
           onClick={handleCreateNote}
-          className="bg-[#5be9b1] hover:bg-[#5be9b1] text-[#0b0e11] px-10 py-4 rounded-[24px] font-black text-[10px] flex items-center gap-4 transition-all shadow-2xl shadow-emerald-950/40 active:scale-95 uppercase tracking-[0.2em] group"
+          className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--bg-deep)] px-10 py-4 rounded-[24px] font-black text-[10px] flex items-center gap-4 transition-all shadow-2xl active:scale-95 uppercase tracking-[0.2em] group"
         >
           <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
           Initial Fragment
@@ -83,11 +84,11 @@ export const NotesView: React.FC = () => {
         <div className="flex-1 overflow-y-auto scrollbar-hide pb-20">
           {loading && notes.length === 0 ? (
             <div className="h-full flex items-center justify-center">
-              <div className="w-12 h-12 border-2 border-[#5be9b1]/20 border-t-[#5be9b1] rounded-full animate-spin" />
+              <div className="w-12 h-12 border-2 border-[var(--accent)]/20 border-t-[var(--accent)] rounded-full animate-spin" />
             </div>
           ) : filteredNotes.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-800 space-y-8">
-              <div className="w-24 h-24 rounded-[32px] glass border border-white/5 flex items-center justify-center opacity-20">
+            <div className="h-full flex flex-col items-center justify-center text-[var(--text-muted)] space-y-8">
+              <div className="w-24 h-24 rounded-[32px] glass border border-[var(--border-subtle)] flex items-center justify-center opacity-20">
                 <Plus className="w-10 h-10" />
               </div>
               <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-30">No cognitive fragments detected</p>
@@ -136,6 +137,7 @@ export const NotesView: React.FC = () => {
         {editingNote && (
           <NoteModal 
             note={editingNote} 
+            theme={theme}
             onClose={() => setEditingNote(null)} 
             onSave={(updates) => {
               updateNote(editingNote.id, updates);
@@ -165,30 +167,30 @@ const NoteCard: React.FC<{
       exit={{ opacity: 0, scale: 0.95 }}
       onClick={onClick}
       className={cn(
-        "bg-[#171b1f] border border-white/5 rounded-[32px] p-8 hover:border-[#5be9b1]/20 transition-all cursor-pointer group relative flex flex-col h-64 overflow-hidden shadow-sm hover:shadow-[0_20px_50px_-15px_rgba(16,185,129,0.1)]",
-        isDragging && "bg-[#171b1f] border-[#5be9b1]/30 shadow-2xl scale-105 z-50"
+        "bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[32px] p-8 hover:border-[var(--accent)]/20 transition-all cursor-pointer group relative flex flex-col h-64 overflow-hidden shadow-sm hover:shadow-[0_20px_50px_-15px_rgba(var(--accent),0.1)]",
+        isDragging && "bg-[var(--bg-surface)] border-[var(--accent)]/30 shadow-2xl scale-105 z-50"
       )}
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4 flex-1 min-w-0">
-          <div {...dragHandleProps} className="p-2 hover:bg-[#5be9b1]/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all active:scale-90 border border-transparent hover:border-[#5be9b1]/20">
-            <GripVertical className="w-4 h-4 text-[#5be9b1]" />
+          <div {...dragHandleProps} className="p-2 hover:bg-[var(--accent-soft)] rounded-xl opacity-0 group-hover:opacity-100 transition-all active:scale-90 border border-transparent hover:border-[var(--accent)]/20">
+            <GripVertical className="w-4 h-4 text-[var(--accent)]" />
           </div>
-          <h3 className="text-lg font-medium text-slate-100 truncate pr-10 tracking-tight">{note.title || 'Untitled Thought'}</h3>
+          <h3 className="text-lg font-medium text-[var(--text-bright)] truncate pr-10 tracking-tight">{note.title || 'Untitled Thought'}</h3>
         </div>
         <button 
           onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          className="absolute top-6 right-6 p-2.5 text-slate-800 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all rounded-xl hover:bg-red-500/10 border border-transparent hover:border-red-500/20"
+          className="absolute top-6 right-6 p-2.5 text-[var(--text-muted)] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all rounded-xl hover:bg-red-500/10 border border-transparent hover:border-red-500/20"
         >
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
-      <p className="text-sm text-slate-500 line-clamp-4 leading-relaxed flex-1 font-light italic">
+      <p className="text-sm text-[var(--text-secondary)] line-clamp-4 leading-relaxed flex-1 font-light italic">
         {preview || <span className="opacity-20 not-italic">Nessun frammento di testo...</span>}
       </p>
-      <div className="mt-8 flex items-center justify-between text-[9px] text-slate-700 font-bold uppercase tracking-[0.2em]">
+      <div className="mt-8 flex items-center justify-between text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-[0.2em]">
         <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#5be9b1]/30" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]/30" />
             <span>{new Date(note.created_at).toLocaleDateString()}</span>
         </div>
         <Maximize2 className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-all" />
@@ -222,8 +224,8 @@ const MenuBar: React.FC<{ editor: Editor }> = ({ editor }) => {
       onClick={onClick}
       title={title}
       className={cn(
-        "p-2.5 rounded-xl transition-all hover:bg-white/5",
-        isActive ? "text-[#5be9b1] bg-[#5be9b1]/10 border border-[#5be9b1]/20" : "text-slate-600"
+        "p-2.5 rounded-xl transition-all hover:bg-[var(--accent-soft)]",
+        isActive ? "text-[var(--accent)] bg-[var(--accent-soft)] border border-[var(--accent)]/20" : "text-[var(--text-secondary)]"
       )}
     >
       <Icon className="w-4 h-4" />
@@ -231,7 +233,7 @@ const MenuBar: React.FC<{ editor: Editor }> = ({ editor }) => {
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-1 p-2 border-b border-slate-700 bg-slate-800/20">
+    <div className="flex flex-wrap items-center gap-1 p-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/20">
       <ToolbarButton 
         onClick={() => editor.chain().focus().toggleBold().run()}
         isActive={editor.isActive('bold')}
@@ -257,7 +259,7 @@ const MenuBar: React.FC<{ editor: Editor }> = ({ editor }) => {
         title="In-line Code"
       />
       
-      <div className="w-px h-6 bg-slate-700 mx-1" />
+      <div className="w-px h-6 bg-[var(--border-subtle)] mx-1" />
 
       <ToolbarButton 
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
@@ -272,7 +274,7 @@ const MenuBar: React.FC<{ editor: Editor }> = ({ editor }) => {
         title="Heading 2"
       />
       
-      <div className="w-px h-6 bg-slate-700 mx-1" />
+      <div className="w-px h-6 bg-[var(--border-subtle)] mx-1" />
 
       <ToolbarButton 
         onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -293,7 +295,7 @@ const MenuBar: React.FC<{ editor: Editor }> = ({ editor }) => {
         title="Blockquote"
       />
 
-      <div className="w-px h-6 bg-slate-700 mx-1" />
+      <div className="w-px h-6 bg-[var(--border-subtle)] mx-1" />
 
       <ToolbarButton 
         onClick={setLink}
@@ -323,7 +325,7 @@ const MenuBar: React.FC<{ editor: Editor }> = ({ editor }) => {
   );
 };
 
-const NoteModal: React.FC<{ note: Note; onClose: () => void; onSave: (updates: Partial<Note>) => void }> = ({ note, onClose, onSave }) => {
+const NoteModal: React.FC<{ note: Note; theme: string; onClose: () => void; onSave: (updates: Partial<Note>) => void }> = ({ note, theme, onClose, onSave }) => {
   const [title, setTitle] = useState(note.title);
   const [isSaving, setIsSaving] = useState(false);
   const editor = useEditor({
@@ -362,29 +364,29 @@ const NoteModal: React.FC<{ note: Note; onClose: () => void; onSave: (updates: P
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-black/90 backdrop-blur-md"
+        className="absolute inset-0 bg-[var(--bg-overlay)] backdrop-blur-md"
       />
       <motion.div 
         initial={{ opacity: 0, scale: 0.98, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.98, y: 30 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="relative w-full max-w-6xl h-[90vh] bg-[#171b1f] border border-white/5 rounded-[48px] shadow-[0_30px_100px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden"
+        className="relative w-full max-w-6xl h-[90vh] bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-[48px] shadow-2xl flex flex-col overflow-hidden"
       >
         {/* Header */}
-        <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+        <div className="p-8 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-surface)]/10">
           <div className="flex-1 flex items-center gap-6">
-            <div className="p-3 bg-[#5be9b1]/10 rounded-2xl border border-[#5be9b1]/20">
-               <Quote className="w-5 h-5 text-[#5be9b1]" />
+            <div className="p-3 bg-[var(--accent-soft)] rounded-2xl border border-[var(--accent)]/20">
+               <Quote className="w-5 h-5 text-[var(--accent)]" />
             </div>
             <input 
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="bg-transparent text-4xl font-display font-medium text-slate-50 focus:outline-none placeholder:opacity-5 flex-1 tracking-tighter"
+              className="bg-transparent text-4xl font-display font-medium text-[var(--text-bright)] focus:outline-none placeholder:opacity-5 flex-1 tracking-tighter"
               placeholder="Titolo dell'intuizione..."
             />
             {isSaving && (
-              <div className="flex items-center gap-3 text-[#5be9b1]/50 text-[10px] font-bold uppercase tracking-[0.2em] animate-pulse pr-6">
+              <div className="flex items-center gap-3 text-[var(--accent)]/50 text-[10px] font-bold uppercase tracking-[0.2em] animate-pulse pr-6">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                 Sincronizzazione...
               </div>
@@ -392,7 +394,7 @@ const NoteModal: React.FC<{ note: Note; onClose: () => void; onSave: (updates: P
           </div>
           <button 
             onClick={onClose}
-            className="group p-5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-[24px] transition-all active:scale-90 border border-white/5"
+            className="group p-5 bg-[var(--bg-surface)]/10 hover:bg-[var(--accent-soft)] text-[var(--text-muted)] hover:text-[var(--text-bright)] rounded-[24px] transition-all active:scale-90 border border-[var(--border-subtle)]"
           >
             <Plus className="w-6 h-6 rotate-45 group-hover:rotate-0 transition-transform" />
           </button>
@@ -401,8 +403,8 @@ const NoteModal: React.FC<{ note: Note; onClose: () => void; onSave: (updates: P
         <MenuBar editor={editor} />
 
         {/* Editor Content Area */}
-        <div className="flex-1 overflow-y-auto p-12 md:p-20 bg-black/20 scrollbar-hide">
-          <div className="prose prose-invert prose-emerald max-w-none min-h-full">
+        <div className="flex-1 overflow-y-auto p-12 md:p-20 bg-[var(--bg-deep)]/20 scrollbar-hide">
+          <div className={cn("prose prose-emerald max-w-none min-h-full", theme === 'dark' && 'prose-invert')}>
             <EditorContent editor={editor} />
           </div>
         </div>

@@ -138,16 +138,16 @@ export const CharactersView: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full gap-8 p-4 overflow-hidden animate-in fade-in duration-1000">
+    <div className="flex h-full gap-8 p-4 overflow-hidden animate-in fade-in duration-1000 bg-[var(--bg-deep)]">
       {/* Character List */}
       <div className="w-80 flex flex-col gap-6">
-        <div className="flex items-center justify-between glass-dark p-6 rounded-[32px] border border-white/5 shadow-2xl">
-          <h2 className="text-[11px] font-black font-display flex items-center gap-4 tracking-[0.4em] text-slate-400 uppercase">
-            <Users className="w-4 h-4 text-[#5be9b1]" />
+        <div className="flex items-center justify-between glass p-6 rounded-[32px] border border-[var(--border-subtle)] shadow-2xl">
+          <h2 className="text-[11px] font-black font-display flex items-center gap-4 tracking-[0.4em] text-[var(--text-muted)] uppercase">
+            <Users className="w-4 h-4 text-[var(--accent)]" />
             Cast Matrix
           </h2>
-          <button onClick={() => setIsModalOpen(true)} className="bg-[#5be9b1] hover:bg-[#5be9b1] p-2.5 rounded-xl transition-all shadow-lg shadow-emerald-950/20 active:scale-90 group">
-            <Plus className="w-4 h-4 text-[#0b0e11] group-hover:rotate-90 transition-transform" />
+          <button onClick={() => setIsModalOpen(true)} className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] p-2.5 rounded-xl transition-all shadow-lg active:scale-90 group">
+            <Plus className="w-4 h-4 text-[var(--bg-deep)] group-hover:rotate-90 transition-transform" />
           </button>
         </div>
 
@@ -159,11 +159,11 @@ export const CharactersView: React.FC = () => {
               className={cn(
                 "p-5 rounded-[32px] border transition-all duration-500 cursor-pointer flex gap-5 items-center group relative overflow-hidden",
                 selectedCharId === char.id 
-                  ? "glass-emerald border-[#5be9b1]/30 shadow-xl shadow-emerald-950/40" 
-                  : "glass-dark border-white/5 hover:border-[#5be9b1]/20"
+                  ? "glass-emerald border-[var(--accent)]/30 shadow-xl" 
+                  : "glass border-[var(--border-subtle)] hover:border-[var(--accent)]/20"
               )}
             >
-              <div className="w-16 h-16 rounded-[20px] overflow-hidden bg-black/40 border border-white/5 flex-shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-700">
+              <div className="w-16 h-16 rounded-[20px] overflow-hidden bg-[var(--bg-deep)]/40 border border-[var(--border-subtle)] flex-shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-700">
                 {char.avatar_url ? (
                   <img 
                     src={char.avatar_url} 
@@ -172,18 +172,18 @@ export const CharactersView: React.FC = () => {
                     style={{ objectPosition: `${char.avatar_pos_x ?? 50}% ${char.avatar_pos_y ?? 50}%` }}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-700">
+                  <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
                     <User className="w-8 h-8 opacity-20" />
                   </div>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className={cn("font-black text-sm uppercase tracking-tighter truncate transition-colors duration-500", selectedCharId === char.id ? "text-slate-100" : "text-slate-400 group-hover:text-slate-200")}>
+                <h3 className={cn("font-black text-sm uppercase tracking-tighter truncate transition-colors duration-500", selectedCharId === char.id ? "text-[var(--text-bright)]" : "text-[var(--text-secondary)] group-hover:text-[var(--text-bright)]")}>
                     {char.name}
                 </h3>
                 <div className="flex items-center gap-2 mt-2">
-                  <div className={cn("w-1.5 h-1.5 rounded-full", char.bio ? "bg-[#5be9b1]/40" : "bg-slate-800")} />
-                  <p className="text-[9px] text-slate-600 uppercase tracking-widest font-black opacity-60 truncate">
+                  <div className={cn("w-1.5 h-1.5 rounded-full", char.bio ? "bg-[var(--accent)]/40" : "bg-[var(--text-muted)]")} />
+                  <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest font-black opacity-60 truncate">
                       {char.bio ? 'Profile Locked' : 'Undefined'}
                   </p>
                 </div>
@@ -194,12 +194,12 @@ export const CharactersView: React.FC = () => {
       </div>
 
       {/* Detail Area */}
-      <div className="flex-1 min-w-0 glass rounded-[64px] border border-white/5 flex flex-col overflow-hidden shadow-2xl relative">
+      <div className="flex-1 min-w-0 glass rounded-[64px] border border-[var(--border-subtle)] flex flex-col overflow-hidden shadow-2xl relative">
         {selectedChar ? (
-          <div className="flex flex-col h-full bg-black/20">
-            <div className="p-16 border-b border-white/5 relative overflow-hidden group/header">
+          <div className="flex flex-col h-full bg-[var(--bg-surface)]/20">
+            <div className="p-16 border-b border-[var(--border-subtle)] relative overflow-hidden group/header">
               {/* Background Glow */}
-              <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#5be9b1]/5 blur-[180px] -mr-48 -mt-48 transition-all group-hover/header:bg-[#5be9b1]/10 pointer-events-none" />
+              <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[var(--accent)]/5 blur-[180px] -mr-48 -mt-48 transition-all group-hover/header:bg-[var(--accent)]/10 pointer-events-none" />
               
               <div className="relative flex flex-col md:flex-row items-center md:items-end gap-12">
                 {/* Large Portrait */}
@@ -207,8 +207,8 @@ export const CharactersView: React.FC = () => {
                   <div 
                     onClick={() => !isAdjusting && fileInputRef.current?.click()}
                     className={cn(
-                      "group relative w-64 h-80 rounded-[48px] bg-black border border-white/5 overflow-hidden transition-all duration-700 shadow-2xl flex-shrink-0",
-                      isAdjusting ? "ring-2 ring-[#5be9b1] cursor-move scale-95" : "cursor-pointer hover:border-[#5be9b1]/40 hover:-translate-y-2"
+                      "group relative w-64 h-80 rounded-[48px] bg-[var(--bg-deep)] border border-[var(--border-subtle)] overflow-hidden transition-all duration-700 shadow-2xl flex-shrink-0",
+                      isAdjusting ? "ring-2 ring-[var(--accent)] cursor-move scale-95" : "cursor-pointer hover:border-[var(--accent)]/40 hover:-translate-y-2"
                     )}
                   >
                     {selectedChar.avatar_url ? (
@@ -222,14 +222,14 @@ export const CharactersView: React.FC = () => {
                         style={{ objectPosition: `${posX}% ${posY}%` }}
                       />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-800 bg-[#171b1f]/50">
+                      <div className="w-full h-full flex flex-col items-center justify-center text-[var(--text-muted)] bg-[var(--bg-card)]/50">
                         <Camera className="w-16 h-16 mb-4 opacity-5" />
                         <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-5">Assign Visual</span>
                       </div>
                     )}
                     {!isAdjusting && (
-                      <div className="absolute inset-0 bg-emerald-950/40 opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center backdrop-blur-md">
-                        <Camera className="w-12 h-12 text-white" />
+                      <div className="absolute inset-0 bg-[var(--accent-soft)]/40 opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center backdrop-blur-md">
+                        <Camera className="w-12 h-12 text-[var(--text-bright)]" />
                       </div>
                     )}
                     <input 
@@ -246,8 +246,8 @@ export const CharactersView: React.FC = () => {
                     <button
                       onClick={() => setIsAdjusting(!isAdjusting)}
                       className={cn(
-                        "absolute -bottom-4 -right-4 p-5 rounded-[24px] shadow-2xl transition-all z-10 border border-white/10 group/btn",
-                        isAdjusting ? "bg-[#5be9b1] text-[#0b0e11]" : "glass-dark text-slate-400 hover:text-[#5be9b1] hover:scale-110"
+                        "absolute -bottom-4 -right-4 p-5 rounded-[24px] shadow-2xl transition-all z-10 border border-[var(--border-subtle)] group/btn",
+                        isAdjusting ? "bg-[var(--accent)] text-[var(--bg-deep)]" : "glass text-[var(--text-secondary)] hover:text-[var(--accent)] hover:scale-110"
                       )}
                     >
                       <TrendingUp className={cn("w-5 h-5 transition-transform duration-700", isAdjusting && "rotate-180")} />
@@ -258,9 +258,9 @@ export const CharactersView: React.FC = () => {
                 {/* Name & Actions */}
                 <div className="flex-1 flex flex-col items-center md:items-start pb-4 min-w-0">
                   {isAdjusting ? (
-                    <div className="w-full max-w-sm space-y-6 mb-10 p-8 glass-emerald rounded-[40px] border border-[#5be9b1]/30 backdrop-blur-3xl animate-in slide-in-from-bottom-8 duration-700">
+                    <div className="w-full max-w-sm space-y-6 mb-10 p-8 glass-emerald rounded-[40px] border border-[var(--accent)]/30 backdrop-blur-3xl animate-in slide-in-from-bottom-8 duration-700">
                       <div className="space-y-4">
-                        <div className="flex justify-between text-[10px] font-black text-[#5be9b1] uppercase tracking-[0.4em]">
+                        <div className="flex justify-between text-[10px] font-black text-[var(--accent)] uppercase tracking-[0.4em]">
                           <span>Horizon</span>
                           <span className="font-mono text-xs">{posX}%</span>
                         </div>
@@ -270,11 +270,11 @@ export const CharactersView: React.FC = () => {
                           max="100" 
                           value={posX}
                           onChange={(e) => setPosX(parseInt(e.target.value))}
-                          className="w-full h-1 bg-black/40 rounded-full appearance-none cursor-pointer accent-[#5be9b1]"
+                          className="w-full h-1 bg-[var(--bg-deep)]/40 rounded-full appearance-none cursor-pointer accent-[var(--accent)]"
                         />
                       </div>
                       <div className="space-y-4">
-                        <div className="flex justify-between text-[10px] font-black text-[#5be9b1] uppercase tracking-[0.4em]">
+                        <div className="flex justify-between text-[10px] font-black text-[var(--accent)] uppercase tracking-[0.4em]">
                           <span>Vertical</span>
                           <span className="font-mono text-xs">{posY}%</span>
                         </div>
@@ -284,7 +284,7 @@ export const CharactersView: React.FC = () => {
                           max="100" 
                           value={posY}
                           onChange={(e) => setPosY(parseInt(e.target.value))}
-                          className="w-full h-1 bg-black/40 rounded-full appearance-none cursor-pointer accent-[#5be9b1]"
+                          className="w-full h-1 bg-[var(--bg-deep)]/40 rounded-full appearance-none cursor-pointer accent-[var(--accent)]"
                         />
                       </div>
                       <button 
@@ -293,7 +293,7 @@ export const CharactersView: React.FC = () => {
                           setIsAdjusting(false);
                           addToast("Inquadratura salvata!", "success");
                         }}
-                        className="w-full py-5 bg-[#5be9b1] hover:bg-opacity-90 text-[#0b0e11] text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl transition-all shadow-2xl shadow-emerald-950/40 active:scale-95"
+                        className="w-full py-5 bg-[var(--accent)] hover:bg-opacity-90 text-[var(--bg-deep)] text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl transition-all shadow-2xl active:scale-95"
                       >
                         Commit Framework
                       </button>
@@ -301,13 +301,13 @@ export const CharactersView: React.FC = () => {
                   ) : (
                     <>
                       <div className="flex items-center gap-5 mb-6">
-                        <span className="px-6 py-2 bg-white/5 text-[#5be9b1] text-[10px] font-black uppercase tracking-[0.4em] rounded-full border border-white/5 shadow-inner">
+                        <span className="px-6 py-2 bg-[var(--bg-surface)]/10 text-[var(--accent)] text-[10px] font-black uppercase tracking-[0.4em] rounded-full border border-[var(--border-subtle)] shadow-inner">
                           Protagonist Signature
                         </span>
                         {selectedChar.avatar_url && (
                           <button 
                             onClick={() => updateCharacter(selectedChar.id, { avatar_url: '' })}
-                            className="text-slate-700 hover:text-red-400 p-2.5 transition-all bg-white/5 rounded-xl border border-transparent hover:border-red-500/20"
+                            className="text-[var(--text-muted)] hover:text-red-400 p-2.5 transition-all bg-[var(--bg-surface)]/10 rounded-xl border border-transparent hover:border-red-500/20"
                             title="Rimuovi foto"
                           >
                             <Trash2 className="w-5 h-5 opacity-40 hover:opacity-100" />
@@ -317,7 +317,7 @@ export const CharactersView: React.FC = () => {
                       <input 
                         value={localName}
                         onChange={(e) => setLocalName(e.target.value)}
-                        className="text-7xl font-black font-display bg-transparent text-white focus:outline-none placeholder:opacity-5 tracking-tighter mb-10 truncate w-full uppercase"
+                        className="text-7xl font-black font-display bg-transparent text-[var(--text-bright)] focus:outline-none placeholder:opacity-5 tracking-tighter mb-10 truncate w-full uppercase"
                         placeholder="Unnamed Character"
                       />
                     </>
@@ -328,7 +328,7 @@ export const CharactersView: React.FC = () => {
                       <button 
                         onClick={handleInterview}
                         disabled={isInterviewing}
-                        className="flex items-center gap-5 px-12 py-5 bg-[#5be9b1] hover:bg-opacity-90 text-[#0b0e11] rounded-[24px] text-[11px] font-black uppercase tracking-[0.2em] transition-all disabled:opacity-50 shadow-[0_20px_50px_-15px_rgba(16,185,129,0.4)] active:scale-95 group"
+                        className="flex items-center gap-5 px-12 py-5 bg-[var(--accent)] hover:bg-opacity-90 text-[var(--bg-deep)] rounded-[24px] text-[11px] font-black uppercase tracking-[0.2em] transition-all disabled:opacity-50 shadow-2xl shadow-[var(--accent-soft)] active:scale-95 group"
                       >
                         <MessageSquare className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                         {isInterviewing ? 'Probing...' : 'Initiate Interview'}
@@ -336,7 +336,7 @@ export const CharactersView: React.FC = () => {
                       
                       <button 
                         onClick={() => addToast('Analisi tratti in arrivo...', 'info')}
-                        className="flex items-center gap-5 px-12 py-5 glass-dark hover:bg-white/5 text-slate-300 rounded-[28px] text-[11px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 border border-white/5 group"
+                        className="flex items-center gap-5 px-12 py-5 glass hover:bg-[var(--bg-surface)]/10 text-[var(--text-secondary)] rounded-[28px] text-[11px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 border border-[var(--border-subtle)] group"
                       >
                         <TrendingUp className="w-5 h-5 group-hover:scale-125 transition-transform" />
                         Analytics
@@ -349,12 +349,12 @@ export const CharactersView: React.FC = () => {
 
             <div className="flex-1 overflow-y-auto p-16 space-y-16 scrollbar-hide">
               <section className="space-y-8 animate-in slide-in-from-bottom-8 duration-1000 delay-100">
-                <div className="flex items-center gap-4 text-[#5be9b1]/40">
+                <div className="flex items-center gap-4 text-[var(--accent)]/40">
                   <FileText className="w-5 h-5" />
                   <h4 className="text-[11px] font-black uppercase tracking-[0.4em]">Historical Context & Roots</h4>
                 </div>
                 <textarea 
-                  className="w-full h-48 glass-dark border border-white/5 rounded-[40px] p-10 text-base text-slate-300 focus:outline-none focus:border-[#5be9b1]/20 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide shadow-inner"
+                  className="w-full h-48 glass border border-[var(--border-subtle)] rounded-[40px] p-10 text-base text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/20 focus:bg-[var(--bg-surface)]/30 transition-all placeholder:text-[var(--text-muted)] leading-relaxed scrollbar-hide shadow-inner"
                   placeholder="Elaborate on origins, past traumas and core secrets..."
                   value={localBio}
                   onChange={(e) => setLocalBio(e.target.value)}
@@ -362,12 +362,12 @@ export const CharactersView: React.FC = () => {
               </section>
 
               <section className="space-y-8 animate-in slide-in-from-bottom-8 duration-1000 delay-200">
-                <div className="flex items-center gap-4 text-emerald-700/50">
+                <div className="flex items-center gap-4 text-[var(--accent)]/50">
                   <Brain className="w-5 h-5" />
                   <h4 className="text-[11px] font-black uppercase tracking-[0.4em]">Psychological Core & Conflict</h4>
                 </div>
                 <textarea 
-                  className="w-full h-48 glass-dark border border-white/5 rounded-[40px] p-10 text-base text-slate-300 focus:outline-none focus:border-emerald-700/20 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide shadow-inner"
+                  className="w-full h-48 glass border border-[var(--border-subtle)] rounded-[40px] p-10 text-base text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/20 focus:bg-[var(--bg-surface)]/30 transition-all placeholder:text-[var(--text-muted)] leading-relaxed scrollbar-hide shadow-inner"
                   placeholder="What is the character's engine? Their deepest fears and fatal flaws?"
                   value={localPsychology}
                   onChange={(e) => setLocalPsychology(e.target.value)}
@@ -375,12 +375,12 @@ export const CharactersView: React.FC = () => {
               </section>
 
               <section className="space-y-8 animate-in slide-in-from-bottom-8 duration-1000 delay-300">
-                <div className="flex items-center gap-4 text-emerald-900/50">
+                <div className="flex items-center gap-4 text-[var(--accent)]/60">
                   <TrendingUp className="w-5 h-5" />
                   <h4 className="text-[11px] font-black uppercase tracking-[0.4em]">Evolutionary Arc</h4>
                 </div>
                 <textarea 
-                  className="w-full h-48 glass-dark border border-white/5 rounded-[40px] p-10 text-base text-slate-300 focus:outline-none focus:border-emerald-900/20 focus:bg-white/[0.04] transition-all placeholder:text-slate-800 leading-relaxed scrollbar-hide shadow-inner"
+                  className="w-full h-48 glass border border-[var(--border-subtle)] rounded-[40px] p-10 text-base text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/20 focus:bg-[var(--bg-surface)]/30 transition-all placeholder:text-[var(--text-muted)] leading-relaxed scrollbar-hide shadow-inner"
                   placeholder="How does the character transform from the first draft to the finale?"
                   value={localEvolution}
                   onChange={(e) => setLocalEvolution(e.target.value)}
@@ -389,16 +389,16 @@ export const CharactersView: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-slate-800 space-y-10 animate-in fade-in duration-1000">
+          <div className="h-full flex flex-col items-center justify-center text-[var(--text-muted)] space-y-10 animate-in fade-in duration-1000">
             <div className="relative group">
-              <div className="absolute inset-0 bg-[#5be9b1]/10 blur-[60px] rounded-full animate-pulse group-hover:bg-[#5be9b1]/20 transition-all duration-1000" />
-              <div className="w-40 h-40 rounded-[48px] glass border border-white/5 flex items-center justify-center opacity-20 group-hover:opacity-40 transition-all duration-700 shadow-2xl">
+              <div className="absolute inset-0 bg-[var(--accent)]/10 blur-[60px] rounded-full animate-pulse group-hover:bg-[var(--accent)]/20 transition-all duration-1000" />
+              <div className="w-40 h-40 rounded-[48px] glass border border-[var(--border-subtle)] flex items-center justify-center opacity-20 group-hover:opacity-40 transition-all duration-700 shadow-2xl">
                 <Users className="w-16 h-16" />
               </div>
             </div>
             <div className="text-center relative z-10">
-                <h3 className="text-xl font-black text-slate-400 uppercase tracking-[0.4em]">Cast Nexus</h3>
-                <p className="text-[10px] text-slate-600 max-w-[280px] mx-auto mt-4 tracking-[0.2em] font-black uppercase opacity-40 leading-relaxed">Select a character to initialize technical and psychological analysis.</p>
+                <h3 className="text-xl font-black text-[var(--text-secondary)] uppercase tracking-[0.4em]">Cast Nexus</h3>
+                <p className="text-[10px] text-[var(--text-muted)] max-w-[280px] mx-auto mt-4 tracking-[0.2em] font-black uppercase opacity-40 leading-relaxed">Select a character to initialize technical and psychological analysis.</p>
             </div>
           </div>
         )}

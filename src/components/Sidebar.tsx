@@ -100,7 +100,7 @@ export const Sidebar: React.FC = React.memo(() => {
           >
 
             {activeTab === item.id && (
-              <div className="absolute inset-0 bg-[var(--accent-soft)] animate-pulse" />
+              <div className="absolute inset-0 bg-[var(--accent-soft)] opacity-20 animate-pulse" />
             )}
             <item.icon className={cn("w-4 h-4 transition-all duration-500 z-10 flex-shrink-0", activeTab === item.id ? "text-[var(--bg-deep)] scale-110" : "group-hover:text-[var(--accent)]")} />
             <span className="text-[11px] font-black uppercase tracking-widest z-10 hidden xl:inline truncate">{item.label}</span>
@@ -111,7 +111,7 @@ export const Sidebar: React.FC = React.memo(() => {
       <div className="pt-6 border-t border-[var(--border-subtle)] space-y-3">
         <button
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="w-full h-12 flex items-center justify-center gap-3 bg-[var(--bg-surface)]/20 hover:bg-[var(--accent-soft)] text-[var(--text-secondary)] hover:text-[var(--accent)] rounded-2xl transition-all duration-500 text-[10px] font-black uppercase tracking-widest group border border-[var(--border-subtle)] hover:border-[var(--accent)]/30"
+          className="w-full h-12 flex items-center justify-center gap-3 bg-[var(--bg-surface)]/40 hover:bg-[var(--accent-soft)] text-[var(--text-secondary)] hover:text-[var(--accent)] rounded-2xl transition-all duration-500 text-[10px] font-black uppercase tracking-widest group border border-[var(--border-subtle)] hover:border-[var(--accent)]/30"
           title={theme === 'dark' ? 'Passa al tema chiaro' : 'Passa al tema scuro'}
         >
           {theme === 'dark' ? (
