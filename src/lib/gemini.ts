@@ -1,105 +1,154 @@
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
-
 /**
- * Servizio per l'interazione con l'API di Google Gemini tramite SDK ufficiale.
- * Gestisce lo streaming e la diagnostica di connessione in modo robusto.
+ * Servizio per l'interazione con l'API di Google Gemini.
+ * Gestisce lo streaming e la diagnostica di connessione in modo robusto tramite REST nativo,
+ * risolvendo problemi noti di auth con l'SDK ufficiale e environment non standard.
  */
 export const geminiService = {
   /**
-   * Avvia una chat completion in streaming via SDK ufficiale.
+   * Avvia una chat completion in streaming.
    * 
    * @param apiKey - Chiave API Google AI Studio
    * @param messages - Cronologia messaggi {role, content}
    * @param onChunk - Callback per il testo ricevuto
    * @param temperature - Creatività della risposta (0.0 - 1.0)
+   * @param signal - AbortSignal per annullare la richiesta
    */
   async streamChatCompletion(
     apiKey: string,
     messages: any[],
     onChunk: (text: string) => void,
-    temperature = 0.7
+    temperature = 0.7,
+    signal?: AbortSignal
   ) {
     if (!apiKey || apiKey.length < 10) {
       throw new Error('Configurazione di sicurezza: Chiave Gemini non valida');
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey.trim());
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-      safetySettings: [
-        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-      ],
-      generationConfig: {
-        temperature,
-        maxOutputTokens: 4096,
-      }
-    });
-
-    const systemInstruction = messages.find((m) => m.role === 'system')?.content;
+    const systemInstructionText = messages.find((m) => m.role === 'system')?.content;
     const history = messages
       .filter((m) => m.role !== 'system')
-      .slice(0, -1)
       .map((m) => ({
         role: m.role === 'user' ? 'user' : 'model',
         parts: [{ text: m.content }],
       }));
-    
-    const lastMessage = messages[messages.length - 1].content;
+
+    const body: any = {
+      contents: history,
+      generationConfig: {
+        temperature,
+        maxOutputTokens: 4096,
+      },
+      safetySettings: [
+        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+      ]
+    };
+
+    if (systemInstructionText) {
+      body.systemInstruction = {
+        role: 'user',
+        parts: [{ text: systemInstructionText }]
+      };
+    }
 
     try {
-      const chat = model.startChat({
-        history: history,
-        systemInstruction: systemInstruction,
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${apiKey.trim()}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+        signal
       });
 
-      const result = await chat.sendMessageStream(lastMessage);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('[SECURITY LOG] Gemini API Error:', errorData);
+        if (response.status === 401 || response.status === 403 || errorData?.error?.message?.includes('invalid authentication credentials') || errorData?.error?.message?.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED')) {
+           throw new Error('Errore di Autenticazione (401): La chiave API non è valida o non è autorizzata. Assicurati di usare una API Key valida di Google AI Studio.');
+        }
+        throw new Error(`Sorgente AI non disponibile (Status: ${response.status}). Riprova più tardi.`);
+      }
 
-      for await (const chunk of result.stream) {
-        const chunkText = chunk.text();
-        if (chunkText) {
-          onChunk(chunkText);
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('Interfaccia di comunicazione streaming fallita');
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        if (signal?.aborted) {
+          reader.cancel();
+          break;
+        }
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (!trimmedLine) continue;
+
+          if (trimmedLine.startsWith('data: ')) {
+            const dataStr = trimmedLine.substring(6);
+            if (dataStr === '[DONE]') continue;
+            
+            try {
+              const json = JSON.parse(dataStr);
+              const content = json.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (content) {
+                onChunk(content);
+              }
+            } catch (e) {
+              // Silenzioso: frammento JSON incompleto durante lo stream
+            }
+          }
         }
       }
     } catch (err: any) {
-      console.error('[SECURITY LOG] Gemini SDK Stream Exception:', err);
-      // Trasmettiamo un messaggio di errore più leggibile se è un problema di auth
-      if (err.message?.includes('401') || err.message?.includes('unauthenticated')) {
-        throw new Error('Errore di Autenticazione (401): La chiave API non è valida o non è autorizzata per questo servizio.');
-      }
+      if (err.name === 'AbortError') return;
+      console.error('[SECURITY LOG] Gemini Stream Exception:', err.message);
       throw err;
     }
   },
 
   /**
-   * Verifica la connettività con l'endpoint Google tramite SDK.
+   * Verifica la connettività con l'endpoint Google.
    */
   async testConnection(apiKey: string) {
+    if (!apiKey || apiKey.length < 10) {
+      return { ok: false, status: 0, error: 'Formato chiave non valido' };
+    }
+
     try {
-      const genAI = new GoogleGenerativeAI(apiKey.trim());
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      
-      const result = await model.generateContent("Ping");
-      await result.response;
-      
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: 'Ping' }] }],
+          generationConfig: { maxOutputTokens: 1 }
+        })
+      });
+
+      const data = await response.json().catch(() => ({}));
       return {
-        status: 200,
-        ok: true,
-        data: { status: 'authorized' }
+        status: response.status,
+        ok: response.ok,
+        data: response.ok ? { status: 'online' } : data
       };
     } catch (err: any) {
-      console.error('[SECURITY LOG] Gemini Connection Test Failed:', err);
-      
-      // Tentiamo di estrarre lo status se disponibile
-      const statusMatch = err.message?.match(/(\d{3})/);
-      const status = statusMatch ? parseInt(statusMatch[1]) : 0;
-      
+      console.error('[SECURITY LOG] Gemini Connection Test Failed:', err.message);
       return {
-        status: status,
+        status: 0,
         ok: false,
-        error: err.message || 'Connessione al Nucleo Gemini fallita'
+        error: 'Connessione al Nucleo Gemini fallita'
       };
     }
   }
