@@ -180,7 +180,7 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
                                 className="pl-6 space-y-1.5 min-h-[12px] py-1 relative"
                               >
                                 {/* Vertical line indicator */}
-                                <div className="absolute left-[13px] top-0 bottom-0 w-[1px] bg-[var(--border-subtle)]" /
+                                <div className="absolute left-[13px] top-0 bottom-0 w-[1px] bg-[var(--border-subtle)]" />
                                 
                                 {chapter.scenes?.map((scene, index) => (
                                   <Draggable key={scene.id} draggableId={scene.id} index={index}>

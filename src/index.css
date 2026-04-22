@@ -146,7 +146,12 @@
 
 /* Utility Animations */
 .hover-float {
-  @apply transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-[var(--accent)]/30;
+  transition: all 0.5s ease;
+}
+.hover-float:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border-color: rgba(45, 106, 79, 0.3);
 }
 
 .logo-blend {
