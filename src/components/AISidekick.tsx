@@ -13,7 +13,6 @@ import {
   ChevronRight,
   Quote,
   CheckCircle,
-  ShieldCheck,
   Maximize2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -91,7 +90,7 @@ const getPlainTextForAI = (html: string) => {
   return textStr;
 };
 
-type SidekickTab = 'revision' | 'grammar' | 'braindump' | 'transformer' | 'lexicon' | 'integrity';
+type SidekickTab = 'revision' | 'grammar' | 'braindump' | 'transformer' | 'lexicon';
 
 export const AISidekick: React.FC = React.memo(() => {
   const content = useStore(s => s.currentSceneContent);
@@ -536,62 +535,12 @@ Rispondi in italiano. Sii concreto e originale.`;
     }
   };
 
-  const runIntegrityCheck = async () => {
-    if (!plainText || plainText.length < 20) return;
-    
-    if (abortControllerRef.current) abortControllerRef.current.abort();
-    abortControllerRef.current = new AbortController();
-    
-    setIsAnalyzing(true);
-    setAnalysis('');
-    setAppliedSuggestions([]);
-    
-    let textToAnalyze = plainText;
-    if (textToAnalyze.length > 30000) textToAnalyze = textToAnalyze.substring(0, 30000);
-
-    try {
-      const systemPrompt = `Sei un revisore editoriale esperto in coerenza narrativa e logica temporale.
-Il tuo compito è analizzare l'INTERA SCENA per identificare errori strutturali profondi.
-
-FOCUS DELL'ANALISI:
-1. TEMPI VERBALI: Rileva salti ingiustificati tra passato e presente (es. inizia in passato remoto e finisce in presente indicativo).
-2. FLUSSO CRONOLOGICO: Rileva errori nella successione degli eventi (es. un personaggio esce da una stanza e poi ci parla dentro, o eventi che si contraddicono).
-3. REFUSI E ORTOGRAFIA: Identifica refusi tecnici.
-
-REGOLE MANDATORIE:
-1. Inizia con "## Analisi di Coerenza Profonda".
-2. Usa QUESTO FORMATO:
-   ❌ Testo originale (COPIA ESATTA del frammento incoerente)
-   ✅ Versione corretta e armonizzata
-   🏷️ Categoria (Tempo Verbale, Coerenza Logica, Refuso)
-   💡 Spiegazione del perché la modifica è necessaria per la coerenza globale.
-
-LINGUA: Italiano. Sii critico e preciso.`;
-
-      await aiService.streamChat(
-        aiConfig,
-        [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Analizza la coerenza di questa scena intera:\n\n${textToAnalyze}` }
-        ],
-        (chunk) => setAnalysis(prev => prev + chunk),
-        { signal: abortControllerRef.current.signal }
-      );
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
-      setAnalysis(`❌ Errore: ${err?.message || 'Errore Sconosciuto'}`);
-    } finally {
-      setIsAnalyzing(false);
-      abortControllerRef.current = null;
-    }
-  };
 
   const tabs: { id: SidekickTab; label: string; icon: React.ReactNode }[] = [
     { id: 'revision', label: 'Revisione', icon: <PenLine className="w-3 h-3" /> },
     { id: 'grammar', label: 'Correzione', icon: <CheckCircle className="w-3 h-3" /> },
     { id: 'braindump', label: 'Braindump', icon: <Lightbulb className="w-3 h-3" /> },
     { id: 'transformer', label: 'Stile', icon: <Wand2 className="w-3 h-3" /> },
-    { id: 'integrity', label: 'Coerenza', icon: <ShieldCheck className="w-3 h-3" /> },
     { id: 'lexicon', label: 'Lessico', icon: <Languages className="w-3 h-3" /> },
   ];
 
@@ -871,51 +820,6 @@ LINGUA: Italiano. Sii critico e preciso.`;
           </div>
         )}
 
-        {activeTab === 'integrity' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-[#5be9b1] uppercase tracking-[0.2em]">Analisi Coerenza</span>
-                <span className="text-[8px] text-slate-600 font-bold uppercase tracking-widest mt-1">Scansione Globale Scena</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={runIntegrityCheck}
-                  disabled={isAnalyzing || !plainText}
-                  className={cn(
-                    "px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95",
-                    isAnalyzing || !plainText ? "bg-slate-800 text-slate-600" : "bg-[#5be9b1] text-[#0b0e11] hover:bg-[#4ade80] flex items-center gap-2"
-                  )}
-                >
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Analizza</span>
-                </button>
-              </div>
-            </div>
-            
-            <div className="p-5 bg-white/[0.02] border border-white/5 rounded-[24px] text-[10px] text-slate-500 leading-relaxed italic">
-              Questa funzione analizza l'intera scena per trovare discrepanze nei tempi verbali, flussi logici e refusi.
-            </div>
-
-            {analysis ? (
-              <div className="animate-in slide-in-from-bottom-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                <StructuredOutput 
-                  text={analysis} 
-                  onApply={applySuggestion} 
-                  onReject={handleReject} 
-                  appliedSuggestions={appliedSuggestions} 
-                  rejectedSuggestions={sceneIgnoredSuggestions} 
-                  isAnalyzing={isAnalyzing}
-                />
-              </div>
-            ) : (
-              !isAnalyzing && <div className="flex flex-col items-center justify-center h-48 text-slate-600 bg-white/[0.01] rounded-[32px] border border-dashed border-white/5 space-y-4">
-                <ShieldCheck className="w-10 h-10 opacity-20" />
-                <p className="text-[9px] font-bold uppercase tracking-widest">Inizia scansione profonda</p>
-              </div>
-            )}
-          </div>
-        )}
 
         {activeTab === 'lexicon' && (
           <div className="space-y-6">
