@@ -35,7 +35,7 @@ export const TimelineView: React.FC = () => {
 
   const { updateProjectTimeline, updateSceneMetadata } = useNarrative();
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = async (isFullReset: boolean = false) => {
     setIsAnalyzing(true);
     try {
       const allScenes = chapters.flatMap(c => c.scenes || []);
@@ -44,15 +44,14 @@ export const TimelineView: React.FC = () => {
       const activeScenes = allScenes.filter(s => !s.exclude_from_timeline);
 
       // 2. Transizione e Pulizia: 
-      // Se ci sono eventi "legacy" (senza sceneId) o scene escluse che hanno ancora eventi, 
-      // dobbiamo procedere con l'analisi.
-      const hasLegacyEvents = timelineEvents.some(e => !e.sceneId);
+      // Se è un reset completo, ignoriamo tutto e forziamo la ri-analisi.
+      const hasLegacyEvents = timelineEvents.some(e => !e.sceneId) || isFullReset;
       const activeSceneIds = new Set(activeScenes.map(s => s.id));
       const hasExcludedScenesToRemove = timelineEvents.some(e => e.sceneId && !activeSceneIds.has(e.sceneId));
 
       // 3. Identifichiamo le scene da analizzare
       const scenesToAnalyze = activeScenes.filter(s => {
-        // Se abbiamo eventi vecchi senza ID, forziamo la ri-analisi di tutto per "taggarli" correttamente
+        // Se abbiamo eventi vecchi senza ID o è un RESET, forziamo la ri-analisi di tutto
         if (hasLegacyEvents) return true; 
         
         const currentText = cleanHtml(s.content || '').trim();
@@ -74,9 +73,16 @@ export const TimelineView: React.FC = () => {
         return;
       }
 
-      const statusMsg = hasLegacyEvents 
-        ? "Aggiornamento sistema: indicizzazione completa della timeline..." 
-        : `Analisi incrementale: ${scenesToAnalyze.length} scene nuove o modificate...`;
+      if (isFullReset) {
+        // Pulizia preliminare della timeline globale se è un reset
+        await updateProjectTimeline([]);
+      }
+
+      const statusMsg = isFullReset
+        ? "Inizializzazione completa: ricostruzione mappa temporale..."
+        : hasLegacyEvents 
+          ? "Aggiornamento sistema: indicizzazione completa della timeline..." 
+          : `Analisi incrementale: ${scenesToAnalyze.length} scene nuove o modificate...`;
         
       addToast(statusMsg, "info");
 
@@ -98,8 +104,9 @@ export const TimelineView: React.FC = () => {
       }
 
       // 3. Uniamo i risultati: rimuoviamo i vecchi eventi delle scene ricalcolate O rimosse
+      // Se è un reset completo, l'array preserved sarà già vuoto o filtrato correttamente.
       const modifiedSceneIds = new Set(scenesToAnalyze.map(s => s.id));
-      const preservedEvents = timelineEvents.filter(e => 
+      const preservedEvents = isFullReset ? [] : timelineEvents.filter(e => 
         e.sceneId && activeSceneIds.has(e.sceneId) && !modifiedSceneIds.has(e.sceneId)
       );
       
@@ -131,6 +138,13 @@ export const TimelineView: React.FC = () => {
     }
   };
 
+  const handleFullReset = async () => {
+    if (window.confirm("Questa azione cancellerà la mappatura attuale e analizzerà tutto il libro da zero con la nuova logica matematica. Procedere?")) {
+      handleAnalyze(true);
+    }
+  };
+
+
 
 
   const hasEvents = timelineEvents.length > 0;
@@ -153,18 +167,29 @@ export const TimelineView: React.FC = () => {
                 <span className="text-xl font-black text-[#5be9b1]">{timelineEvents.length}</span>
              </div>
           )}
+          
           <button 
-            onClick={handleAnalyze}
+            onClick={handleFullReset}
+            disabled={isAnalyzing}
+            className="p-4 border border-white/10 hover:bg-white/5 text-slate-400 hover:text-white rounded-2xl transition-all active:scale-95 group"
+            title="Svuota e Rianalizza Tutto da zero"
+          >
+            <RefreshCw className={cn("w-4 h-4", isAnalyzing && "animate-spin")} />
+          </button>
+
+          <button 
+            onClick={() => handleAnalyze(false)}
             disabled={isAnalyzing}
             className={cn(
               "flex items-center gap-3 px-8 py-4 bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] text-xs font-black rounded-2xl shadow-xl shadow-[#5be9b1]/10 transition-all active:scale-95 uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed group",
               isAnalyzing && "animate-pulse"
             )}
           >
-            <RefreshCw className={cn("w-4 h-4", isAnalyzing && "animate-spin")} />
+            <Zap className={cn("w-4 h-4", isAnalyzing && "animate-spin")} />
             {isAnalyzing ? 'Mapping Nexus...' : 'Sincronizza AI'}
           </button>
         </div>
+
       </header>
 
       <div className="flex-1 min-h-0 relative">

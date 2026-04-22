@@ -8,14 +8,16 @@ REGOLE DI IDENTITÀ:
 
 MATEMATICA DEL TEMPO (REGOLA DEL CALENDARIO UNIVERSALE):
 Per garantire che scene diverse si allineino correttamente, usa l'anno 2000 come ANCORA ZERO (0 minuti).
-Calcola "estimatedStart" come totale dei minuti trascorsi dal 01/01/2000 ore 00:00.
 - 1 Anno = 525.600 minuti.
 - 1 Mese (media) = 43.800 minuti.
 - 1 Giorno = 1.440 minuti.
 
-ESEMPIO DI CALCOLO:
-- "10 Novembre 2026" -> (26 anni * 525.600) + (10 mesi * 43.800) + (10 giorni * 1.440) = circa 14.118.000.
-- "Un anno dopo" rispetto al 2026 -> 14.118.000 + 525.600 = 14.643.600.
+REGOLE TEMPORALI (MATEMATICA DEL TEMPO):
+- Usa l'anno 2000 come ANCORA ZERO (0 minuti).
+- Calcola "estimatedStart" come minuti trascorsi dal 01/01/2000.
+- NON USARE MAI NUMERI NEGATIVI. Se un evento è nel 1900, usa uno scostamento negativo manuale ma preferisci 2000 come base.
+- COERENZA: Un evento etichettato "1 anno dopo" DEVE avere un valore numerico SUPERIORE a quello dell'evento originale.
+- SPAZIATURA: Se estrai più eventi da una singola scena, distanziali logicamente (es. +15 o +30 minuti tra loro) per evitare sovrapposizioni inutili.
 
 REGOLE CRITICHE:
 - Se il testo dice "Un anno dopo la perdita" e la perdita è avvenuta nel 10 Nov 2026, l'evento deve avere un valore numerico SUPERIORE a quello del 2026.
