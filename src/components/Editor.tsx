@@ -8,10 +8,10 @@ import Highlight from '@tiptap/extension-highlight';
 import Paragraph from '@tiptap/extension-paragraph';
 
 import { 
-  Bold as BoldIcon, 
-  Italic as ItalicIcon, 
+  Bold, 
+  Italic, 
   Underline as UnderlineIcon,
-  Strikethrough as StrikeIcon,
+  Strikethrough,
   Heading1, 
   Heading2, 
   List,
@@ -59,6 +59,8 @@ const CustomShortcuts = Extension.create({
 export const Editor: React.FC<{ initialContent: string; onChange: (content: string) => void }> = React.memo(({ initialContent, onChange }) => {
   const isExternallyUpdating = React.useRef(false);
   const setActiveSelection = useStore(s => s.setActiveSelection);
+  const [showDropCapMenu, setShowDropCapMenu] = React.useState(false);
+  const dropCapRef = React.useRef<HTMLDivElement>(null);
 
   const editor = useEditor({
     extensions: [
@@ -152,46 +154,57 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
     }
   }, [initialContent, editor]);
 
+  // Close drop cap menu on click outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropCapRef.current && !dropCapRef.current.contains(event.target as Node)) {
+        setShowDropCapMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   if (!editor) return null;
 
   return (
-    <div className="flex flex-col bg-[#13161a] shadow-2xl rounded-xl border border-white/10 relative overflow-visible">
+    <div className="flex flex-col bg-[var(--bg-surface)] shadow-2xl rounded-xl border border-[var(--border-subtle)] relative overflow-visible">
       {/* TOOLBAR */}
-      <div className="sticky top-0 bg-[#171b1f]/90 p-2 border-b border-white/10 flex flex-wrap items-center gap-1 z-20 rounded-t-[11px] backdrop-blur-xl">
+      <div className="sticky top-0 bg-[var(--bg-card)]/90 p-2 border-b border-[var(--border-subtle)] flex flex-wrap items-center gap-1 z-20 rounded-t-[11px] backdrop-blur-xl">
         
         {/* Basic Block */}
         <div className="flex items-center gap-1 px-1">
           <button
             onClick={() => editor.chain().focus().toggleBold().run()}
-            className={cn("p-2 rounded-lg transition-all", editor.isActive('bold') ? 'bg-[#5be9b1] text-[#0b0e11]' : 'text-slate-500 hover:bg-white/5')}
+            className={cn("p-2 rounded-lg transition-all", editor.isActive('bold') ? 'bg-[var(--accent)] text-[var(--bg-deep)]' : 'text-[var(--text-secondary)] hover:bg-white/5')}
             title="Grassetto"
           >
-            <BoldIcon className="w-4 h-4" />
+            <Bold className="w-4 h-4" />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleItalic().run()}
-            className={cn("p-2 rounded-lg transition-all", editor.isActive('italic') ? 'bg-[#5be9b1] text-[#0b0e11]' : 'text-slate-500 hover:bg-white/5')}
+            className={cn("p-2 rounded-lg transition-all", editor.isActive('italic') ? 'bg-[var(--accent)] text-[var(--bg-deep)]' : 'text-[var(--text-secondary)] hover:bg-white/5')}
             title="Corsivo"
           >
-            <ItalicIcon className="w-4 h-4" />
+            <Italic className="w-4 h-4" />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleUnderline().run()}
-            className={cn("p-2 rounded-lg transition-all", editor.isActive('underline') ? 'bg-[#5be9b1] text-[#0b0e11]' : 'text-slate-500 hover:bg-white/5')}
+            className={cn("p-2 rounded-lg transition-all", editor.isActive('underline') ? 'bg-[var(--accent)] text-[var(--bg-deep)]' : 'text-[var(--text-secondary)] hover:bg-white/5')}
             title="Sottolineato"
           >
             <UnderlineIcon className="w-4 h-4" />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleStrike().run()}
-            className={cn("p-2 rounded-lg transition-all", editor.isActive('strike') ? 'bg-[#5be9b1] text-[#0b0e11]' : 'text-slate-500 hover:bg-white/5')}
+            className={cn("p-2 rounded-lg transition-all", editor.isActive('strike') ? 'bg-[var(--accent)] text-[var(--bg-deep)]' : 'text-[var(--text-secondary)] hover:bg-white/5')}
             title="Barrato"
           >
-            <StrikeIcon className="w-4 h-4" />
+            <Strikethrough className="w-4 h-4" />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleHighlight().run()}
-            className={cn("p-2 rounded-lg transition-all", editor.isActive('highlight') ? 'bg-[#5be9b1]/20 text-[#5be9b1]' : 'text-slate-500 hover:bg-white/5')}
+            className={cn("p-2 rounded-lg transition-all", editor.isActive('highlight') ? 'bg-[var(--accent)]/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-white/5')}
             title="Evidenziatore"
           >
             <Highlighter className="w-4 h-4" />
@@ -204,14 +217,14 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
         <div className="flex items-center gap-1 px-1">
           <button
             onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-            className={cn("p-2 rounded-lg transition-all", editor.isActive('heading', { level: 1 }) ? 'bg-white/10 text-white' : 'text-slate-500 hover:bg-white/5')}
+            className={cn("p-2 rounded-lg transition-all", editor.isActive('heading', { level: 1 }) ? 'bg-white/10 text-[var(--accent)] shadow-glow-mint' : 'text-[var(--text-secondary)] hover:bg-white/5')}
             title="Titolo 1"
           >
             <Heading1 className="w-4 h-4" />
           </button>
           <button
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-            className={cn("p-2 rounded-lg transition-all", editor.isActive('heading', { level: 2 }) ? 'bg-white/10 text-white' : 'text-slate-500 hover:bg-white/5')}
+            className={cn("p-2 rounded-lg transition-all", editor.isActive('heading', { level: 2 }) ? 'bg-white/10 text-[var(--accent)] shadow-glow-mint' : 'text-[var(--text-secondary)] hover:bg-white/5')}
             title="Titolo 2"
           >
             <Heading2 className="w-4 h-4" />
@@ -224,28 +237,28 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
         <div className="flex items-center gap-1 px-1">
           <button
             onClick={() => editor.chain().focus().setTextAlign('left').run()}
-            className={cn("p-2 rounded-lg transition-all", editor.isActive({ textAlign: 'left' }) ? 'text-[#5be9b1]' : 'text-slate-500 hover:bg-white/5')}
+            className={cn("p-2 rounded-lg transition-all", editor.isActive({ textAlign: 'left' }) ? 'text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-white/5')}
             title="Allinea a sinistra"
           >
             <AlignLeft className="w-4 h-4" />
           </button>
           <button
             onClick={() => editor.chain().focus().setTextAlign('center').run()}
-            className={cn("p-2 rounded-lg transition-all", editor.isActive({ textAlign: 'center' }) ? 'text-[#5be9b1]' : 'text-slate-500 hover:bg-white/5')}
+            className={cn("p-2 rounded-lg transition-all", editor.isActive({ textAlign: 'center' }) ? 'text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-white/5')}
             title="Allinea al centro"
           >
             <AlignCenter className="w-4 h-4" />
           </button>
           <button
             onClick={() => editor.chain().focus().setTextAlign('right').run()}
-            className={cn("p-2 rounded-lg transition-all", editor.isActive({ textAlign: 'right' }) ? 'text-[#5be9b1]' : 'text-slate-500 hover:bg-white/5')}
+            className={cn("p-2 rounded-lg transition-all", editor.isActive({ textAlign: 'right' }) ? 'text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-white/5')}
             title="Allinea a destra"
           >
             <AlignRight className="w-4 h-4" />
           </button>
           <button
             onClick={() => editor.chain().focus().setTextAlign('justify').run()}
-            className={cn("p-2 rounded-lg transition-all", editor.isActive({ textAlign: 'justify' }) ? 'text-[#5be9b1]' : 'text-slate-500 hover:bg-white/5')}
+            className={cn("p-2 rounded-lg transition-all", editor.isActive({ textAlign: 'justify' }) ? 'text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-white/5')}
             title="Giustificato"
           >
             <AlignJustify className="w-4 h-4" />
@@ -255,68 +268,84 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
         <div className="w-px h-6 bg-white/10 mx-1" />
 
         {/* Drop Cap Special */}
-        <div className="flex items-center gap-1 px-1 ml-1 bg-[#5be9b1]/5 rounded-xl p-1 border border-[#5be9b1]/10">
-          <div className="flex items-center gap-1 pr-2 border-r border-[#5be9b1]/10 mr-1">
-            <Sparkles className="w-3 h-3 text-[#5be9b1]" />
-            <span className="text-[9px] font-black uppercase text-[#5be9b1]/60 tracking-wider">Capolettera</span>
-          </div>
-          
+        <div className="relative" ref={dropCapRef}>
           <button
-            onClick={() => {
-              editor.chain().focus().updateAttributes('paragraph', { dropCap: 'classic' }).run();
-            }}
+            onClick={() => setShowDropCapMenu(!showDropCapMenu)}
             className={cn(
-              "px-3 py-1 rounded-lg text-[9px] font-bold uppercase transition-all",
-              editor.getAttributes('paragraph').dropCap === 'classic' 
-                ? 'bg-[#5be9b1] text-[#0b0e11]' 
-                : 'text-[#5be9b1] hover:bg-[#5be9b1]/10'
+              "p-2 rounded-lg transition-all",
+              editor.getAttributes('paragraph').dropCap !== 'none' || showDropCapMenu
+                ? 'text-[var(--accent)] bg-[var(--accent-soft)]' 
+                : 'text-[var(--text-secondary)] hover:bg-white/5'
             )}
+            title="Capolettera"
           >
-            Classico
+            <Sparkles className="w-4 h-4" />
           </button>
-          <button
-            onClick={() => {
-              editor.chain().focus().updateAttributes('paragraph', { dropCap: 'modern' }).run();
-            }}
-            className={cn(
-              "px-3 py-1 rounded-lg text-[9px] font-bold uppercase transition-all",
-              editor.getAttributes('paragraph').dropCap === 'modern' 
-                ? 'bg-[#5be9b1] text-[#0b0e11]' 
-                : 'text-[#5be9b1] hover:bg-[#5be9b1]/10'
-            )}
-          >
-            Moderno
-          </button>
-          <button
-            onClick={() => {
-              editor.chain().focus().updateAttributes('paragraph', { dropCap: 'none' }).run();
-            }}
-            className="p-1 px-2 text-slate-500 hover:text-white"
-            title="Rimuovi Capolettera"
-          >
-            <span className="text-[10px]">✕</span>
-          </button>
+
+          {showDropCapMenu && (
+            <div className="absolute top-full left-0 mt-2 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl p-2 shadow-2xl backdrop-blur-xl z-50 flex items-center gap-1 animate-in fade-in zoom-in-95 duration-200">
+              <button
+                onClick={() => {
+                  editor.chain().focus().updateAttributes('paragraph', { dropCap: 'classic' }).run();
+                  setShowDropCapMenu(false);
+                }}
+                className={cn(
+                  "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                  editor.getAttributes('paragraph').dropCap === 'classic' 
+                    ? 'bg-[var(--accent)] text-[var(--bg-deep)]' 
+                    : 'text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-bright)]'
+                )}
+              >
+                Classico
+              </button>
+              <button
+                onClick={() => {
+                  editor.chain().focus().updateAttributes('paragraph', { dropCap: 'modern' }).run();
+                  setShowDropCapMenu(false);
+                }}
+                className={cn(
+                  "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                  editor.getAttributes('paragraph').dropCap === 'modern' 
+                    ? 'bg-[var(--accent)] text-[var(--bg-deep)]' 
+                    : 'text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-bright)]'
+                )}
+              >
+                Moderno
+              </button>
+              <div className="w-[1px] h-4 bg-white/10 mx-1" />
+              <button
+                onClick={() => {
+                  editor.chain().focus().updateAttributes('paragraph', { dropCap: 'none' }).run();
+                  setShowDropCapMenu(false);
+                }}
+                className="p-1 px-3 text-[var(--text-muted)] hover:text-red-400 text-[10px] uppercase font-black tracking-widest"
+                title="Rimuovi"
+              >
+                Reset
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Lists */}
         <div className="ml-2 flex items-center gap-1">
           <button
             onClick={() => editor.chain().focus().toggleBulletList().run()}
-            className={cn("p-2 rounded-lg transition-all", editor.isActive('bulletList') ? 'bg-white/10 text-white' : 'text-slate-500 hover:bg-white/5')}
+            className={cn("p-2 rounded-lg transition-all", editor.isActive('bulletList') ? 'bg-white/10 text-[var(--text-bright)]' : 'text-[var(--text-secondary)] hover:bg-white/5')}
           >
             <List className="w-4 h-4" />
           </button>
         </div>
         
         <div className="ml-auto flex items-center space-x-6 px-4">
-           <div className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600">
-              <Type className="w-4 h-4 text-[#5be9b1]/40" />
+           <div className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">
+              <Type className="w-4 h-4 text-[var(--accent)]/40" />
               <span>{editor.storage.characterCount.words()} PAROLE</span>
            </div>
         </div>
       </div>
 
-      <div className="flex-1 px-8 py-12 bg-[#13161a] rounded-b-[inherit]">
+      <div className="flex-1 px-8 py-12 bg-[var(--bg-deep)] rounded-b-[inherit]">
         <div className="w-full">
            <EditorContent editor={editor} />
         </div>

@@ -1,4 +1,4 @@
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, PageBreak } from 'docx';
+import { Document, Packer, Paragraph, TextRun, PageBreak, HeadingLevel, AlignmentType } from 'docx';
 import { saveAs } from 'file-saver';
 import type { Chapter } from '../types/narrative';
 

@@ -23,11 +23,17 @@ function App() {
   const currentProject = useStore(s => s.currentProject);
   const activeTab = useStore(s => s.activeTab);
   const setUser = useStore(s => s.setUser);
-  const isSidekickOpen = useStore(s => s.isSidekickOpen);
   const isZenMode = useStore(s => s.isZenMode);
+  const isSidekickOpen = useStore(s => s.isSidekickOpen);
   const setAIConfig = useStore(s => s.setAIConfig);
+  const theme = useStore(s => s.theme);
   const [showAuth, setShowAuth] = useState(false);
   const ALLOWED_EMAIL = import.meta.env.VITE_ALLOWED_EMAIL;
+
+  // Apply theme to document
+  React.useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   React.useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -108,23 +114,23 @@ function App() {
   // 1. Landing Screen (Not logged in, Not in Auth view)
   if (!user && !showAuth) {
     return (
-      <div className="h-screen flex items-center justify-center bg-[#0b0e11] p-4 selection:bg-[#5be9b1]/30">
-        <div className="bg-[#1a1e23]/90 backdrop-blur-3xl p-8 md:p-12 rounded-[40px] border border-white/10 max-w-lg w-full text-center space-y-8 relative overflow-y-auto max-h-[95vh] shadow-[0_0_100px_rgba(0,0,0,0.5)] scrollbar-hide">
+      <div className="h-screen flex items-center justify-center bg-[var(--bg-deep)] p-4 selection:bg-[var(--accent-soft)]">
+        <div className="bg-[var(--bg-card)]/90 backdrop-blur-3xl p-8 md:p-12 rounded-[40px] border border-[var(--border-subtle)] max-w-lg w-full text-center space-y-8 relative overflow-y-auto max-h-[95vh] shadow-premium scrollbar-hide">
           <div className="absolute -top-32 -right-32 w-80 h-80 bg-[#5be9b1]/10 blur-[140px] rounded-full" />
           <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-[#5be9b1]/10 blur-[140px] rounded-full" />
           
-          <div className="w-48 h-48 md:w-64 md:h-64 mx-auto rounded-[32px] bg-[#13161a] flex items-center justify-center p-6 mb-6 logo-glow border border-white/5 shadow-inner">
+          <div className="w-48 h-48 md:w-64 md:h-64 mx-auto rounded-[32px] bg-[var(--bg-surface)] flex items-center justify-center p-6 mb-6 logo-glow border border-[var(--border-subtle)] shadow-inner">
             <img src="/logo.png" alt="Project Muse Logo" className="w-full h-full object-contain logo-blend" />
           </div>
           <div>
-            <h1 className="text-4xl md:text-5xl font-black font-display text-slate-50 tracking-tighter leading-tight uppercase">Project Muse</h1>
-            <p className="text-slate-500 mt-2 text-[10px] md:text-xs font-black uppercase tracking-[0.4em] mb-2">L'architetto della tua visione narrativa</p>
+            <h1 className="text-4xl md:text-5xl font-black font-display text-[var(--text-bright)] tracking-tighter leading-tight uppercase">Project Muse</h1>
+            <p className="text-[var(--text-secondary)] mt-2 text-[10px] md:text-xs font-black uppercase tracking-[0.4em] mb-2">L'architetto della tua visione narrativa</p>
           </div>
           
           <div className="grid grid-cols-1 gap-4 px-4 md:px-10">
              <button 
                 onClick={() => setShowAuth(true)}
-                className="group relative w-full py-4 bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] rounded-[24px] text-base md:text-lg font-black transition-all shadow-2xl shadow-[#5be9b1]/10 flex items-center justify-center gap-3 overflow-hidden"
+                className="group relative w-full py-4 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--bg-deep)] rounded-[24px] text-base md:text-lg font-black transition-all shadow-2xl shadow-[var(--accent-soft)] flex items-center justify-center gap-3 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <Cloud className="w-6 h-6 transition-transform group-hover:scale-110" />
@@ -159,10 +165,10 @@ function App() {
 
   // 4. Main App Dashboard
   return (
-    <div className="flex h-screen bg-[#1a1e23] text-slate-100 font-sans overflow-hidden relative">
-      {/* Background Atmosphere Gradients - Inkwell Edition */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#5be9b1]/5 blur-[120px] rounded-full pointer-events-none opacity-40" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#5be9b1]/3 blur-[120px] rounded-full pointer-events-none opacity-30" />
+    <div className="flex h-screen bg-[var(--bg-deep)] text-[var(--text-primary)] font-sans overflow-hidden relative">
+      {/* Background Atmosphere Gradients */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[var(--accent)]/5 blur-[120px] rounded-full pointer-events-none opacity-40" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[var(--accent)]/3 blur-[120px] rounded-full pointer-events-none opacity-30" />
       <div className="absolute top-[20%] right-[5%] w-[30%] h-[30%] bg-emerald-900/10 blur-[150px] rounded-full pointer-events-none" />
       
       <ErrorBoundary>

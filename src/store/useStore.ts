@@ -44,6 +44,7 @@ interface AppState {
   activeSelection: string | null;
   highlightedText: string | null;
   scrollRequestToken: number;
+  theme: 'dark' | 'light';
   
   setUser: (user: User | null) => void;
   setCurrentProject: (project: Project | null) => void;
@@ -64,10 +65,11 @@ interface AppState {
   requestAnalysis: () => void;
   requestScrollToHighlight: () => void;
   setAuthorName: (name: string) => void;
-  setSidekickOpen: (open: boolean) => void;
-  setNavigatorOpen: (open: boolean) => void;
+  setSidekickOpen: (enabled: boolean) => void;
+  setNavigatorOpen: (enabled: boolean) => void;
   setZenMode: (enabled: boolean) => void;
   setTimelineEvents: (events: GlobalTimelineEvent[]) => void;
+  setTheme: (theme: 'dark' | 'light') => void;
 }
 
 export const useStore = create<AppState>()(
@@ -100,6 +102,7 @@ export const useStore = create<AppState>()(
       activeSelection: null,
       highlightedText: null,
       scrollRequestToken: 0,
+      theme: 'dark',
       
       setUser: (user) => set({ user }),
       setCurrentProject: (project) => set({ currentProject: project }),
@@ -151,6 +154,7 @@ export const useStore = create<AppState>()(
       setNavigatorOpen: (isNavigatorOpen) => set({ isNavigatorOpen }),
       setZenMode: (isZenMode) => set({ isZenMode }),
       setTimelineEvents: (timelineEvents) => set({ timelineEvents }),
+      setTheme: (theme) => set({ theme }),
     }),
     {
       name: 'muse-storage',
@@ -166,6 +170,7 @@ export const useStore = create<AppState>()(
         isNavigatorOpen: state.isNavigatorOpen !== undefined ? state.isNavigatorOpen : true,
         isZenMode: state.isZenMode || false,
         timelineEvents: state.timelineEvents || [],
+        theme: state.theme || 'dark',
         aiConfig: {
           ...state.aiConfig,
           deepseekKey: '', // Mai persistere la chiave nel localStorage

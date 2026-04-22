@@ -2,7 +2,6 @@ import React from 'react';
 import { 
   Sparkles, 
   AlertTriangle, 
-  Lightbulb, 
   Zap,
   RefreshCw,
   PenLine,
@@ -156,8 +155,14 @@ export const AISidekick: React.FC = React.memo(() => {
     
     const { textStr, textMap, charLens } = buildMapping(content);
     
+    // Pre-cleaning: strip leading/trailing ellipses that AI often adds for context
+    const cleanOriginalText = originalText
+      .replace(/^(\.\.\.|…)+/, '')
+      .replace(/(\.\.\.|…)+$/, '')
+      .trim();
+
     // Use unified fuzzy matching
-    let match = findMatchInText(textStr, originalText);
+    let match = findMatchInText(textStr, cleanOriginalText);
     
     // Fallback: search with even more fuzzy logic if first attempt fails
     if (!match && originalText.length > 20) {
@@ -469,13 +474,7 @@ Rispondi in italiano. Sii concreto e originale.`;
   };
 
 
-  const tabs: { id: SidekickTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'revision', label: 'Revisione', icon: <PenLine className="w-3 h-3" /> },
-    { id: 'grammar', label: 'Correzione', icon: <CheckCircle className="w-3 h-3" /> },
-    { id: 'braindump', label: 'Braindump', icon: <Lightbulb className="w-3 h-3" /> },
-    { id: 'transformer', label: 'Stile', icon: <Wand2 className="w-3 h-3" /> },
-    { id: 'lexicon', label: 'Lessico', icon: <Languages className="w-3 h-3" /> },
-  ];
+
 
   const currentLastPhrase = activeSceneId ? lastAnalyzedPhrase[`${activeSceneId}-${activeTab}`] : null;
 
@@ -509,39 +508,36 @@ Rispondi in italiano. Sii concreto e originale.`;
       </div>
 
 
-      <div className="grid grid-cols-6 gap-1 p-3 bg-white/[0.01] border-b border-white/10">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            title={tab.label}
-            className={cn(
-              "flex items-center justify-center py-3 rounded-2xl transition-all border border-transparent active:scale-95 group",
-              activeTab === tab.id 
-                ? "bg-[#5be9b1] text-[#0b0e11] shadow-inner" 
-                : "text-slate-600 hover:text-slate-400 hover:bg-white/5"
-            )}
-          >
-            <div className={cn("transition-transform group-hover:scale-110", activeTab === tab.id ? "scale-110" : "")}>
-                {tab.icon}
-            </div>
-          </button>
-        ))}
-      </div>
+              <div className="flex bg-[var(--bg-card)]/50 p-1 rounded-full border border-[var(--border-subtle)] backdrop-blur-xl">
+             {(['revision', 'grammar', 'braindump', 'transformer', 'lexicon'] as SidekickTab[]).map((tab) => (
+               <button
+                 key={tab}
+                 onClick={() => setActiveTab(tab)}
+                 className={cn(
+                   "flex-1 py-2 px-3 rounded-full text-[9px] font-black uppercase tracking-widest transition-all duration-300",
+                   activeTab === tab 
+                     ? "bg-[var(--accent)] text-[var(--bg-deep)] shadow-lg scale-105" 
+                     : "text-[var(--text-secondary)] hover:text-[var(--text-bright)] hover:bg-white/5"
+                 )}
+               >
+                 {tab === 'transformer' ? 'Stile' : tab}
+               </button>
+             ))}
+          </div>
 
       <div className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-hide bg-black/20">
         {activeTab === 'revision' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between gap-4">
               <div className="flex flex-col min-w-0">
-                <span className="text-[9px] font-bold text-slate-700 uppercase tracking-[0.2em] truncate">Correzione Bozza</span>
+                <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] truncate">Correzione Bozza</span>
                 {activeSelection && (
-                  <span className="text-[8px] text-[#5be9b1] font-bold uppercase tracking-widest mt-1 animate-pulse flex items-center gap-2">
-                     <div className="w-1 h-1 bg-[#5be9b1] rounded-full" /> Selezione
+                  <span className="text-[8px] text-[var(--accent)] font-bold uppercase tracking-widest mt-1 animate-pulse flex items-center gap-2">
+                     <div className="w-1 h-1 bg-[var(--accent)] rounded-full" /> Selezione
                   </span>
                 )}
                 {!activeSelection && currentLastPhrase && (
-                  <span className="text-[8px] text-slate-600/60 truncate max-w-[100px] italic mt-1 uppercase tracking-tighter">Memoria: {currentLastPhrase.slice(0, 10)}...</span>
+                  <span className="text-[8px] text-[var(--text-muted)]/60 truncate max-w-[100px] italic mt-1 uppercase tracking-tighter">Memoria: {currentLastPhrase.slice(0, 10)}...</span>
                 )}
               </div>
               <div className="flex items-center gap-3">
@@ -549,7 +545,7 @@ Rispondi in italiano. Sii concreto e originale.`;
                   <button 
                     onClick={handleStop}
                     title={isAnalyzing ? "Interrompi" : "Rimuovi suggerimenti"}
-                    className="p-2.5 text-slate-700 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20"
+                    className="p-2.5 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20"
                   >
                     {isAnalyzing ? <X className="w-4 h-4" /> : <RefreshCw className="w-4 h-4" />}
                   </button>
@@ -560,42 +556,35 @@ Rispondi in italiano. Sii concreto e originale.`;
                       setSceneAnalysis(activeSceneId!, '', 'revision'); 
                     }} 
                     title="Reset memory"
-                    className="p-2.5 text-slate-700 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20"
+                    className="p-2.5 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20"
                   >
                     <RefreshCw className="w-4 h-4" />
                   </button>
                 )}
-                <button onClick={runDraftRevision} disabled={isAnalyzing || (activeSelection ? activeSelection.length < 1 : plainText.length < 10)} className={cn(
-                  "text-[9px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl text-white flex items-center space-x-2 transition-all shadow-2xl active:scale-95 disabled:opacity-50 shrink-0",
-                  activeSelection ? "bg-[#5be9b1] hover:bg-[#5be9b1] shadow-[#5be9b1]/20" : "bg-[#5be9b1] hover:bg-[#5be9b1] shadow-emerald-950/40"
-                )}>
-                  <Zap className="w-3.5 h-3.5" />
-                  <span>{activeSelection ? 'Revisiona' : (currentLastPhrase ? 'Continua' : 'Analizza')}</span>
-                </button>
               </div>
             </div>
             
-            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-[24px] space-y-4 shadow-inner">
+            <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] p-5 rounded-[24px] space-y-4 shadow-inner">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="p-2.5 bg-[#5be9b1]/10 rounded-xl">
-                    <BookOpen className="w-4 h-4 text-[#5be9b1] shrink-0" />
+                  <div className="p-2.5 bg-[var(--accent)]/10 rounded-xl">
+                    <BookOpen className="w-4 h-4 text-[var(--accent)] shrink-0" />
                   </div>
                   <button 
                     onClick={() => setGlobalTab('config')}
                     className="flex flex-col text-left group"
                   >
-                    <span className="text-[9px] font-bold text-slate-700 uppercase tracking-tighter">Motore Attivo</span>
+                    <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">Motore Attivo</span>
                     <div className="flex items-center gap-1">
-                        <span className="text-[11px] text-slate-300 font-medium group-hover:text-[#5be9b1] transition-colors">{aiConfig.provider === 'groq' ? 'Llama 3.3 70B' : 'DeepSeek V3'}</span>
-                        <ChevronRight className="w-3 h-3 text-slate-700 group-hover:text-[#5be9b1] transition-all group-hover:translate-x-1" />
+                        <span className="text-[11px] text-[var(--text-secondary)] font-medium group-hover:text-[var(--accent)] transition-colors">{aiConfig.provider === 'groq' ? 'Llama 3.3 70B' : 'DeepSeek V3'}</span>
+                        <ChevronRight className="w-3 h-3 text-[var(--text-muted)] group-hover:text-[var(--accent)] transition-all group-hover:translate-x-1" />
                     </div>
                   </button>
                 </div>
                 <button 
                   onClick={handleConvertQuotes}
                   title='Converti " " in « »'
-                  className="p-3 text-[#5be9b1]/40 hover:text-[#5be9b1] hover:bg-[#5be9b1]/10 rounded-2xl transition-all flex items-center gap-2 group border border-transparent hover:border-[#5be9b1]/20"
+                  className="p-3 text-[var(--accent)]/40 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 rounded-2xl transition-all flex items-center gap-2 group border border-transparent hover:border-[var(--accent)]/20"
                 >
                   <Quote className="w-4 h-4" />
                   <span className="text-[9px] font-bold uppercase tracking-tight hidden group-hover:block transition-all">Fix « »</span>
@@ -615,33 +604,37 @@ Rispondi in italiano. Sii concreto e originale.`;
                 />
               </div>
             ) : (
-              !isAnalyzing && <div className="flex flex-col items-center justify-center h-36 text-slate-600 space-y-2"><AlertTriangle className="w-8 h-8 opacity-20" /><p className="text-xs text-center">Seleziona una scena e premi Analizza.</p></div>
+              !isAnalyzing && <div className="flex flex-col items-center justify-center h-36 text-[var(--text-muted)] space-y-2"><AlertTriangle className="w-8 h-8 opacity-20" /><p className="text-xs text-center">Seleziona una scena e premi Analizza.</p></div>
             )}
           </div>
         )}
 
         {activeTab === 'grammar' && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-slate-700 uppercase tracking-[0.2em]">Analisi Tecnica</span>
-                {activeSelection && (
-                  <span className="text-[9px] text-amber-500 font-bold uppercase tracking-widest mt-1 animate-pulse flex items-center gap-2">
-                    <Zap className="w-2.5 h-2.5" /> Selezione Attiva
-                  </span>
-                )}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex-1">
+                <button 
+                  onClick={runDraftRevision} 
+                  disabled={isAnalyzing || content.length < 10} 
+                  className="w-full py-5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--bg-deep)] disabled:opacity-50 rounded-[28px] text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-2xl shadow-[var(--accent-soft)] active:scale-95 group"
+                >
+                  <Wand2 className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                  <span>Analisi Strutturale</span>
+                </button>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="ml-3">
                 <button 
                   onClick={runGrammarAnalysis}
-                  disabled={isAnalyzing || !plainText}
+                  disabled={isAnalyzing} 
                   className={cn(
-                    "px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95",
-                    isAnalyzing || !plainText ? "bg-slate-800 text-slate-600" : "bg-white/5 text-[#5be9b1] hover:bg-[#5be9b1]/10 border border-[#5be9b1]/20 flex items-center gap-2"
+                    "p-5 rounded-28 border transition-all flex items-center gap-3 group px-8",
+                    activeSelection 
+                      ? "bg-[var(--accent-soft)] border-[var(--accent)]/30 text-[var(--accent)]" 
+                      : "bg-[var(--bg-card)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--accent)]/30"
                   )}
                 >
-                  <CheckCircle className="w-4 h-4" />
-                  <span>{activeSelection ? 'Correggi' : 'Trova Errori'}</span>
+                  <PenLine className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">{activeSelection ? 'Correggi' : 'Trova Errori'}</span>
                 </button>
               </div>
             </div>
@@ -665,9 +658,9 @@ Rispondi in italiano. Sii concreto e originale.`;
         {activeTab === 'braindump' && (
           <div className="space-y-6">
             <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-slate-700 uppercase tracking-[0.2em] mb-4">Sviluppo Intuizioni</span>
+                <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4">Sviluppo Intuizioni</span>
                 <textarea 
-                    className="w-full h-48 bg-[#171b1f] border border-white/5 rounded-[24px] p-6 text-xs text-slate-300 focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#1a1f24] transition-all resize-none shadow-inner placeholder:text-slate-800" 
+                    className="w-full h-48 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[24px] p-6 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/30 focus:bg-[var(--bg-surface)] transition-all resize-none shadow-inner placeholder:text-[var(--text-muted)]" 
                     placeholder="Incolla qui pensieri sparsi, frammenti di dialogo o concetti vaghi..." 
                     value={braindumpInput} 
                     onChange={(e) => setBraindumpInput(e.target.value)} 
@@ -676,40 +669,13 @@ Rispondi in italiano. Sii concreto e originale.`;
             <button 
                 onClick={runBraindump} 
                 disabled={isAnalyzing || !braindumpInput.trim()} 
-                className="w-full py-4 bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] disabled:opacity-50 rounded-[20px] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-2xl shadow-[#5be9b1]/10 active:scale-95"
+                className="w-full py-4 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--bg-deep)] disabled:opacity-50 rounded-[20px] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-2xl shadow-[var(--accent-soft)] active:scale-95"
             >
                 <Zap className="w-4 h-4" />
                 Espandi Concetti
             </button>
             {analysis && (
-                <div className="bg-[#5be9b1]/5 p-6 rounded-[32px] border border-[#5be9b1]/10 animate-in slide-in-from-bottom-2 max-h-[40vh] overflow-y-auto custom-scrollbar shadow-inner">
-                    <StructuredOutput text={analysis} isAnalyzing={isAnalyzing} />
-                </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'braindump' && (
-          <div className="space-y-6">
-            <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-slate-700 uppercase tracking-[0.2em] mb-4">Sviluppo Intuizioni</span>
-                <textarea 
-                    className="w-full h-48 bg-[#171b1f] border border-white/5 rounded-[24px] p-6 text-xs text-slate-300 focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#1a1f24] transition-all resize-none shadow-inner placeholder:text-slate-800" 
-                    placeholder="Incolla qui pensieri sparsi, frammenti di dialogo o concetti vaghi..." 
-                    value={braindumpInput} 
-                    onChange={(e) => setBraindumpInput(e.target.value)} 
-                />
-            </div>
-            <button 
-                onClick={runBraindump} 
-                disabled={isAnalyzing || !braindumpInput.trim()} 
-                className="w-full py-4 bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] disabled:opacity-50 rounded-[20px] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-2xl shadow-[#5be9b1]/10 active:scale-95"
-            >
-                <Zap className="w-4 h-4" />
-                Espandi Concetti
-            </button>
-            {analysis && (
-                <div className="bg-[#5be9b1]/5 p-6 rounded-[32px] border border-[#5be9b1]/10 animate-in slide-in-from-bottom-2 max-h-[40vh] overflow-y-auto custom-scrollbar shadow-inner">
+                <div className="bg-[var(--accent-soft)] p-6 rounded-[32px] border border-[var(--accent)]/10 animate-in slide-in-from-bottom-2 max-h-[40vh] overflow-y-auto custom-scrollbar shadow-inner">
                     <StructuredOutput text={analysis} isAnalyzing={isAnalyzing} />
                 </div>
             )}
@@ -725,10 +691,10 @@ Rispondi in italiano. Sii concreto e originale.`;
                     key={key} 
                     onClick={() => runStyleTransform(key)} 
                     disabled={isAnalyzing || plainText.length < 10} 
-                    className="bg-[#171b1f] hover:bg-[#5be9b1]/10 disabled:opacity-50 p-5 rounded-[24px] text-left border border-white/5 hover:border-[#5be9b1]/30 transition-all group relative overflow-hidden"
+                    className="bg-[var(--bg-card)] hover:bg-[var(--accent-soft)] disabled:opacity-50 p-5 rounded-[24px] text-left border border-[var(--border-subtle)] hover:border-[var(--accent)]/30 transition-all group relative overflow-hidden"
                 >
-                  <div className="absolute top-0 right-0 w-12 h-12 bg-[#5be9b1]/5 blur-xl group-hover:bg-[#5be9b1]/10 transition-all" />
-                  <div className="text-[10px] font-black text-slate-500 group-hover:text-[#5be9b1] transition-colors uppercase tracking-widest relative z-10">{key}</div>
+                  <div className="absolute top-0 right-0 w-12 h-12 bg-[var(--accent-soft)] blur-xl group-hover:bg-[var(--accent)]/10 transition-all" />
+                  <div className="text-[10px] font-black text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors uppercase tracking-widest relative z-10">{key}</div>
                 </button>
               ))}
             </div>
@@ -744,11 +710,11 @@ Rispondi in italiano. Sii concreto e originale.`;
         {activeTab === 'lexicon' && (
           <div className="space-y-6">
             <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-slate-700 uppercase tracking-[0.2em] mb-4">Indice Lessicale</span>
+                <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4">Indice Lessicale</span>
                 <div className="relative group">
-                    <Languages className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700 group-focus-within:text-[#5be9b1] transition-colors" />
+                    <Languages className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--accent)] transition-colors" />
                     <input 
-                        className="w-full bg-[#121519]/60 border border-white/5 rounded-[20px] py-4 pl-14 pr-6 text-sm text-white focus:outline-none focus:border-[#5be9b1]/30 focus:bg-[#121519] transition-all shadow-inner placeholder:text-slate-800" 
+                        className="w-full bg-[var(--bg-surface)]/60 border border-[var(--border-subtle)] rounded-[20px] py-4 pl-14 pr-6 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/30 focus:bg-[var(--bg-surface)] transition-all shadow-inner placeholder:text-[var(--text-muted)]" 
                         placeholder="Concetto da analizzare..." 
                         value={lexiconInput} 
                         onChange={(e) => setLexiconInput(e.target.value)} 
@@ -759,20 +725,20 @@ Rispondi in italiano. Sii concreto e originale.`;
               <button 
                 onClick={() => runLexiconTool('synonyms')} 
                 disabled={isAnalyzing || !lexiconInput.trim()} 
-                className="py-4 bg-white/[0.02] hover:bg-white/[0.05] disabled:opacity-50 rounded-[20px] text-[10px] font-bold uppercase tracking-widest transition-all border border-white/5 hover:border-[#5be9b1]/20"
+                className="py-4 bg-white/[0.02] hover:bg-white/[0.05] disabled:opacity-50 rounded-[20px] text-[10px] font-bold uppercase tracking-widest transition-all border border-[var(--border-subtle)] hover:border-[var(--accent)]/20"
               >
                 Sinonimi
               </button>
               <button 
                 onClick={() => runLexiconTool('metaphors')} 
                 disabled={isAnalyzing || !lexiconInput.trim()} 
-                className="py-4 bg-[#5be9b1] hover:bg-[#5be9b1] disabled:opacity-50 rounded-[20px] text-[10px] font-bold uppercase tracking-widest text-white transition-all shadow-2xl shadow-emerald-950/40 active:scale-95"
+                className="py-4 bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 rounded-[20px] text-[10px] font-bold uppercase tracking-widest text-[var(--bg-deep)] transition-all shadow-2xl active:scale-95"
               >
                 Metafore
               </button>
             </div>
             {analysis && (
-                <div className="bg-[#5be9b1]/5 p-6 rounded-[32px] border border-[#5be9b1]/10 animate-in slide-in-from-bottom-2 max-h-[40vh] overflow-y-auto custom-scrollbar shadow-inner">
+                <div className="bg-[var(--accent-soft)] p-6 rounded-[32px] border border-[var(--accent)]/10 animate-in slide-in-from-bottom-2 max-h-[40vh] overflow-y-auto custom-scrollbar shadow-inner">
                     <StructuredOutput text={analysis} isAnalyzing={isAnalyzing} />
                 </div>
             )}
@@ -780,9 +746,9 @@ Rispondi in italiano. Sii concreto e originale.`;
         )}
       </div>
 
-      <div className="p-8 border-t border-white/5 flex items-center justify-between bg-white/[0.01]">
-        <div className="flex items-center space-x-3 text-[9px] text-slate-700 uppercase font-bold tracking-[0.2em]">
-          <div className={cn("w-2 h-2 rounded-full", isAnalyzing ? "bg-[#5be9b1] animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-emerald-900")}></div>
+      <div className="p-8 border-t border-[var(--border-subtle)] flex items-center justify-between bg-white/[0.01]">
+        <div className="flex items-center space-x-3 text-[9px] text-[var(--text-muted)] uppercase font-bold tracking-[0.2em]">
+          <div className={cn("w-2 h-2 rounded-full", isAnalyzing ? "bg-[var(--accent)] animate-pulse shadow-glow-mint" : "opacity-20 bg-[var(--accent)]")}></div>
           <span>Architettura Sincronizzata</span>
         </div>
       </div>

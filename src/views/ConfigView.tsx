@@ -92,9 +92,13 @@ export const ConfigView: React.FC = React.memo(() => {
     try {
       const result = await deepseekService.testConnection(aiConfig.deepseekKey);
       setTestResult(result);
-      if (result.ok) addToast("DeepSeek Online", 'success');
+      if (result.ok) {
+        addToast("DeepSeek Online", 'success');
+      } else {
+        addToast(`Errore DeepSeek: ${result.error || result.status}`, 'error');
+      }
     } catch (err) {
-      addToast("Errore di rete", 'error');
+      addToast("Errore di rete DeepSeek", 'error');
     } finally {
       setIsTesting(false);
     }
@@ -106,19 +110,27 @@ export const ConfigView: React.FC = React.memo(() => {
     try {
       const result = await geminiService.testConnection(aiConfig.geminiKey);
       setTestGeminiResult(result);
-      if (result.ok) addToast("Gemini Online", 'success');
+      if (result.ok) {
+        addToast("Gemini Online", 'success');
+      } else {
+        addToast(`Errore Gemini: ${result.error || result.status}`, 'error');
+      }
     } catch (err) {
-      addToast("Errore di rete", 'error');
+      addToast("Errore di rete Gemini", 'error');
     } finally {
       setIsTestingGemini(false);
     }
   };
 
   const handleProviderChange = async (provider: 'groq' | 'deepseek' | 'gemini') => {
-    setAIConfig({ provider });
     if (!user) return;
+    
+    // Use immediate updates to avoid stale state from aiConfig
+    const updatedConfig = { ...aiConfig, provider };
+    setAIConfig({ provider });
+    
     try {
-      await supabase.from('user_profiles').update({ ai_settings: { ...aiConfig, provider } }).eq('user_id', user.id);
+      await supabase.from('user_profiles').update({ ai_settings: updatedConfig }).eq('user_id', user.id);
       addToast(`Motore: ${provider}`, 'success');
     } catch (err) {}
   };

@@ -7,32 +7,63 @@
   --font-display: 'Outfit', sans-serif;
   --font-sans: 'Outfit', 'Inter', sans-serif;
   
-  --primary-mint: #5be9b1;
-  --primary-mint-hover: #4ade80;
-  
+  /* Semantic Variables - DARK (Inkwell) */
   --bg-deep: #0b0e11;
   --bg-surface: #13161a;
   --bg-card: #1a1e23;
+  --bg-sidebar: #090c0f;
   
-  --emerald-950: #022c22;
-  --emerald-900: #064e3b;
-  --emerald-500: #10b981;
-  --emerald-400: #34d399;
+  --accent: #5be9b1;
+  --accent-hover: #4ade80;
+  --accent-soft: rgba(91, 233, 177, 0.1);
   
-  --slate-50: #f8fafc;
-  --slate-100: #f1f5f9;
-  --slate-400: #94a3b8;
-  --slate-500: #64748b;
-  --slate-800: #1e293b;
-  --slate-900: #0f172a;
+  --text-bright: #f8fafc;
+  --text-primary: #cbd5e1;
+  --text-secondary: #64748b;
+  --text-muted: #334155;
+  
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-blur: 40px;
+}
+
+[data-theme='light'] {
+  /* Semantic Variables - LIGHT (Parchment) */
+  --bg-deep: #FCFAF7;
+  --bg-surface: #FFFFFF;
+  --bg-card: #fdfdfd;
+  --bg-sidebar: #F5F2EE;
+  
+  --accent: #2D6A4F;
+  --accent-hover: #1B4332;
+  --accent-soft: rgba(45, 106, 79, 0.1);
+  
+  --text-bright: #1A202C;
+  --text-primary: #2D3748;
+  --text-secondary: #718096;
+  --text-muted: #A0AEC0;
+  
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-blur: 20px;
 }
 
 @layer base {
   body {
-    @apply bg-[#0b0e11] text-slate-200 font-sans antialiased selection:bg-[#5be9b1]/30 selection:text-[#5be9b1] overflow-hidden h-full;
+    background-color: var(--bg-deep);
+    color: var(--text-primary);
+    @apply font-sans antialiased overflow-hidden h-full;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
+  
+  body::selection {
+    background-color: var(--accent-soft);
+    color: var(--accent);
+  }
+
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display text-slate-50 tracking-tighter;
+    color: var(--text-bright);
+    @apply font-display tracking-tighter;
   }
 }
 
@@ -46,20 +77,29 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-white/5 rounded-full hover:bg-[#5be9b1]/20 transition-all;
+  background-color: var(--border-subtle);
+  @apply rounded-full hover:bg-[var(--accent-soft)] transition-all;
 }
 
-/* Glassmorphism V2: Inkwell Edition */
 .glass {
-  @apply bg-white/[0.03] backdrop-blur-3xl border border-white/5 shadow-[0_8px_32px_0_rgba(0,0,0,0.8)];
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--border-subtle);
+  @apply shadow-2xl;
 }
 
 .glass-emerald {
-  @apply bg-[#5be9b1]/[0.02] backdrop-blur-3xl border border-[#5be9b1]/20 shadow-[0_8px_32px_0_rgba(16,185,129,0.1)];
+  background-color: var(--accent-soft);
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--accent);
+  box-shadow: 0 8px 32px 0 rgba(16, 185, 129, 0.1);
 }
 
 .glass-dark {
-  @apply bg-black/40 backdrop-blur-3xl border border-white/5 shadow-2xl;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--border-subtle);
+  @apply shadow-2xl;
 }
 
 /* Shadow System: Multi-layered for realistic depth */
@@ -78,7 +118,8 @@
 
 /* TipTap Editor Styling: Immersion Focused */
 .ProseMirror {
-    @apply outline-none min-h-[500px] text-xl leading-relaxed text-slate-200 font-serif max-w-4xl mx-auto py-20;
+    color: var(--text-primary);
+    @apply outline-none min-h-[500px] text-xl leading-relaxed font-serif max-w-4xl mx-auto py-20;
 }
 
 .ProseMirror p {
@@ -86,15 +127,21 @@
 }
 
 .ProseMirror h1 {
-    @apply text-6xl font-display font-black mb-12 mt-16 text-slate-50 tracking-tighter;
+    color: var(--text-bright);
+    @apply text-6xl font-display font-black mb-12 mt-16 tracking-tighter;
 }
 
 .ProseMirror h2 {
-    @apply text-3xl font-display font-black mb-8 mt-12 text-slate-100/90 tracking-tight;
+    color: var(--text-bright);
+    opacity: 0.9;
+    @apply text-3xl font-display font-black mb-8 mt-12 tracking-tight;
 }
 
 .ProseMirror blockquote {
-    @apply border-l-4 border-[#5be9b1]/40 pl-10 my-12 italic text-slate-400 font-serif text-2xl leading-loose bg-white/[0.01] py-8 rounded-r-3xl;
+    border-left: 4px solid var(--accent);
+    color: var(--text-secondary);
+    background-color: var(--glass-bg);
+    @apply pl-10 my-12 italic font-serif text-2xl leading-loose py-8 rounded-r-3xl;
 }
 
 /* Utility Animations */

@@ -103,15 +103,15 @@ export const DeepAnalysisView: React.FC = () => {
   return (
     <div className="flex h-full gap-4 relative animate-in fade-in duration-700">
       {/* Colonna Sinistra: Selettore Scene */}
-      <div className="w-80 flex-shrink-0 glass rounded-[40px] flex flex-col border border-white/5 overflow-hidden shadow-2xl">
-        <div className="p-8 border-b border-white/10 bg-white/[0.01]">
+      <div className="w-80 flex-shrink-0 glass rounded-[40px] flex flex-col border border-[var(--border-subtle)] overflow-hidden shadow-2xl">
+        <div className="p-8 border-b border-[var(--border-subtle)] bg-white/[0.01]">
           <div className="flex items-center gap-4 mb-2">
-            <div className="p-2.5 bg-[#5be9b1]/10 rounded-2xl border border-[#5be9b1]/20">
-              <ScanSearch className="w-6 h-6 text-[#5be9b1]" />
+            <div className="p-2.5 bg-[var(--accent-soft)] rounded-2xl border border-[var(--accent)]/20">
+              <ScanSearch className="w-6 h-6 text-[var(--accent)]" />
             </div>
             <div>
-              <h2 className="text-lg font-black tracking-tight text-white leading-tight uppercase">Navigator</h2>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#5be9b1]/50">Seleziona Contesto</p>
+              <h2 className="text-lg font-black tracking-tight text-[var(--text-bright)] leading-tight uppercase">Navigator</h2>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--accent)]/50">Seleziona Contesto</p>
             </div>
           </div>
         </div>
@@ -123,12 +123,12 @@ export const DeepAnalysisView: React.FC = () => {
                 onClick={() => toggleChapter(chapter.id)}
                 className={cn(
                   "flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all border",
-                  expandedChapters.has(chapter.id) ? "bg-white/5 border-white/10" : "border-transparent hover:bg-white/[0.02]"
+                  expandedChapters.has(chapter.id) ? "bg-white/5 border-[var(--border-subtle)]" : "border-transparent hover:bg-white/[0.02]"
                 )}
               >
-                {expandedChapters.has(chapter.id) ? <ChevronDown className="w-3.5 h-3.5 text-[#5be9b1]" /> : <ChevronRight className="w-3.5 h-3.5 text-slate-700" />}
-                <Folder className={cn("w-4 h-4", expandedChapters.has(chapter.id) ? "text-[#5be9b1]" : "text-slate-700")} />
-                <span className="text-[11px] font-black uppercase tracking-widest text-slate-400 truncate">{chapter.title}</span>
+                {expandedChapters.has(chapter.id) ? <ChevronDown className="w-3.5 h-3.5 text-[var(--accent)]" /> : <ChevronRight className="w-3.5 h-3.5 text-[var(--text-secondary)]" />}
+                <Folder className={cn("w-4 h-4", expandedChapters.has(chapter.id) ? "text-[var(--accent)]" : "text-[var(--text-secondary)]")} />
+                <span className="text-[11px] font-black uppercase tracking-widest text-[var(--text-secondary)] truncate">{chapter.title}</span>
               </div>
 
               {expandedChapters.has(chapter.id) && (
@@ -140,8 +140,8 @@ export const DeepAnalysisView: React.FC = () => {
                       className={cn(
                         "flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all border",
                         selectedSceneId === scene.id 
-                          ? "bg-[#5be9b1] text-[#0b0e11] border-transparent shadow-lg shadow-[#5be9b1]/20" 
-                          : "text-slate-600 hover:bg-white/5 border-transparent"
+                          ? "bg-[var(--accent)] text-[var(--bg-deep)] border-transparent shadow-lg shadow-[var(--accent-soft)]" 
+                          : "text-[var(--text-secondary)] hover:bg-white/5 border-transparent"
                       )}
                     >
                       <FileText className="w-3.5 h-3.5 opacity-50" />
@@ -156,14 +156,14 @@ export const DeepAnalysisView: React.FC = () => {
       </div>
 
       {/* Colonna Destra: Analizzatore IA */}
-      <div className="flex-1 glass rounded-[40px] flex flex-col border border-white/5 overflow-hidden shadow-2xl relative">
-        <div className="p-8 border-b border-white/10 flex items-center justify-between bg-white/[0.01]">
+      <div className="flex-1 glass rounded-[40px] flex flex-col border border-[var(--border-subtle)] overflow-hidden shadow-2xl relative">
+        <div className="p-8 border-b border-[var(--border-subtle)] flex items-center justify-between bg-white/[0.01]">
           <div className="flex items-center gap-6">
             <div className="flex flex-col">
-              <h2 className="text-2xl font-black tracking-tighter text-white uppercase italic">Deep Analysis</h2>
+              <h2 className="text-2xl font-black tracking-tighter text-[var(--text-bright)] uppercase italic">Deep Analysis</h2>
               <div className="flex items-center gap-2 mt-1">
-                <div className={cn("w-2 h-2 rounded-full", selectedScene ? "bg-[#5be9b1] animate-pulse" : "bg-slate-800")} />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#5be9b1]">
+                <div className={cn("w-2 h-2 rounded-full", selectedScene ? "bg-[var(--accent)] animate-pulse" : "bg-[var(--bg-surface)]")} />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent)]">
                   {selectedScene ? `Analisi: ${selectedScene.title}` : 'In attesa di selezione...'}
                 </span>
               </div>
@@ -172,14 +172,14 @@ export const DeepAnalysisView: React.FC = () => {
 
           <div className="flex items-center gap-6">
             {/* Selettore Provider */}
-            <div className="flex items-center bg-black/40 border border-white/5 p-1.5 rounded-2xl gap-1">
+            <div className="flex items-center bg-[var(--bg-deep)]/40 border border-[var(--border-subtle)] p-1.5 rounded-2xl gap-1">
               <button
                 onClick={() => handleProviderChange('groq')}
                 className={cn(
                   "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
                   aiConfig.provider === 'groq' 
-                    ? "bg-[#5be9b1] text-[#0b0e11] shadow-lg shadow-[#5be9b1]/20" 
-                    : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
+                    ? "bg-[var(--accent)] text-[var(--bg-deep)] shadow-lg shadow-[var(--accent-soft)]" 
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-bright)] hover:bg-white/5"
                 )}
               >
                 <Zap className="w-3 h-3" />
@@ -190,8 +190,8 @@ export const DeepAnalysisView: React.FC = () => {
                 className={cn(
                   "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
                   aiConfig.provider === 'deepseek' 
-                    ? "bg-[#5be9b1] text-[#0b0e11] shadow-lg shadow-[#5be9b1]/20" 
-                    : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
+                    ? "bg-[var(--accent)] text-[var(--bg-deep)] shadow-lg shadow-[var(--accent-soft)]" 
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-bright)] hover:bg-white/5"
                 )}
               >
                 <Cpu className="w-3 h-3" />
@@ -202,8 +202,8 @@ export const DeepAnalysisView: React.FC = () => {
                 className={cn(
                   "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
                   aiConfig.provider === 'gemini' 
-                    ? "bg-[#5be9b1] text-[#0b0e11] shadow-lg shadow-[#5be9b1]/20" 
-                    : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
+                    ? "bg-[var(--accent)] text-[var(--bg-deep)] shadow-lg shadow-[var(--accent-soft)]" 
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-bright)] hover:bg-white/5"
                 )}
               >
                 <Activity className="w-3 h-3" />
@@ -215,15 +215,15 @@ export const DeepAnalysisView: React.FC = () => {
 
             <div className="flex items-center gap-4">
               {isAnalyzing && (
-                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#5be9b1]/10 border border-[#5be9b1]/20">
-                  <RefreshCw className="w-3 h-3 animate-spin text-[#5be9b1]" />
-                  <span className="text-[10px] font-black text-[#5be9b1] uppercase tracking-widest">IA Elaborando...</span>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20">
+                  <RefreshCw className="w-3 h-3 animate-spin text-[var(--accent)]" />
+                  <span className="text-[10px] font-black text-[var(--accent)] uppercase tracking-widest">IA Elaborando...</span>
                 </div>
               )}
               <button 
                 onClick={() => runAnalysis()}
                 disabled={!selectedScene || isAnalyzing}
-                className="px-8 py-3 bg-[#5be9b1] hover:bg-[#4ade80] text-[#0b0e11] rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all disabled:opacity-30 disabled:grayscale shadow-2xl shadow-[#5be9b1]/20 active:scale-95 flex items-center gap-2"
+                className="px-8 py-3 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--bg-deep)] rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all disabled:opacity-30 disabled:grayscale shadow-2xl shadow-[var(--accent-soft)] active:scale-95 flex items-center gap-2"
               >
                 <Zap className="w-4 h-4" />
                 Scansione Profonda
@@ -235,24 +235,24 @@ export const DeepAnalysisView: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-12 space-y-10 scrollbar-hide">
           {!selectedScene ? (
             <div className="h-full flex flex-col items-center justify-center text-center space-y-6 opacity-30">
-               <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
-                  <ScanSearch className="w-10 h-10 text-white" />
+               <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center border border-[var(--border-subtle)]">
+                  <ScanSearch className="w-10 h-10 text-[var(--text-bright)]" />
                </div>
                <div>
-                  <h3 className="text-xl font-black uppercase tracking-widest text-white">Pronto all'Indagine</h3>
-                  <p className="text-xs text-slate-500 uppercase tracking-widest mt-2">Dalla colonna sinistra, seleziona la scena da sottoporre ad analisi investigativa</p>
+                  <h3 className="text-xl font-black uppercase tracking-widest text-[var(--text-bright)]">Pronto all'Indagine</h3>
+                  <p className="text-xs text-[var(--text-secondary)] uppercase tracking-widest mt-2">Dalla colonna sinistra, seleziona la scena da sottoporre ad analisi investigativa</p>
                </div>
             </div>
           ) : (
             <>
               {/* Box Istruzioni IA */}
               <div className="max-w-4xl mx-auto animate-in slide-in-from-top-4 duration-500">
-                <div className="flex items-center gap-3 mb-4 text-[#5be9b1]/60">
+                <div className="flex items-center gap-3 mb-4 text-[var(--accent)]/60">
                    <MessageSquare className="w-4 h-4" />
                    <span className="text-[10px] font-black uppercase tracking-[0.3em]">Istruzioni Specifiche per l'Indagine</span>
                 </div>
                 <textarea 
-                  className="w-full h-24 bg-white/[0.02] border border-white/10 rounded-[28px] p-6 text-xs text-slate-300 focus:outline-none focus:border-[#5be9b1]/30 focus:bg-white/[0.04] transition-all resize-none shadow-inner placeholder:text-slate-800"
+                  className="w-full h-24 bg-black/10 border border-[var(--border-subtle)] rounded-[28px] p-6 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/30 focus:bg-white/[0.04] transition-all resize-none shadow-inner placeholder:text-[var(--text-muted)]"
                   placeholder="Es: Focalizzati sulla tensione tra i due protagonisti, o analizza se il finale è coerente con la premessa..."
                   value={instructions}
                   onChange={(e) => setInstructions(e.target.value)}
@@ -261,7 +261,7 @@ export const DeepAnalysisView: React.FC = () => {
 
               {analysis ? (
                 <div className="space-y-8 max-w-4xl mx-auto">
-                   <div className="p-8 bg-[#5be9b1]/5 border border-[#5be9b1]/10 rounded-[32px] shadow-inner animate-in slide-in-from-bottom-4">
+                   <div className="p-8 bg-[var(--accent-soft)] border border-[var(--accent)]/10 rounded-[32px] shadow-inner animate-in slide-in-from-bottom-4">
                       <StructuredOutput text={analysis} isAnalyzing={isAnalyzing} />
                    </div>
                 </div>
@@ -285,12 +285,12 @@ export const DeepAnalysisView: React.FC = () => {
           )}
         </div>
 
-        <div className="p-8 border-t border-white/10 bg-black/20 backdrop-blur-xl">
+        <div className="p-8 border-t border-[var(--border-subtle)] bg-black/20 backdrop-blur-xl">
            <div className="max-w-4xl mx-auto relative group">
               <input 
                 type="text"
                 placeholder="Poni una domanda specifica su questa scena... (es: 'Qual è il sottotesto emotivo qui?')"
-                className="w-full bg-white/[0.03] border border-white/10 rounded-[28px] py-6 pl-8 pr-32 text-sm text-white focus:outline-none focus:border-[#5be9b1]/30 focus:bg-white/[0.05] transition-all placeholder:text-slate-700 shadow-inner"
+                className="w-full bg-white/[0.03] border border-[var(--border-subtle)] rounded-[28px] py-6 pl-8 pr-32 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/30 focus:bg-white/[0.05] transition-all placeholder:text-[var(--text-muted)] shadow-inner"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {
@@ -308,7 +308,7 @@ export const DeepAnalysisView: React.FC = () => {
                   }
                 }}
                 disabled={!selectedScene || !query.trim() || isAnalyzing}
-                className="absolute right-4 top-1/2 -translate-y-1/2 px-6 py-3 bg-white/5 hover:bg-[#5be9b1]/20 text-slate-500 hover:text-[#5be9b1] rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border border-transparent hover:border-[#5be9b1]/30 disabled:opacity-0"
+                className="absolute right-4 top-1/2 -translate-y-1/2 px-6 py-3 bg-white/5 hover:bg-[var(--accent-soft)] text-[var(--text-secondary)] hover:text-[var(--accent)] rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border border-transparent hover:border-[var(--accent)]/30 disabled:opacity-0"
               >
                 Invia Indagine
               </button>

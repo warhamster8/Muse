@@ -55,13 +55,14 @@ export const geminiService = {
     };
 
     const trimmedKey = apiKey.trim();
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${trimmedKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse`;
 
     try {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-goog-api-key': trimmedKey
         },
         credentials: 'omit',
         body: JSON.stringify(payload),
@@ -115,15 +116,14 @@ export const geminiService = {
    */
   async testConnection(apiKey: string) {
     const trimmedKey = apiKey.trim();
-    if (!trimmedKey) return { ok: false, error: 'Chiave mancante' };
-
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${trimmedKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
     
     try {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-goog-api-key': trimmedKey
         },
         credentials: 'omit',
         body: JSON.stringify({
