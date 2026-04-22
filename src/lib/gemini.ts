@@ -1,16 +1,17 @@
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+
 /**
- * Servizio per l'interazione con l'API di Google Gemini.
- * Gestisce lo streaming SSE e la diagnostica di connessione.
+ * Servizio per l'interazione con l'API di Google Gemini tramite SDK ufficiale.
+ * Gestisce lo streaming e la diagnostica di connessione in modo robusto.
  */
 export const geminiService = {
   /**
-   * Avvia una chat completion in streaming via Server-Sent Events (SSE).
+   * Avvia una chat completion in streaming via SDK ufficiale.
    * 
    * @param apiKey - Chiave API Google AI Studio
    * @param messages - Cronologia messaggi {role, content}
    * @param onChunk - Callback per il testo ricevuto
    * @param temperature - Creatività della risposta (0.0 - 1.0)
-   * @throws Error in caso di parametri non validi o errori API
    */
   async streamChatCompletion(
     apiKey: string,
@@ -18,129 +19,87 @@ export const geminiService = {
     onChunk: (text: string) => void,
     temperature = 0.7
   ) {
-    // Validazione rigida: verifica presenza e integrità parametri
     if (!apiKey || apiKey.length < 10) {
       throw new Error('Configurazione di sicurezza: Chiave Gemini non valida');
     }
-    if (!messages || messages.length === 0) {
-      throw new Error('Validazione fallita: Cronologia messaggi vuota');
-    }
 
-    const systemInstruction = messages.find((m) => m.role === 'system')?.content || '';
-    const chatHistory = messages
+    const genAI = new GoogleGenerativeAI(apiKey.trim());
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      safetySettings: [
+        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+      ],
+      generationConfig: {
+        temperature,
+        maxOutputTokens: 4096,
+      }
+    });
+
+    const systemInstruction = messages.find((m) => m.role === 'system')?.content;
+    const history = messages
       .filter((m) => m.role !== 'system')
       .slice(0, -1)
       .map((m) => ({
         role: m.role === 'user' ? 'user' : 'model',
         parts: [{ text: m.content }],
       }));
+    
     const lastMessage = messages[messages.length - 1].content;
 
-    // Costruzione payload con impostazioni di sicurezza predefinite
-    const payload = {
-      contents: [...chatHistory, { role: 'user', parts: [{ text: lastMessage }] }],
-      system_instruction: systemInstruction
-        ? { parts: [{ text: systemInstruction }] }
-        : undefined,
-      generationConfig: {
-        temperature,
-        maxOutputTokens: 4096, // Aumentato per maggiore profondità narrativa
-      },
-      safetySettings: [
-        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-      ],
-    };
-
-    const trimmedKey = apiKey.trim();
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${trimmedKey}`;
-
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'omit',
-        body: JSON.stringify(payload),
+      const chat = model.startChat({
+        history: history,
+        systemInstruction: systemInstruction,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('[SECURITY LOG] Gemini API Error:', {
-          status: response.status,
-          detail: errorData.error?.message
-        });
-        throw new Error(`Servizio AI Gemini non disponibile (Status: ${response.status})`);
-      }
+      const result = await chat.sendMessageStream(lastMessage);
 
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('Fallimento inizializzazione stream di lettura');
-
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const json = JSON.parse(line.substring(6));
-              const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (text) {
-                onChunk(text);
-              }
-            } catch (e) {
-              // Silenzioso: chunk incompleto
-            }
-          }
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text();
+        if (chunkText) {
+          onChunk(chunkText);
         }
       }
     } catch (err: any) {
-      console.error('[SECURITY LOG] Gemini Stream Exception:', err.message);
+      console.error('[SECURITY LOG] Gemini SDK Stream Exception:', err);
+      // Trasmettiamo un messaggio di errore più leggibile se è un problema di auth
+      if (err.message?.includes('401') || err.message?.includes('unauthenticated')) {
+        throw new Error('Errore di Autenticazione (401): La chiave API non è valida o non è autorizzata per questo servizio.');
+      }
       throw err;
     }
   },
 
   /**
-   * Verifica la connettività con l'endpoint Google.
+   * Verifica la connettività con l'endpoint Google tramite SDK.
    */
   async testConnection(apiKey: string) {
-    const trimmedKey = apiKey.trim();
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${trimmedKey}`;
-    
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'omit',
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: 'Ping' }] }]
-        }),
-      });
-
-      const data = await response.json().catch(() => ({}));
+      const genAI = new GoogleGenerativeAI(apiKey.trim());
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      
+      const result = await model.generateContent("Ping");
+      await result.response;
+      
       return {
-        status: response.status,
-        ok: response.ok,
-        data: response.ok ? { status: 'authorized' } : data
+        status: 200,
+        ok: true,
+        data: { status: 'authorized' }
       };
     } catch (err: any) {
-      console.error('[SECURITY LOG] Gemini Connection Test Failed:', err.message);
+      console.error('[SECURITY LOG] Gemini Connection Test Failed:', err);
+      
+      // Tentiamo di estrarre lo status se disponibile
+      const statusMatch = err.message?.match(/(\d{3})/);
+      const status = statusMatch ? parseInt(statusMatch[1]) : 0;
+      
       return {
-        status: 0,
+        status: status,
         ok: false,
-        error: 'Connessione al Nucleo Gemini fallita'
+        error: err.message || 'Connessione al Nucleo Gemini fallita'
       };
     }
   }
