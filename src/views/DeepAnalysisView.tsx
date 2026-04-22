@@ -52,7 +52,7 @@ export const DeepAnalysisView: React.FC = () => {
     setExpandedChapters(next);
   };
 
-  const handleProviderChange = (provider: 'groq' | 'deepseek') => {
+  const handleProviderChange = (provider: 'groq' | 'deepseek' | 'gemini') => {
     if (provider === 'deepseek' && !aiConfig.deepseekKey) {
       addToast("DeepSeek key non trovata. Configurala in Project & AI", 'error');
       return;

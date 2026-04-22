@@ -1,7 +1,7 @@
 import React from 'react';
 import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
-import { Settings, Cpu, Zap, ShieldCheck, Activity, Loader2 } from 'lucide-react';
+import { Settings, Cpu, Zap, ShieldCheck, Activity, Loader2, CheckCircle } from 'lucide-react';
 import { useToast } from '../components/Toast';
 import { deepseekService } from '../lib/deepseek';
 import { geminiService } from '../lib/gemini';
@@ -114,7 +114,7 @@ export const ConfigView: React.FC = React.memo(() => {
     }
   };
 
-  const handleProviderChange = async (provider: 'groq' | 'deepseek') => {
+  const handleProviderChange = async (provider: 'groq' | 'deepseek' | 'gemini') => {
     setAIConfig({ provider });
     if (!user) return;
     try {
