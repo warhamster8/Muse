@@ -65,7 +65,12 @@ export const DeepAnalysisView: React.FC = () => {
     if (!selectedScene || !selectedScene.content) return;
     
     const content = selectedScene.content;
-    const cleanOriginalText = originalText.replace(/^(\.\.\.|…)+/, '').replace(/(\.\.\.|…)+$/, '').trim();
+    // Pulisce il testo originale da artefatti dell'AI (puntini, grassetti, spazi extra)
+    const cleanOriginalText = originalText
+      .replace(/^(\.\.\.|…)+/, '')
+      .replace(/(\.\.\.|…)+$/, '')
+      .replace(/\*\*/g, '') // Rimuove eventuali grassetti residui
+      .trim();
     
     if (content.includes(cleanOriginalText)) {
       const newContent = content.replace(cleanOriginalText, suggestion);
@@ -74,6 +79,7 @@ export const DeepAnalysisView: React.FC = () => {
       setAppliedSuggestions(prev => [...prev, originalText]);
       addToast('Modifica applicata al manoscritto', 'success');
     } else {
+      console.warn('[ALIGNMENT FAILURE] Target text not found:', cleanOriginalText);
       addToast('Impossibile allineare il suggerimento nel testo', 'error');
     }
   };

@@ -180,13 +180,21 @@ export const StructuredOutput: React.FC<{
 
     if (/^(?:\d+\.\s*)?❌/.test(trimmedLine)) {
       flushCurrent(`sug-${i}`);
-      const cleanOriginal = trimmedLine.replace(/^(?:\d+\.\s*)?❌\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim();
+      const cleanOriginal = trimmedLine
+        .replace(/^(?:\d+\.\s*)?❌\s*/, '')
+        .replace(/^\*\*.*?\*\*\s*/, '') // Rimuove eventuali grassetti iniziali (es: **Frase originale:**)
+        .replace(/^["“”«»]+|["“”«»]+$/g, '')
+        .trim();
       if (cleanOriginal) {
         currentSuggestion = { original: cleanOriginal };
       }
     } else if (/^(?:\d+\.\s*)?✅/.test(trimmedLine)) {
       if (currentSuggestion) {
-        currentSuggestion.suggestion = trimmedLine.replace(/^(?:\d+\.\s*)?✅\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim();
+        currentSuggestion.suggestion = trimmedLine
+          .replace(/^(?:\d+\.\s*)?✅\s*/, '')
+          .replace(/^\*\*.*?\*\*\s*/, '') // Rimuove eventuali grassetti iniziali (es: **Nuova versione suggerita:**)
+          .replace(/^["“”«»]+|["“”«»]+$/g, '')
+          .trim();
       }
     } else if (/^(?:\d+\.\s*)?💡/.test(trimmedLine)) {
       if (currentSuggestion) {

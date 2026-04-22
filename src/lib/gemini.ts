@@ -39,10 +39,10 @@ export const geminiService = {
         maxOutputTokens: 4096,
       },
       safetySettings: [
-        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
+        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
+        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
+        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
       ]
     };
 
@@ -72,7 +72,8 @@ export const geminiService = {
         if (response.status === 401 || response.status === 403 || errorData?.error?.message?.includes('invalid authentication credentials') || errorData?.error?.message?.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED')) {
            throw new Error('Errore di Autenticazione (401): La chiave API non è valida o non è autorizzata. Assicurati di usare una API Key valida di Google AI Studio.');
         }
-        throw new Error(`Sorgente AI non disponibile (Status: ${response.status}). Riprova più tardi.`);
+        const errorMessage = errorData?.error?.message || 'Errore sconosciuto dall\'API Google';
+        throw new Error(`Sorgente AI non disponibile (Status: ${response.status}): ${errorMessage}`);
       }
 
       const reader = response.body?.getReader();
@@ -146,6 +147,7 @@ export const geminiService = {
       return {
         status: response.status,
         ok: response.ok,
+        error: response.ok ? null : (data?.error?.message || `Status: ${response.status}`),
         data: response.ok ? { status: 'online' } : data
       };
     } catch (err: any) {
