@@ -682,6 +682,16 @@ LINGUA: Italiano. Sii critico e preciso.`;
                     <RefreshCw className="w-4 h-4" />
                   </button>
                 )}
+                {analysis && !isAnalyzing && (
+                  <button 
+                    onClick={() => setIsDeepModalOpen(true)}
+                    className="p-2.5 text-[#5be9b1] hover:bg-[#5be9b1]/10 rounded-xl transition-all border border-[#5be9b1]/20 shadow-lg active:scale-95 group flex items-center gap-2"
+                    title="Espandi Visuale"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span className="text-[8px] font-black uppercase tracking-widest hidden group-hover:block">Espandi</span>
+                  </button>
+                )}
                 <button onClick={runDraftRevision} disabled={isAnalyzing || (activeSelection ? activeSelection.length < 1 : plainText.length < 10)} className={cn(
                   "text-[9px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl text-white flex items-center space-x-2 transition-all shadow-2xl active:scale-95 disabled:opacity-50 shrink-0",
                   activeSelection ? "bg-[#5be9b1] hover:bg-[#5be9b1] shadow-[#5be9b1]/20" : "bg-[#5be9b1] hover:bg-[#5be9b1] shadow-emerald-950/40"
@@ -748,17 +758,29 @@ LINGUA: Italiano. Sii critico e preciso.`;
                   </span>
                 )}
               </div>
-              <button 
-                onClick={runGrammarAnalysis}
-                disabled={isAnalyzing || !plainText}
-                className={cn(
-                  "px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95",
-                  isAnalyzing || !plainText ? "bg-slate-800 text-slate-600" : "bg-white/5 text-[#5be9b1] hover:bg-[#5be9b1]/10 border border-[#5be9b1]/20 flex items-center gap-2"
+              <div className="flex items-center gap-2">
+                {analysis && !isAnalyzing && (
+                  <button 
+                    onClick={() => setIsDeepModalOpen(true)}
+                    className="p-2.5 text-[#5be9b1] hover:bg-[#5be9b1]/10 rounded-xl transition-all border border-[#5be9b1]/20 shadow-lg active:scale-95 group flex items-center gap-2"
+                    title="Espandi Visuale"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span className="text-[8px] font-black uppercase tracking-widest hidden group-hover:block transition-all">Espandi</span>
+                  </button>
                 )}
-              >
-                <CheckCircle className="w-4 h-4" />
-                <span>{activeSelection ? 'Correggi' : 'Trova Errori'}</span>
-              </button>
+                <button 
+                  onClick={runGrammarAnalysis}
+                  disabled={isAnalyzing || !plainText}
+                  className={cn(
+                    "px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95",
+                    isAnalyzing || !plainText ? "bg-slate-800 text-slate-600" : "bg-white/5 text-[#5be9b1] hover:bg-[#5be9b1]/10 border border-[#5be9b1]/20 flex items-center gap-2"
+                  )}
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  <span>{activeSelection ? 'Correggi' : 'Trova Errori'}</span>
+                </button>
+              </div>
             </div>
             {analysis ? (
               <div className="animate-in slide-in-from-bottom-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -839,10 +861,11 @@ LINGUA: Italiano. Sii critico e preciso.`;
                 {analysis && !isAnalyzing && (
                   <button 
                     onClick={() => setIsDeepModalOpen(true)}
-                    className="p-2.5 text-[#5be9b1] hover:bg-[#5be9b1]/10 rounded-xl transition-all border border-[#5be9b1]/20 shadow-lg active:scale-95"
+                    className="p-2.5 text-[#5be9b1] hover:bg-[#5be9b1]/10 rounded-xl transition-all border border-[#5be9b1]/20 shadow-lg active:scale-95 group flex items-center gap-2"
                     title="Espandi Visuale"
                   >
                     <Maximize2 className="w-3.5 h-3.5" />
+                    <span className="text-[8px] font-black uppercase tracking-widest hidden group-hover:block transition-all">Espandi</span>
                   </button>
                 )}
                 <button 

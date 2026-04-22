@@ -65,6 +65,7 @@ export const DeepAnalysisModal: React.FC<DeepAnalysisModalProps> = ({
                 appliedSuggestions={appliedSuggestions}
                 rejectedSuggestions={rejectedSuggestions}
                 isAnalyzing={isAnalyzing}
+                fullView={true}
               />
             </div>
           </div>

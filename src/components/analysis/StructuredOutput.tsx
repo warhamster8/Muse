@@ -34,7 +34,16 @@ export const StructuredOutput: React.FC<{
   appliedSuggestions?: string[];
   rejectedSuggestions?: string[];
   isAnalyzing?: boolean;
-}> = ({ text, onApply, onReject, appliedSuggestions, rejectedSuggestions, isAnalyzing }) => {
+  fullView?: boolean;
+}> = ({ 
+  text, 
+  onApply, 
+  onReject, 
+  appliedSuggestions, 
+  rejectedSuggestions, 
+  isAnalyzing,
+  fullView = false
+}) => {
   const setHighlightedText = useStore(s => s.setHighlightedText);
   const lines = text.split('\n');
   const items: { 
@@ -262,11 +271,30 @@ export const StructuredOutput: React.FC<{
   items.forEach(item => {
     if (item.type !== 'suggestion') {
       outputElements.push(item.content);
-    } else if (item === activeSuggestion) {
+    } else {
       const isActuallyPending = isAnalyzing && item.key === 'pending-last';
-      outputElements.push(renderSuggestionCard(item.content, item.key, isActuallyPending));
+      
+      if (fullView) {
+        // In full view, we show EVERYTHING that isn't applied or rejected
+        if (!appliedSuggestions?.includes(item.content.original) && !rejectedSuggestions?.includes(item.content.original)) {
+          outputElements.push(renderSuggestionCard(item.content, item.key, isActuallyPending));
+        }
+      } else if (item === activeSuggestion) {
+        // In sidebar view, we only show the NEXT ONE
+        outputElements.push(renderSuggestionCard(item.content, item.key, isActuallyPending));
+      }
     }
   });
+
+  // Indicate total count if in sidebar and more exists
+  if (!fullView && availableSuggestions.length > 1) {
+    outputElements.push(
+      <div key="count-summary" className="px-4 py-2 mb-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between group cursor-default">
+        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-700">Suggestioni disponibili</span>
+        <span className="text-[10px] font-black text-[#5be9b1] bg-[#5be9b1]/10 px-2.5 py-1 rounded-lg">1 di {availableSuggestions.length}</span>
+      </div>
+    );
+  }
 
   if (activeSuggestion === undefined && (text.endsWith('\n') || text.length === 0)) {
     outputElements.push(
