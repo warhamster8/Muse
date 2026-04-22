@@ -58,13 +58,11 @@ export const geminiService = {
     const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${trimmedKey}`;
 
     try {
-      const headers = new Headers();
-      headers.append('Content-Type', 'application/json');
-      headers.append('x-goog-api-key', trimmedKey);
-
       const response = await fetch(url, {
         method: 'POST',
-        headers: headers,
+        headers: {
+          'Content-Type': 'application/json',
+        },
         credentials: 'omit',
         body: JSON.stringify(payload),
       });
@@ -122,14 +120,12 @@ export const geminiService = {
     const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${trimmedKey}`;
     
     try {
-      const headers = new Headers();
-      headers.append('Content-Type', 'application/json');
-      headers.append('x-goog-api-key', trimmedKey);
-
       const response = await fetch(url, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         credentials: 'omit',
-        headers: headers,
         body: JSON.stringify({
           contents: [{ parts: [{ text: 'Ping' }] }]
         }),
