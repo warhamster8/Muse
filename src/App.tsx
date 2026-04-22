@@ -66,14 +66,15 @@ function App() {
       const fetchProfile = async () => {
         const { data, error } = await supabase
           .from('user_profiles')
-          .select('deepseek_api_key, ai_settings')
+          .select('deepseek_api_key, gemini_api_key, ai_settings')
           .eq('user_id', user.id)
           .single();
         
         if (data && !error) {
           setAIConfig({ 
             ...(data.ai_settings || {}),
-            deepseekKey: data.deepseek_api_key
+            deepseekKey: data.deepseek_api_key,
+            geminiKey: data.gemini_api_key
           });
         }
       };

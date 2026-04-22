@@ -9,7 +9,8 @@ import {
   MessageSquare,
   Sparkles,
   RefreshCw,
-  Cpu
+  Cpu,
+  Activity
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useNarrative } from '../hooks/useNarrative';
@@ -195,6 +196,18 @@ export const DeepAnalysisView: React.FC = () => {
               >
                 <Cpu className="w-3 h-3" />
                 <span>DeepSeek</span>
+              </button>
+              <button
+                onClick={() => handleProviderChange('gemini')}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                  aiConfig.provider === 'gemini' 
+                    ? "bg-[#5be9b1] text-[#0b0e11] shadow-lg shadow-[#5be9b1]/20" 
+                    : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
+                )}
+              >
+                <Activity className="w-3 h-3" />
+                <span>Gemini</span>
               </button>
             </div>
 

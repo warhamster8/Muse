@@ -88,7 +88,8 @@ export const useStore = create<AppState>()(
       aiConfig: {
         provider: 'groq',
         model: 'llama-3.3-70b-versatile',
-        deepseekKey: ''
+        deepseekKey: '',
+        geminiKey: ''
       },
       analysisRequestToken: 0,
       authorName: '',
@@ -167,7 +168,8 @@ export const useStore = create<AppState>()(
         timelineEvents: state.timelineEvents || [],
         aiConfig: {
           ...state.aiConfig,
-          deepseekKey: '' // Mai persistere la chiave nel localStorage
+          deepseekKey: '', // Mai persistere la chiave nel localStorage
+          geminiKey: ''
         }
       }),
     }

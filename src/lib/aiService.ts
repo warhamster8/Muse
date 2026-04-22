@@ -1,12 +1,14 @@
 import { groqService } from './groq';
 import { deepseekService } from './deepseek';
+import { geminiService } from './gemini';
 
-export type AIProvider = 'groq' | 'deepseek';
+export type AIProvider = 'groq' | 'deepseek' | 'gemini';
 
 export interface AIConfig {
   provider: AIProvider;
   model: string;
   deepseekKey?: string;
+  geminiKey?: string;
 }
 
 /**
@@ -46,6 +48,19 @@ export const aiService = {
           onChunk,
           options?.temperature,
           options?.signal
+        );
+      }
+
+      if (config.provider === 'gemini') {
+        if (!config.geminiKey) {
+          throw new Error('Identità Gemini non verificata: chiave mancante nel profilo.');
+        }
+        
+        return await geminiService.streamChatCompletion(
+          config.geminiKey,
+          messages,
+          onChunk,
+          options?.temperature
         );
       }
 

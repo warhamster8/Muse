@@ -21,7 +21,7 @@ import { useToast } from './Toast';
 import { aiService } from '../lib/aiService';
 import { findMatchInText } from '../lib/tiptap/matchUtils';
 import { StructuredOutput } from './analysis/StructuredOutput';
-import { getPlainTextForAI } from '../lib/textUtils';
+import { getPlainTextForAI, buildMapping } from '../lib/textUtils';
 
 
 type SidekickTab = 'revision' | 'grammar' | 'braindump' | 'transformer' | 'lexicon';
