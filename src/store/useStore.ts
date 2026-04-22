@@ -16,7 +16,9 @@ interface User {
 interface Project {
   id: string;
   title: string;
+  timeline_events?: GlobalTimelineEvent[];
 }
+
 
 interface AppState {
   user: User | null;

@@ -3,7 +3,8 @@ import { supabase } from '../lib/supabase';
 import { storage } from '../lib/storage';
 import { useStore } from '../store/useStore';
 import type { Chapter, Scene } from '../types/narrative';
-import type { SceneTimelineEvent } from '../types/timeline';
+import type { SceneTimelineEvent, GlobalTimelineEvent } from '../types/timeline';
+
 
 
 
@@ -32,6 +33,18 @@ export function useNarrative() {
         
       setChapters(projectChapters);
     } else {
+      // 1. Carica i metadati del progetto (timeline globale)
+      const { data: projectData } = await supabase
+        .from('projects')
+        .select('timeline_events')
+        .eq('id', currentProject.id)
+        .single();
+      
+      if (projectData?.timeline_events) {
+        useStore.getState().setTimelineEvents(projectData.timeline_events);
+      }
+
+      // 2. Carica capitoli e scene
       const { data: chaptersData, error: chaptersError } = await supabase
         .from('chapters')
         .select('*, scenes(*)')
@@ -46,6 +59,7 @@ export function useNarrative() {
         setChapters(sortedChapters);
       }
     }
+
     setLoading(false);
   };
 
@@ -239,6 +253,34 @@ export function useNarrative() {
     }
   };
 
+  const updateSceneMetadata = async (sceneId: string, metadata: Partial<Scene>) => {
+    const updatedChapters = chapters.map(chapter => ({
+      ...chapter,
+      scenes: chapter.scenes?.map(scene => 
+        scene.id === sceneId ? { ...scene, ...metadata } : scene
+      )
+    }));
+    
+    setChapters(updatedChapters);
+
+    if (isLocalMode) {
+      storage.update('scenes', sceneId, metadata);
+    } else {
+      await supabase.from('scenes').update(metadata).eq('id', sceneId);
+    }
+  };
+
+  const updateProjectTimeline = async (events: GlobalTimelineEvent[]) => {
+    if (!currentProject) return;
+    
+    useStore.getState().setTimelineEvents(events);
+
+    if (!isLocalMode) {
+      await supabase.from('projects').update({ timeline_events: events }).eq('id', currentProject.id);
+    }
+  };
+
+
   useEffect(() => {
     fetchNarrative();
   }, [currentProject, isLocalMode]);
@@ -250,6 +292,8 @@ export function useNarrative() {
     addScene, 
     updateSceneContent, 
     updateTimelineEvents,
+    updateSceneMetadata,
+    updateProjectTimeline,
     reorderScenes, 
     reorderChapters, 
     renameChapter,
@@ -257,3 +301,4 @@ export function useNarrative() {
     refresh: fetchNarrative 
   };
 }
+

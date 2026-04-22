@@ -19,42 +19,80 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 
 
+import { useNarrative } from '../hooks/useNarrative';
+
 export const TimelineView: React.FC = () => {
   const chapters = useStore(s => s.chapters);
   const timelineEvents = useStore(s => s.timelineEvents);
-  const setTimelineEvents = useStore(s => s.setTimelineEvents);
+  
+  // Rimuoviamo il set diretto poiché ora usiamo l'aggiornamento tramite hook
+  // const setTimelineEvents = useStore(s => s.setTimelineEvents);
+
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const aiConfig = useStore(s => s.aiConfig);
   const { addToast } = useToast();
 
 
+  const { updateProjectTimeline, updateSceneMetadata } = useNarrative();
+
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
     try {
-      // Uniamo tutto il testo dei capitoli per l'analisi in modo sicuro
-      const allText = chapters
-        .map(c => (c.scenes || []).map(s => cleanHtml(s.content || '')).join('\n'))
-        .filter(text => text.trim().length > 0)
-        .join('\n\n');
+      const allScenes = chapters.flatMap(c => c.scenes || []);
+      
+      // 1. Identifichiamo le scene che sono cambiate o mai analizzate
+      const scenesToAnalyze = allScenes.filter(s => {
+        const currentText = cleanHtml(s.content || '').trim();
+        return currentText !== (s.last_analyzed_content || '').trim();
+      });
 
-      if (!allText.trim()) {
-        addToast("Scrivi qualcosa nel manoscritto prima di analizzare la timeline.", "info");
+      if (scenesToAnalyze.length === 0) {
+        addToast("Nessuna modifica rilevata nel manoscritto dall'ultima analisi.", "info");
+        setIsAnalyzing(false);
         return;
       }
 
-      const events = await timelineUtils.extractEvents(allText, aiConfig);
-      const conflictMap = timelineUtils.detectOverlaps(events);
+      addToast(`Analisi incrementale in corso: ${scenesToAnalyze.length} scene nuove o modificate...`, "info");
+
+      // 2. Analizziamo solo le scene modificate
+      const newEvents: GlobalTimelineEvent[] = [];
       
-      const eventsWithConflicts = events.map(e => ({
+      for (const scene of scenesToAnalyze) {
+        const text = cleanHtml(scene.content || '');
+        if (!text.trim()) continue;
+        
+        try {
+          const events = await timelineUtils.extractEvents(text, aiConfig);
+          // Aggiungiamo il sceneId per tracciare la provenienza
+          newEvents.push(...events.map(e => ({ ...e, sceneId: scene.id })));
+        } catch (e) {
+          console.error(`Errore analisi scena ${scene.title}:`, e);
+        }
+      }
+
+      // 3. Uniamo i risultati: rimuoviamo i vecchi eventi delle scene ricalcolate
+      const modifiedSceneIds = new Set(scenesToAnalyze.map(s => s.id));
+      const preservedEvents = timelineEvents.filter(e => e.sceneId && !modifiedSceneIds.has(e.sceneId));
+      
+      const combinedEvents = [...preservedEvents, ...newEvents];
+      const conflictMap = timelineUtils.detectOverlaps(combinedEvents);
+      
+      const finalEvents = combinedEvents.map(e => ({
         ...e,
         isConflict: !!conflictMap[e.id],
         conflictingWith: conflictMap[e.id] || []
-      }));
+      })).sort((a, b) => a.estimatedStart - b.estimatedStart);
 
-      // Ordiniamo per tempo stimato
-      const sortedEvents = eventsWithConflicts.sort((a, b) => a.estimatedStart - b.estimatedStart);
-      setTimelineEvents(sortedEvents);
-      addToast("Timeline sincronizzata con successo.", "success");
+      // 4. Salvataggio persistente e aggiornamento metadati scene
+      await updateProjectTimeline(finalEvents);
+      
+      for (const scene of scenesToAnalyze) {
+        await updateSceneMetadata(scene.id, { 
+          last_analyzed_content: cleanHtml(scene.content || '').trim() 
+        });
+      }
+
+      addToast("Timeline aggiornata con successo.", "success");
     } catch (err: any) {
       console.error(err);
       addToast(err.message || "Errore durante l'analisi della timeline.", "error");
@@ -62,6 +100,7 @@ export const TimelineView: React.FC = () => {
       setIsAnalyzing(false);
     }
   };
+
 
 
   const hasEvents = timelineEvents.length > 0;

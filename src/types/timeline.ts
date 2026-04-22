@@ -11,7 +11,9 @@ export interface GlobalTimelineEvent {
   isFlashback?: boolean;
   isConflict?: boolean;
   conflictingWith?: string[]; 
+  sceneId?: string; // Links event to the scene it was extracted from
 }
+
 
 export interface SceneTimelineEvent {
   id: string;

@@ -9,7 +9,9 @@ export type Scene = {
   content: string;
   order_index: number;
   timeline_events?: SceneTimelineEvent[];
+  last_analyzed_content?: string;
 };
+
 
 
 export type Chapter = {
