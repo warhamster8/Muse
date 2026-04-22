@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Plus, User, Users, FileText, Brain, TrendingUp, MessageSquare, Camera, Trash2, Crown, Sword } from 'lucide-react';
+import { Plus, User, Users, FileText, Brain, TrendingUp, MessageSquare, Camera, Trash2, Crown, Sword, Star } from 'lucide-react';
 import { useCharacters } from '../hooks/useCharacters';
 import { cn } from '../lib/utils';
 import { groqService } from '../lib/groq';
@@ -160,10 +160,18 @@ export const CharactersView: React.FC = () => {
                 "p-5 rounded-[32px] border transition-all duration-500 cursor-pointer flex gap-5 items-center group relative overflow-hidden",
                 selectedCharId === char.id 
                   ? "glass-emerald border-[var(--accent)]/30 shadow-xl" 
-                  : "glass border-[var(--border-subtle)] hover:border-[var(--accent)]/20"
+                  : "glass border-[var(--border-subtle)] hover:border-[var(--accent)]/20",
+                char.role === 'protagonist' && "border-l-4 border-l-[var(--accent)]",
+                char.role === 'co-protagonist' && "border-l-4 border-l-cyan-400",
+                char.role === 'antagonist' && "border-l-4 border-l-red-400"
               )}
             >
-              <div className="w-16 h-16 rounded-[20px] overflow-hidden bg-[var(--bg-deep)]/40 border border-[var(--border-subtle)] flex-shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-700">
+              <div className={cn(
+                "w-16 h-16 rounded-[20px] overflow-hidden bg-[var(--bg-deep)]/40 border flex-shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-700",
+                char.role === 'protagonist' ? "border-[var(--accent)]/40 shadow-[0_0_15px_rgba(91,233,177,0.2)]" :
+                char.role === 'co-protagonist' ? "border-cyan-400/40 shadow-[0_0_15px_rgba(34,211,238,0.2)]" :
+                char.role === 'antagonist' ? "border-red-400/40 shadow-[0_0_15px_rgba(248,113,113,0.2)]" : "border-[var(--border-subtle)]"
+              )}>
                 {char.avatar_url ? (
                   <img 
                     src={char.avatar_url} 
@@ -183,13 +191,19 @@ export const CharactersView: React.FC = () => {
                 </h3>
                 <div className="flex items-center gap-2 mt-2">
                   <div className={cn("w-1.5 h-1.5 rounded-full", char.bio ? "bg-[var(--accent)]/40" : "bg-[var(--text-muted)]")} />
-                  <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest font-black opacity-60 truncate">
-                      {char.role === 'protagonist' ? 'Protagonista' : char.role === 'antagonist' ? 'Antagonista' : char.role === 'secondary' ? 'Secondario' : 'Indefinito'}
+                  <p className={cn(
+                    "text-[9px] uppercase tracking-widest font-black opacity-60 truncate",
+                    char.role === 'protagonist' ? "text-[var(--accent)]" :
+                    char.role === 'co-protagonist' ? "text-cyan-400" :
+                    char.role === 'antagonist' ? "text-red-400" : "text-[var(--text-muted)]"
+                  )}>
+                      {char.role === 'protagonist' ? 'Protagonista' : char.role === 'co-protagonist' ? 'Co-Protagonista' : char.role === 'antagonist' ? 'Antagonista' : char.role === 'secondary' ? 'Secondario' : 'Indefinito'}
                   </p>
                 </div>
               </div>
-              {char.role === 'protagonist' && <Crown className="w-3.5 h-3.5 text-[var(--accent)] opacity-60 absolute top-4 right-4" />}
-              {char.role === 'antagonist' && <Sword className="w-3.5 h-3.5 text-red-400 opacity-60 absolute top-4 right-4" />}
+              {char.role === 'protagonist' && <Crown className="w-4 h-4 text-[var(--accent)] absolute top-4 right-4 animate-pulse" />}
+              {char.role === 'co-protagonist' && <Star className="w-4 h-4 text-cyan-400 absolute top-4 right-4" />}
+              {char.role === 'antagonist' && <Sword className="w-4 h-4 text-red-400 absolute top-4 right-4" />}
             </div>
           ))}
         </div>
@@ -305,9 +319,10 @@ export const CharactersView: React.FC = () => {
                       <div className="flex items-center gap-5 mb-6">
                         <div className="flex bg-[var(--bg-deep)]/40 p-1.5 rounded-[22px] border border-[var(--border-subtle)] shadow-inner">
                           {[
-                            { id: 'protagonist', label: 'Protagonista', icon: Crown, color: 'text-[var(--accent)]' },
-                            { id: 'antagonist', label: 'Antagonista', icon: Sword, color: 'text-red-400' },
-                            { id: 'secondary', label: 'Secondario', icon: Users, color: 'text-[var(--text-secondary)]' }
+                            { id: 'protagonist', label: 'Protagonista', icon: Crown, color: 'text-[var(--accent)]', activeBg: 'bg-[var(--accent)]' },
+                            { id: 'co-protagonist', label: 'Co-Protagonista', icon: Star, color: 'text-cyan-400', activeBg: 'bg-cyan-500' },
+                            { id: 'antagonist', label: 'Antagonista', icon: Sword, color: 'text-red-400', activeBg: 'bg-red-500' },
+                            { id: 'secondary', label: 'Secondario', icon: Users, color: 'text-[var(--text-secondary)]', activeBg: 'bg-[var(--bg-surface)]' }
                           ].map(role => (
                             <button
                               key={role.id}
@@ -319,7 +334,7 @@ export const CharactersView: React.FC = () => {
                               className={cn(
                                 "flex items-center gap-2 px-4 py-2 rounded-[16px] text-[9px] font-black uppercase tracking-widest transition-all relative z-10",
                                 (selectedChar.role || 'secondary') === role.id 
-                                  ? "bg-[var(--accent)] text-[var(--bg-deep)] shadow-lg" 
+                                  ? `${role.activeBg} text-[var(--bg-deep)] shadow-lg` 
                                   : "text-[var(--text-muted)] hover:text-[var(--text-bright)] hover:bg-white/5"
                               )}
                             >

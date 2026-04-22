@@ -11,10 +11,9 @@ export type Character = {
   psychology: string;
   evolution: string;
   relations: string;
-  avatar_url?: string;
   avatar_pos_x?: number;
   avatar_pos_y?: number;
-  role?: 'protagonist' | 'antagonist' | 'secondary' | 'other';
+  role?: 'protagonist' | 'co-protagonist' | 'antagonist' | 'secondary' | 'other';
 };
 
 export function useCharacters() {
