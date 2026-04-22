@@ -311,15 +311,19 @@ export const CharactersView: React.FC = () => {
                           ].map(role => (
                             <button
                               key={role.id}
-                              onClick={() => updateCharacter(selectedChar.id, { role: role.id as any })}
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                await updateCharacter(selectedChar.id, { role: role.id as any });
+                                addToast(`Ruolo aggiornato: ${role.label}`, 'success');
+                              }}
                               className={cn(
-                                "flex items-center gap-2 px-4 py-2 rounded-[16px] text-[9px] font-black uppercase tracking-widest transition-all",
-                                selectedChar.role === role.id 
+                                "flex items-center gap-2 px-4 py-2 rounded-[16px] text-[9px] font-black uppercase tracking-widest transition-all relative z-10",
+                                (selectedChar.role || 'secondary') === role.id 
                                   ? "bg-[var(--accent)] text-[var(--bg-deep)] shadow-lg" 
                                   : "text-[var(--text-muted)] hover:text-[var(--text-bright)] hover:bg-white/5"
                               )}
                             >
-                              <role.icon className={cn("w-3.5 h-3.5", selectedChar.role === role.id ? "text-[var(--bg-deep)]" : role.color)} />
+                              <role.icon className={cn("w-3.5 h-3.5", (selectedChar.role || 'secondary') === role.id ? "text-[var(--bg-deep)]" : role.color)} />
                               <span className="hidden lg:inline">{role.label}</span>
                             </button>
                           ))}

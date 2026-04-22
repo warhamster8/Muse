@@ -89,7 +89,14 @@ export function useCharacters() {
       storage.update('characters', id, updates);
       fetchCharacters();
     } else {
-      await supabase.from('characters').update(updates).eq('id', id);
+      const { error } = await supabase.from('characters').update(updates).eq('id', id);
+      if (error) {
+        console.error('[DATABASE ERROR] Update Character:', error);
+        // Se l'errore è dovuto alla colonna mancante, avvisiamo l'utente
+        if (error.message.includes('column "role" does not exist')) {
+          alert("Errore: La colonna 'role' manca nel database Supabase. Aggiungila nella tabella 'characters' o usa la modalità locale.");
+        }
+      }
       fetchCharacters();
     }
   };
