@@ -13,6 +13,7 @@ const ConfigView = React.lazy(() => import('./views/ConfigView').then(m => ({ de
 const AuthView = React.lazy(() => import('./views/AuthView').then(m => ({ default: m.AuthView })));
 const ProjectSelector = React.lazy(() => import('./views/ProjectSelector').then(m => ({ default: m.ProjectSelector })));
 const TimelineView = React.lazy(() => import('./views/TimelineView').then(m => ({ default: m.TimelineView })));
+const DeepAnalysisView = React.lazy(() => import('./views/DeepAnalysisView').then(m => ({ default: m.DeepAnalysisView })));
 import { AlertCircle, Cloud } from 'lucide-react';
 import { ToastContainer } from './components/Toast';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -96,6 +97,8 @@ function App() {
         return <AnalysisView />;
       case 'timeline':
         return <TimelineView />;
+      case 'deep-analysis':
+        return <DeepAnalysisView />;
       default:
         return <NarrativeView />;
     }

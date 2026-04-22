@@ -6,7 +6,7 @@ import type { GlobalTimelineEvent } from '../types/timeline';
 
 
 
-export type ViewTab = 'narrative' | 'characters' | 'world' | 'notes' | 'analysis' | 'config' | 'timeline';
+export type ViewTab = 'narrative' | 'characters' | 'world' | 'notes' | 'analysis' | 'config' | 'timeline' | 'deep-analysis';
 
 interface User {
   id: string;

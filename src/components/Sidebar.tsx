@@ -9,7 +9,8 @@ import {
   ChevronRight,
   StickyNote,
   Library,
-  GitCommit
+  GitCommit,
+  ScanSearch
 } from 'lucide-react';
 import { useStore, type ViewTab } from '../store/useStore';
 import { cn } from '../lib/utils';
@@ -24,6 +25,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   { id: 'narrative', label: 'Narrative', icon: BookOpen },
   { id: 'timeline', label: 'Timeline', icon: GitCommit },
+  { id: 'deep-analysis', label: 'Deep Analysis', icon: ScanSearch },
   { id: 'characters', label: 'Characters', icon: Users },
   { id: 'world', label: 'World Settings', icon: Globe },
   { id: 'notes', label: 'Note', icon: StickyNote },
