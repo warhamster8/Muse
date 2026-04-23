@@ -48,9 +48,11 @@ export const geminiService = {
     };
 
     if (systemInstructionText) {
-      body.systemInstruction = {
-        parts: [{ text: systemInstructionText }]
-      };
+      if (history.length > 0 && history[0].role === 'user') {
+        history[0].parts[0].text = `[SYSTEM INSTRUCTION: ${systemInstructionText}]\n\n${history[0].parts[0].text}`;
+      } else {
+        history.unshift({ role: 'user', parts: [{ text: `[SYSTEM INSTRUCTION]:\n${systemInstructionText}` }] });
+      }
     }
 
     const headers = new Headers();
@@ -60,7 +62,7 @@ export const geminiService = {
     headers.delete('Authorization');
 
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey.trim()}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:streamGenerateContent?alt=sse&key=${apiKey.trim()}`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(body),
@@ -135,7 +137,7 @@ export const geminiService = {
     headers.delete('Authorization'); // Prevents any phantom Bearer tokens from triggering 401
 
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey.trim()}`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify({
