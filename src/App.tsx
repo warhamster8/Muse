@@ -3,7 +3,7 @@ import { Sidebar } from './components/Sidebar';
 import { AISidekick } from './components/AISidekick';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useStore } from './store/useStore';
-import { supabase } from './lib/supabase';
+import { supabase, isConfigured } from './lib/supabase';
 import { lazyRetry } from './lib/lazyRetry';
 
 const NarrativeView = lazyRetry(() => import('./views/NarrativeView').then(m => ({ default: m.NarrativeView })), 'NarrativeView');
@@ -37,7 +37,41 @@ function App() {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
+  // Diagnostic check for missing environment variables
+  if (!isConfigured) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-[var(--bg-deep)] p-10 font-sans selection:bg-[var(--accent-soft)]">
+        <div className="bg-[var(--bg-card)] p-12 rounded-[40px] border border-red-500/20 max-w-xl text-center space-y-8 shadow-2xl relative overflow-hidden">
+           <div className="absolute top-0 left-0 w-full h-1 bg-red-500/30" />
+           <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto border border-red-500/20">
+              <AlertCircle className="w-10 h-10 text-red-500" />
+           </div>
+           <div>
+             <h1 className="text-3xl font-black text-white uppercase tracking-tighter italic">Errore di Configurazione</h1>
+             <p className="text-slate-400 mt-4 text-xs font-black uppercase tracking-[0.2em] leading-relaxed">
+               Le variabili d'ambiente di Supabase non sono state rilevate nel sistema.
+             </p>
+           </div>
+           <div className="p-6 bg-black/40 rounded-3xl border border-white/5 space-y-4 text-left">
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-loose">
+                Assicurati di aver configurato nella dashboard di Cloudflare Pages:
+              </p>
+              <code className="block text-[10px] text-emerald-400 font-mono bg-emerald-500/5 p-3 rounded-xl border border-emerald-500/10">
+                 VITE_SUPABASE_URL <br/>
+                 VITE_SUPABASE_ANON_KEY
+              </code>
+           </div>
+           <p className="text-[9px] text-slate-600 font-bold uppercase tracking-[0.3em]">
+             Sincronizzazione Fallita • Muse Core Architecture
+           </p>
+        </div>
+      </div>
+    );
+  }
+
   React.useEffect(() => {
+    if (!supabase) return;
+    
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         // Controllo sicurezza email
@@ -72,6 +106,7 @@ function App() {
   React.useEffect(() => {
     if (user) {
       const fetchProfile = async () => {
+        if (!supabase) return;
         const { data, error } = await supabase
           .from('user_profiles')
           .select('deepseek_api_key, gemini_api_key, ai_settings')
