@@ -88,6 +88,7 @@ export const TimelineView: React.FC = () => {
 
 
       // 2. Analizziamo le scene SEQUENZIALMENTE per mantenere la coerenza temporale
+      const modifiedSceneIds = new Set(scenesToAnalyze.map(s => s.id));
       const finalNewEvents: GlobalTimelineEvent[] = [];
       let lastKnownEndMinute = 0;
       

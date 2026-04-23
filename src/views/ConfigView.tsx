@@ -389,7 +389,5 @@ export const ConfigView: React.FC = React.memo(() => {
         <div className="h-20" />
       </div>
     </div>
-    );
-  }
+  );
 });
-
