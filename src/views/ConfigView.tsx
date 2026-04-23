@@ -176,11 +176,14 @@ export const ConfigView: React.FC = React.memo(() => {
 
         {/* AI CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            className={`relative p-6 rounded-[32px] border text-left transition-all ${
+          <button
+            onClick={() => handleProviderChange('groq')}
+            className={cn(
+              "relative p-6 rounded-[32px] border text-left transition-all",
               aiConfig.provider === 'groq' 
                 ? 'bg-[var(--accent-soft)] border-[var(--accent)]/30 shadow-lg shadow-[var(--accent)]/5' 
                 : 'bg-[var(--bg-card)] border-[var(--border-subtle)] opacity-60 hover:opacity-100'
-            }`}
+            )}
           >
             <div className="flex justify-between mb-4">
               <Zap className={cn("w-5 h-5", aiConfig.provider === 'groq' ? "text-[var(--accent)]" : "text-[var(--text-muted)]")} />
@@ -192,11 +195,12 @@ export const ConfigView: React.FC = React.memo(() => {
 
           <button
             onClick={() => handleProviderChange('deepseek')}
-            className={`relative p-6 rounded-[32px] border text-left transition-all ${
+            className={cn(
+              "relative p-6 rounded-[32px] border text-left transition-all",
               aiConfig.provider === 'deepseek' 
                 ? 'bg-[var(--accent-soft)] border-[var(--accent)]/30 shadow-lg shadow-[var(--accent)]/5' 
                 : 'bg-[var(--bg-card)] border-[var(--border-subtle)] opacity-60 hover:opacity-100'
-            }`}
+            )}
           >
             <div className="flex justify-between mb-4">
               <Cpu className={cn("w-5 h-5", aiConfig.provider === 'deepseek' ? "text-[var(--accent)]" : "text-[var(--text-muted)]")} />
@@ -208,11 +212,12 @@ export const ConfigView: React.FC = React.memo(() => {
 
           <button
             onClick={() => handleProviderChange('gemini')}
-            className={`relative p-6 rounded-[32px] border text-left transition-all ${
+            className={cn(
+              "relative p-6 rounded-[32px] border text-left transition-all",
               aiConfig.provider === 'gemini' 
                 ? 'bg-[var(--accent-soft)] border-[var(--accent)]/30 shadow-lg shadow-[var(--accent)]/5' 
                 : 'bg-[var(--bg-card)] border-[var(--border-subtle)] opacity-60 hover:opacity-100'
-            }`}
+            )}
           >
             <div className="flex justify-between mb-4">
               <Activity className={cn("w-5 h-5", aiConfig.provider === 'gemini' ? "text-[var(--accent)]" : "text-[var(--text-muted)]")} />
@@ -385,4 +390,4 @@ export const ConfigView: React.FC = React.memo(() => {
       </div>
     </div>
   );
-});
+}});
