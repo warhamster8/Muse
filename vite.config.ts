@@ -7,11 +7,19 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'tiptap-vendor': ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/extension-link', '@tiptap/extension-image', '@tiptap/extension-text-align', '@tiptap/extension-underline', '@tiptap/extension-character-count'],
-          'icons': ['lucide-react'],
-          'ui-utils': ['framer-motion', 'clsx', 'tailwind-merge'],
+        manualChunks(id) {
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            return 'react-vendor';
+          }
+          if (id.includes('node_modules/@tiptap/')) {
+            return 'tiptap-vendor';
+          }
+          if (id.includes('node_modules/lucide-react/')) {
+            return 'icons';
+          }
+          if (id.includes('node_modules/framer-motion/') || id.includes('node_modules/clsx/') || id.includes('node_modules/tailwind-merge/')) {
+            return 'ui-utils';
+          }
         }
       }
     },
