@@ -35,11 +35,11 @@ export const geminiService = {
 
     const body: any = {
       contents: history,
-      generation_config: {
+      generationConfig: {
         temperature,
-        max_output_tokens: 4096,
+        maxOutputTokens: 4096,
       },
-      safety_settings: [
+      safetySettings: [
         { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
         { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
         { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
@@ -48,7 +48,7 @@ export const geminiService = {
     };
 
     if (systemInstructionText) {
-      body.system_instruction = {
+      body.systemInstruction = {
         parts: [{ text: systemInstructionText }]
       };
     }
@@ -59,8 +59,10 @@ export const geminiService = {
     // che potrebbero iniettare Authorization: Bearer
     headers.delete('Authorization');
 
+    const apiModel = model === 'gemini-1.5-flash' ? 'gemini-1.5-flash-latest' : model;
+
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey.trim()}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${apiModel}:streamGenerateContent?alt=sse&key=${apiKey.trim()}`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(body),
@@ -134,8 +136,10 @@ export const geminiService = {
     headers.set('Content-Type', 'application/json');
     headers.delete('Authorization'); // Prevents any phantom Bearer tokens from triggering 401
 
+    const apiModel = model === 'gemini-1.5-flash' ? 'gemini-1.5-flash-latest' : model;
+
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${apiModel}:generateContent?key=${apiKey.trim()}`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify({
