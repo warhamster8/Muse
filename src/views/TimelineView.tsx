@@ -87,34 +87,44 @@ export const TimelineView: React.FC = () => {
       addToast(statusMsg, "info");
 
 
-      // 2. Analizziamo solo le scene modificate
-      const newEvents: GlobalTimelineEvent[] = [];
+      // 2. Analizziamo le scene SEQUENZIALMENTE per mantenere la coerenza temporale
+      const finalNewEvents: GlobalTimelineEvent[] = [];
+      let lastKnownEndMinute = 0;
       
-      for (const scene of scenesToAnalyze) {
+      for (const scene of activeScenes) {
         const text = cleanHtml(scene.content || '');
-        if (!text.trim()) continue;
-        
-        try {
-          const events = await timelineUtils.extractEvents(text, aiConfig);
-          // Aggiungiamo il sceneId per tracciare la provenienza
-          newEvents.push(...events.map(e => ({ ...e, sceneId: scene.id })));
-        } catch (e) {
-          console.error(`Errore analisi scena ${scene.title}:`, e);
+        const isModified = modifiedSceneIds.has(scene.id);
+        const sceneEventsInStore = timelineEvents.filter(e => e.sceneId === scene.id);
+        const hasText = text.trim().length > 0;
+
+        if (isModified && hasText) {
+          try {
+            // Passiamo l'ultimo minuto conosciuto come OFFSET per l'AI
+            const events = await timelineUtils.extractEvents(text, aiConfig, lastKnownEndMinute);
+            const eventsWithId = events.map(e => ({ ...e, sceneId: scene.id }));
+            finalNewEvents.push(...eventsWithId);
+            
+            // Aggiorniamo il riferimento temporale per la prossima scena
+            const validEvents = events.filter(e => !e.isFlashback);
+            if (validEvents.length > 0) {
+              lastKnownEndMinute = Math.max(...validEvents.map(e => e.estimatedEnd));
+            }
+          } catch (e) {
+            console.error(`Errore analisi scena ${scene.title}:`, e);
+          }
+        } else if (sceneEventsInStore.length > 0) {
+          // Se la scena non è cambiata, usiamo i suoi eventi per aggiornare lastKnownEndMinute
+          finalNewEvents.push(...sceneEventsInStore);
+          const validEvents = sceneEventsInStore.filter(e => !e.isFlashback);
+          if (validEvents.length > 0) {
+            lastKnownEndMinute = Math.max(...validEvents.map(e => e.estimatedEnd));
+          }
         }
       }
 
-      // 3. Uniamo i risultati: rimuoviamo i vecchi eventi delle scene ricalcolate O rimosse
-      // Se è un reset completo, l'array preserved sarà già vuoto o filtrato correttamente.
-      const modifiedSceneIds = new Set(scenesToAnalyze.map(s => s.id));
-      const preservedEvents = isFullReset ? [] : timelineEvents.filter(e => 
-        e.sceneId && activeSceneIds.has(e.sceneId) && !modifiedSceneIds.has(e.sceneId)
-      );
+      const conflictMap = timelineUtils.detectOverlaps(finalNewEvents);
       
-      const combinedEvents = [...preservedEvents, ...newEvents];
-
-      const conflictMap = timelineUtils.detectOverlaps(combinedEvents);
-      
-      const finalEvents = combinedEvents.map(e => ({
+      const finalEvents = finalNewEvents.map(e => ({
         ...e,
         isConflict: !!conflictMap[e.id],
         conflictingWith: conflictMap[e.id] || []

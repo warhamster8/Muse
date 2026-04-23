@@ -15,13 +15,13 @@ Per garantire che scene diverse si allineino correttamente, usa l'anno 2000 come
 REGOLE TEMPORALI (MATEMATICA DEL TEMPO):
 - Usa l'anno 2000 come ANCORA ZERO (0 minuti).
 - Calcola "estimatedStart" come minuti trascorsi dal 01/01/2000.
-- NON USARE MAI NUMERI NEGATIVI. Se un evento è nel 1900, usa uno scostamento negativo manuale ma preferisci 2000 come base.
+- SE RICEVI UN "OFFSET DI RIFERIMENTO", usalo come base minima di partenza se nel testo non ci sono date esplicite.
+- NON USARE MAI NUMERI NEGATIVI.
 - COERENZA: Un evento etichettato "1 anno dopo" DEVE avere un valore numerico SUPERIORE a quello dell'evento originale.
-- SPAZIATURA: Se estrai più eventi da una singola scena, distanziali logicamente (es. +15 o +30 minuti tra loro) per evitare sovrapposizioni inutili.
+- SPAZIATURA: Se estrai più eventi da una singola scena, distanziali logicamente (es. +15 o +30 minuti tra loro).
 
 REGOLE CRITICHE:
-- Se il testo dice "Un anno dopo la perdita" e la perdita è avvenuta nel 10 Nov 2026, l'evento deve avere un valore numerico SUPERIORE a quello del 2026.
-- Se un evento è un flashback (salto nel passato), isFlashback deve essere TRUE e il valore temporale deve essere logicamente inferiore al presente della scena.
+- Se un evento è un flashback, isFlashback deve essere TRUE e il valore temporale deve essere inferiore al presente della scena.
 
 STRUTTURA JSON:
 1. "title": Titolo specifico (max 5 parole).
@@ -38,14 +38,18 @@ REGOLE DI OUTPUT:
 Restituisci ESCLUSIVAMENTE l'array JSON [ { ... } ].`;
 
 export const timelineUtils = {
-  async extractEvents(text: string, aiConfig: AIConfig): Promise<GlobalTimelineEvent[]> {
+  async extractEvents(text: string, aiConfig: AIConfig, contextMinutes?: number): Promise<GlobalTimelineEvent[]> {
     try {
       let fullResponse = '';
+      const contextPrompt = contextMinutes 
+        ? `\n\n[RIFERIMENTO CRONOLOGICO]: Questa scena avviene DOPO il minuto ${contextMinutes} dal 01/01/2000. Usa questo valore come punto di partenza se non ci sono date diverse nel testo.`
+        : '';
+
       await aiService.streamChat(
         aiConfig,
         [
           { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: `Analizza questo testo ed estrai la timeline in formato JSON:\n\n${text}` }
+          { role: 'user', content: `Analizza questo testo ed estrai la timeline in formato JSON:${contextPrompt}\n\n${text}` }
         ],
         (chunk) => {
           fullResponse += chunk;
@@ -76,40 +80,35 @@ export const timelineUtils = {
   detectOverlaps(events: GlobalTimelineEvent[]): Record<string, string[]> {
     const conflictMap: Record<string, string[]> = {};
     const sorted = [...events].sort((a, b) => a.estimatedStart - b.estimatedStart);
-    const TOLERANCE = 5; // 5 minuti di tolleranza per piccole discrepanze IA
+    const TOLERANCE = 10; // Aumentata tolleranza per ridurre falsi positivi AI
 
     for (let i = 0; i < sorted.length; i++) {
       for (let j = i + 1; j < sorted.length; j++) {
         const a = sorted[i];
         const b = sorted[j];
         
-        // 1. Flashback vs Presente: Generalmente non sono conflitti cronologici lineari
         if (a.isFlashback !== b.isFlashback) continue;
 
-        // 2. Controllo sovrapposizione temporale con buffer di tolleranza
         const overlaps = (a.estimatedStart < b.estimatedEnd - TOLERANCE) && 
                          (a.estimatedEnd > b.estimatedStart + TOLERANCE);
         
         if (overlaps) {
-          // 3. Logica dei Personaggi (Bilancia)
           const sharedCharacters = (a.characters || []).filter(char => 
             (b.characters || []).includes(char)
           );
           
-          const differentLocations = a.location !== b.location;
+          const differentLocations = a.location?.toLowerCase().trim() !== b.location?.toLowerCase().trim();
 
           // CONDIZIONI DI CONFLITTO REALE:
           // A. Bilocazione: Lo stesso personaggio è in due posti diversi nello stesso momento
           const isBilocation = sharedCharacters.length > 0 && differentLocations;
           
-          // B. Sovrapposizione Fisica: Due eventi nello stesso posto allo stesso momento (possibile errore di duplicazione)
-          const isPhysicalOverlap = !differentLocations;
+          // B. Sovrapposizione Fisica: Due eventi Nello STESSO POSTO allo stesso momento (possibile errore di tempo o duplicazione)
+          // Riduciamo la severità: deve esserci un'ampia sovrapposizione temporale (>20 min) per essere certi
+          const overlapDuration = Math.min(a.estimatedEnd, b.estimatedEnd) - Math.max(a.estimatedStart, b.estimatedStart);
+          const isPhysicalOverlap = !differentLocations && overlapDuration > 20;
 
-          // C. Azione Parallela Sospetta: Scene diverse nello stesso momento ma zero personaggi in comune
-          // Questo potrebbe non essere un errore, ma lo segnaliamo se la sovrapposizione è quasi totale
-          const isSuspiciousParallel = differentLocations && sharedCharacters.length === 0;
-
-          if (isBilocation || isPhysicalOverlap || isSuspiciousParallel) {
+          if (isBilocation || isPhysicalOverlap) {
             if (!conflictMap[a.id]) conflictMap[a.id] = [];
             if (!conflictMap[b.id]) conflictMap[b.id] = [];
             
