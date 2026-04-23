@@ -68,17 +68,18 @@ export const ConfigView: React.FC = React.memo(() => {
     if (!user) return;
 
     setIsSavingGemini(true);
+    const newModel = 'gemini-flash-latest';
     try {
       const { error } = await supabase
         .from('user_profiles')
         .update({ 
           gemini_api_key: trimmedKey,
-          ai_settings: { ...aiConfig, provider: 'gemini' }
+          ai_settings: { ...aiConfig, provider: 'gemini', model: newModel, geminiKey: trimmedKey }
         })
         .eq('user_id', user.id);
 
       if (error) throw error;
-      setAIConfig({ geminiKey: trimmedKey, provider: 'gemini' });
+      setAIConfig({ geminiKey: trimmedKey, provider: 'gemini', model: newModel });
       addToast("Gemini attivo!", 'success');
       setGeminiKeyInput('');
     } catch (err: any) {

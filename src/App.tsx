@@ -114,8 +114,14 @@ function App() {
           .single();
         
         if (data && !error) {
+          const savedSettings = data.ai_settings || {};
+          // Guard: normalize stale Gemini model strings that are no longer valid
+          const VALID_GEMINI_MODELS = ['gemini-flash-latest', 'gemini-2.0-flash', 'gemini-2.0-flash-001', 'gemini-2.5-flash', 'gemini-pro-latest'];
+          if (savedSettings.provider === 'gemini' && savedSettings.model && !VALID_GEMINI_MODELS.includes(savedSettings.model)) {
+            savedSettings.model = 'gemini-flash-latest';
+          }
           setAIConfig({ 
-            ...(data.ai_settings || {}),
+            ...savedSettings,
             deepseekKey: data.deepseek_api_key,
             geminiKey: data.gemini_api_key
           });
