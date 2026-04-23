@@ -1,5 +1,6 @@
 import React from 'react';
-import { Plus, ChevronDown, ChevronRight, FileText, Folder, GripVertical, Library, FileDown, Eye, EyeOff } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, FileText, Folder, GripVertical, Library, FileDown, Eye, EyeOff, X } from 'lucide-react';
+import { useStore } from '../../store/useStore';
 
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { cn } from '../../lib/utils';
@@ -61,8 +62,10 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
     }
     setEditingId(null);
   };
+  const setNavigatorOpen = useStore(s => s.setNavigatorOpen);
+
   return (
-    <div className="w-64 xl:w-72 flex-shrink-0 glass rounded-[32px] overflow-hidden flex flex-col shadow-soft border border-[var(--border-subtle)] mx-1 my-1 transition-all duration-500">
+    <div className="w-full md:w-64 xl:w-72 h-full flex-shrink-0 glass rounded-none md:rounded-[32px] overflow-hidden flex flex-col shadow-soft border border-[var(--border-subtle)] md:mx-1 md:my-1 transition-all duration-500">
       {/* Header del Navigatore */}
       <div className="p-6 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-surface)]/30">
         <div className="flex items-center gap-3">
@@ -91,6 +94,13 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
             title="Nuovo Capitolo"
           >
             <Plus className="w-4 h-4" />
+          </button>
+          <button 
+            onClick={() => setNavigatorOpen(false)}
+            className="md:hidden p-2.5 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20"
+            title="Chiudi Navigatore"
+          >
+            <X className="w-5 h-5" />
           </button>
         </div>
       </div>

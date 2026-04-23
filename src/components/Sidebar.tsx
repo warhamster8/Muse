@@ -50,11 +50,11 @@ export const Sidebar: React.FC = React.memo(() => {
   };
 
   return (
-    <div className="w-20 xl:w-64 h-full glass rounded-[40px] flex flex-col p-4 xl:p-5 z-30 shadow-2xl relative overflow-y-auto scrollbar-hide transition-all duration-500">
+    <div className="w-full md:w-20 xl:w-64 h-16 md:h-full glass rounded-t-[24px] md:rounded-b-none md:rounded-[40px] flex flex-row md:flex-col p-2 md:p-4 xl:p-5 z-40 md:z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] md:shadow-2xl relative overflow-x-auto md:overflow-x-visible overflow-y-hidden md:overflow-y-auto scrollbar-hide transition-all duration-500 items-center md:items-stretch">
       {/* Sidebar background decorative glow */}
       <div className="absolute top-0 left-0 w-full h-32 bg-[var(--accent)]/5 blur-[60px] pointer-events-none" />
 
-      <div className="relative flex flex-col items-center mb-6 xl:mb-8 pt-2">
+      <div className="hidden md:flex relative flex-col items-center mb-6 xl:mb-8 pt-2">
         <div className="w-12 xl:w-48 aspect-square flex items-center justify-center logo-glow overflow-hidden group relative bg-[var(--bg-surface)] rounded-[24px] xl:rounded-[32px] p-2 border border-[var(--border-subtle)] shadow-inner transition-all hover:border-[var(--accent)]/20">
           <img 
             src="/logo.png" 
@@ -64,7 +64,7 @@ export const Sidebar: React.FC = React.memo(() => {
         </div>
       </div>
 
-      <div className="mb-6 xl:mb-8">
+      <div className="hidden md:block mb-6 xl:mb-8">
         <button 
           onClick={() => setCurrentProject(null)}
           className="w-full text-left group"
@@ -82,7 +82,7 @@ export const Sidebar: React.FC = React.memo(() => {
         </button>
       </div>
 
-      <nav className="flex-1 space-y-2">
+      <nav className="flex-1 flex flex-row md:flex-col items-center md:items-stretch justify-start space-x-2 md:space-x-0 md:space-y-2 w-max md:w-auto px-2 md:px-0">
         <div className="px-5 mb-4 hidden xl:block">
             <span className="text-[10px] font-black text-[var(--accent)]/30 uppercase tracking-[0.4em]">Architecture</span>
         </div>
@@ -91,9 +91,9 @@ export const Sidebar: React.FC = React.memo(() => {
             key={item.id}
             onClick={() => setActiveTab(item.id)}
             className={cn(
-              "w-full flex items-center space-x-3 px-5 py-3 rounded-[24px] transition-all duration-500 group relative overflow-hidden",
+              "flex flex-col md:flex-row items-center justify-center md:space-x-3 px-4 md:px-5 py-2.5 md:py-3 rounded-xl md:rounded-[24px] transition-all duration-500 group relative overflow-hidden flex-shrink-0 min-w-14 md:min-w-0 md:w-full",
               activeTab === item.id 
-                ? "bg-[var(--accent)] text-[var(--bg-deep)] shadow-[0_15px_30px_-5px_rgba(var(--accent),0.3)] scale-105" 
+                ? "bg-[var(--accent)] text-[var(--bg-deep)] shadow-[0_15px_30px_-5px_rgba(var(--accent),0.3)] md:scale-105" 
                 : "text-[var(--text-secondary)] hover:bg-[var(--accent-soft)] hover:text-[var(--text-bright)]"
             )}
 
@@ -108,10 +108,10 @@ export const Sidebar: React.FC = React.memo(() => {
         ))}
       </nav>
 
-      <div className="pt-6 border-t border-[var(--border-subtle)] space-y-3">
+      <div className="flex flex-row md:flex-col items-center md:items-stretch pt-0 md:pt-6 border-l md:border-l-0 md:border-t border-[var(--border-subtle)] space-x-2 md:space-x-0 md:space-y-3 ml-2 md:ml-0 pl-3 md:pl-0 pr-2 md:pr-0">
         <button
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="w-full h-12 flex items-center justify-center gap-3 bg-[var(--bg-surface)]/40 hover:bg-[var(--accent-soft)] text-[var(--text-secondary)] hover:text-[var(--accent)] rounded-2xl transition-all duration-500 text-[10px] font-black uppercase tracking-widest group border border-[var(--border-subtle)] hover:border-[var(--accent)]/30"
+          className="w-12 h-12 md:w-full md:h-12 flex items-center justify-center gap-3 bg-[var(--bg-surface)]/40 hover:bg-[var(--accent-soft)] text-[var(--text-secondary)] hover:text-[var(--accent)] rounded-2xl transition-all duration-500 text-[10px] font-black uppercase tracking-widest group border border-[var(--border-subtle)] hover:border-[var(--accent)]/30 shrink-0"
           title={theme === 'dark' ? 'Passa al tema chiaro' : 'Passa al tema scuro'}
         >
           {theme === 'dark' ? (
@@ -129,7 +129,7 @@ export const Sidebar: React.FC = React.memo(() => {
 
         <button 
           onClick={handleLogout}
-          className="w-full h-12 flex items-center justify-center gap-3 bg-red-500/5 hover:bg-red-500/10 text-red-400/50 hover:text-red-400 rounded-2xl transition-all duration-500 text-[10px] font-black uppercase tracking-widest group border border-transparent hover:border-red-500/20"
+          className="w-12 h-12 md:w-full md:h-12 flex items-center justify-center gap-3 bg-red-500/5 hover:bg-red-500/10 text-red-400/50 hover:text-red-400 rounded-2xl transition-all duration-500 text-[10px] font-black uppercase tracking-widest group border border-transparent hover:border-red-500/20 shrink-0"
         >
           <LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-1 flex-shrink-0" />
           <span className="hidden xl:inline">Exit System</span>

@@ -208,7 +208,7 @@ function App() {
 
   // 4. Main App Dashboard
   return (
-    <div className="flex h-screen bg-[var(--bg-deep)] text-[var(--text-primary)] font-sans overflow-hidden relative">
+    <div className="flex flex-col-reverse md:flex-row h-screen bg-[var(--bg-deep)] text-[var(--text-primary)] font-sans overflow-hidden relative">
       {/* Background Atmosphere Gradients */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[var(--accent)]/5 blur-[120px] rounded-full pointer-events-none opacity-40" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[var(--accent)]/3 blur-[120px] rounded-full pointer-events-none opacity-30" />
@@ -218,18 +218,18 @@ function App() {
         <AnimatePresence>
           {!isZenMode && (
             <motion.div
-              initial={{ x: -260, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -260, opacity: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-              className="z-30 h-full flex-shrink-0"
+              className="z-50 w-full md:w-auto h-auto md:h-full flex-shrink-0 order-last md:order-none"
             >
               <Sidebar />
             </motion.div>
           )}
         </AnimatePresence>
         
-        <main className="flex-1 h-full p-2 lg:p-4 overflow-hidden flex flex-col relative min-w-0">
+        <main className="flex-1 h-full p-0 md:p-2 lg:p-4 overflow-hidden flex flex-col relative min-w-0 order-1 md:order-none">
           <div className="flex-1 min-h-0 h-full">
             <React.Suspense fallback={
               <div className="flex items-center justify-center h-full text-[var(--text-muted)] animate-pulse font-black uppercase tracking-[0.4em] text-[10px]">
@@ -244,11 +244,11 @@ function App() {
         <AnimatePresence>
           {activeTab === 'narrative' && isSidekickOpen && (
             <motion.div
-              initial={{ x: 400, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: 400, opacity: 0 }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-              className="z-20 h-full flex-shrink-0 relative border-l border-[var(--border-subtle)] shadow-2xl"
+              className="z-40 h-full flex-shrink-0 absolute md:relative right-0 border-l border-[var(--border-subtle)] shadow-2xl bg-[var(--bg-deep)] md:bg-transparent"
             >
               <AISidekick />
             </motion.div>
