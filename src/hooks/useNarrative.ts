@@ -52,7 +52,7 @@ export function useNarrative() {
         .order('order_index', { ascending: true });
 
       if (!chaptersError) {
-        const sortedChapters = chaptersData.map(ch => ({
+        const sortedChapters = (chaptersData as any[]).map((ch: any) => ({
           ...ch,
           scenes: ch.scenes.sort((a: Scene, b: Scene) => a.order_index - b.order_index)
         }));
