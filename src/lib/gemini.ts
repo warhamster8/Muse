@@ -17,7 +17,7 @@ export const geminiService = {
     providedKey: string,
     messages: any[],
     onChunk: (text: string) => void,
-    model = 'gemini-1.5-flash',
+    _model = 'gemini-1.5-flash',
     temperature = 0.5,
     signal?: AbortSignal
   ) {
@@ -135,7 +135,7 @@ export const geminiService = {
   /**
    * Verifica la connettività con l'endpoint Google.
    */
-  async testConnection(providedKey: string, model = 'gemini-1.5-flash') {
+  async testConnection(providedKey: string, _model = 'gemini-1.5-flash') {
     const apiKey = providedKey?.trim();
     if (!apiKey) return { ok: false, status: 0, error: 'Chiave mancante' };
 
