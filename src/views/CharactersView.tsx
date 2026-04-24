@@ -402,12 +402,14 @@ export const CharactersView: React.FC = () => {
                   <FileText className="w-5 h-5" />
                   <h4 className="text-[11px] font-black uppercase tracking-[0.4em]">Historical Context & Roots</h4>
                 </div>
-                <textarea 
-                  className="w-full h-48 glass border border-[var(--border-subtle)] rounded-3xl p-10 text-base text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/20 focus:bg-[var(--bg-surface)]/30 transition-all placeholder:text-[var(--text-muted)] leading-relaxed scrollbar-hide shadow-inner"
-                  placeholder="Elaborate on origins, past traumas and core secrets..."
-                  value={localBio}
-                  onChange={(e) => setLocalBio(e.target.value)}
-                />
+                <div className="rounded-3xl border border-[var(--border-subtle)] overflow-hidden glass focus-within:border-[var(--accent)]/30 focus-within:bg-[var(--bg-surface)]/30 transition-all shadow-inner">
+                  <textarea 
+                    className="w-full h-48 bg-transparent p-10 text-base text-[var(--text-primary)] focus:outline-none placeholder:text-[var(--text-muted)] leading-relaxed scrollbar-hide resize-none"
+                    placeholder="Elaborate on origins, past traumas and core secrets..."
+                    value={localBio}
+                    onChange={(e) => setLocalBio(e.target.value)}
+                  />
+                </div>
               </section>
 
               <section className="space-y-8 animate-in slide-in-from-bottom-8 duration-1000 delay-200">
@@ -415,12 +417,14 @@ export const CharactersView: React.FC = () => {
                   <Brain className="w-5 h-5" />
                   <h4 className="text-[11px] font-black uppercase tracking-[0.4em]">Psychological Core & Conflict</h4>
                 </div>
-                <textarea 
-                  className="w-full h-48 glass border border-[var(--border-subtle)] rounded-3xl p-10 text-base text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/20 focus:bg-[var(--bg-surface)]/30 transition-all placeholder:text-[var(--text-muted)] leading-relaxed scrollbar-hide shadow-inner"
-                  placeholder="What is the character's engine? Their deepest fears and fatal flaws?"
-                  value={localPsychology}
-                  onChange={(e) => setLocalPsychology(e.target.value)}
-                />
+                <div className="rounded-3xl border border-[var(--border-subtle)] overflow-hidden glass focus-within:border-[var(--accent)]/30 focus-within:bg-[var(--bg-surface)]/30 transition-all shadow-inner">
+                  <textarea 
+                    className="w-full h-48 bg-transparent p-10 text-base text-[var(--text-primary)] focus:outline-none placeholder:text-[var(--text-muted)] leading-relaxed scrollbar-hide resize-none"
+                    placeholder="What is the character's engine? Their deepest fears and fatal flaws?"
+                    value={localPsychology}
+                    onChange={(e) => setLocalPsychology(e.target.value)}
+                  />
+                </div>
               </section>
 
               <section className="space-y-8 animate-in slide-in-from-bottom-8 duration-1000 delay-300">
@@ -428,12 +432,14 @@ export const CharactersView: React.FC = () => {
                   <TrendingUp className="w-5 h-5" />
                   <h4 className="text-[11px] font-black uppercase tracking-[0.4em]">Evolutionary Arc</h4>
                 </div>
-                <textarea 
-                  className="w-full h-48 glass border border-[var(--border-subtle)] rounded-3xl p-10 text-base text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/20 focus:bg-[var(--bg-surface)]/30 transition-all placeholder:text-[var(--text-muted)] leading-relaxed scrollbar-hide shadow-inner"
-                  placeholder="How does the character transform from the first draft to the finale?"
-                  value={localEvolution}
-                  onChange={(e) => setLocalEvolution(e.target.value)}
-                />
+                <div className="rounded-3xl border border-[var(--border-subtle)] overflow-hidden glass focus-within:border-[var(--accent)]/30 focus-within:bg-[var(--bg-surface)]/30 transition-all shadow-inner">
+                  <textarea 
+                    className="w-full h-48 bg-transparent p-10 text-base text-[var(--text-primary)] focus:outline-none placeholder:text-[var(--text-muted)] leading-relaxed scrollbar-hide resize-none"
+                    placeholder="How does the character transform from the first draft to the finale?"
+                    value={localEvolution}
+                    onChange={(e) => setLocalEvolution(e.target.value)}
+                  />
+                </div>
               </section>
             </div>
           </div>

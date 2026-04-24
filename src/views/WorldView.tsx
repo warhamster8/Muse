@@ -200,15 +200,17 @@ export const WorldView: React.FC = () => {
                     {activeCategory === 'location' ? 'Dettagli Sensoriali & Atmosfera' : 'Proprietà & Note Tecniche'}
                   </h4>
                 </div>
-                <textarea 
-                  className="w-full h-96 bg-[var(--bg-deep)]/20 border border-[var(--border-subtle)] rounded-3xl p-10 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/30 focus:bg-[var(--bg-surface)]/40 transition-all placeholder:text-[var(--text-muted)] leading-relaxed scrollbar-hide"
-                  placeholder={activeCategory === 'location' 
-                    ? "Quali profumi pervadono l'aria? Qual è la temperatura? Quali architetture dominano la vista?" 
-                    : "Qual è la storia di questo oggetto? Possiede peculiarità uniche? A chi appartiene attualmente?"
-                  }
-                  value={localDescription}
-                  onChange={(e) => setLocalDescription(e.target.value)}
-                />
+                <div className="rounded-3xl border border-[var(--border-subtle)] overflow-hidden bg-[var(--bg-deep)]/20 focus-within:border-[var(--accent)]/30 focus-within:bg-[var(--bg-surface)]/40 transition-all">
+                  <textarea 
+                    className="w-full h-96 bg-transparent p-10 text-sm text-[var(--text-primary)] focus:outline-none placeholder:text-[var(--text-muted)] leading-relaxed scrollbar-hide resize-none"
+                    placeholder={activeCategory === 'location' 
+                      ? "Quali profumi pervadono l'aria? Qual è la temperatura? Quali architetture dominano la vista?" 
+                      : "Qual è la storia di questo oggetto? Possiede peculiarità uniche? A chi appartiene attualmente?"
+                    }
+                    value={localDescription}
+                    onChange={(e) => setLocalDescription(e.target.value)}
+                  />
+                </div>
               </section>
             </div>
           </div>

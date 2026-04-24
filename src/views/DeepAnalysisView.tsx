@@ -294,12 +294,14 @@ Sii acuto, onesto e punta all'eccellenza narrativa.`;
                    <MessageSquare className="w-4 h-4" />
                    <span className="text-[10px] font-black uppercase tracking-[0.3em]">Istruzioni Specifiche per l'Indagine</span>
                 </div>
-                <textarea 
-                  className="w-full h-24 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[28px] p-6 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/30 focus:bg-[var(--bg-surface)]/10 transition-all resize-none shadow-inner placeholder:text-[var(--text-muted)]"
-                  placeholder="Es: Focalizzati sulla tensione tra i due protagonisti, o analizza se il finale è coerente con la premessa..."
-                  value={instructions}
-                  onChange={(e) => setInstructions(e.target.value)}
-                />
+                <div className="rounded-[28px] border border-[var(--border-subtle)] overflow-hidden bg-[var(--bg-card)] focus-within:border-[var(--accent)]/30 focus-within:bg-[var(--bg-surface)]/10 transition-all shadow-inner">
+                  <textarea 
+                    className="w-full h-24 bg-transparent p-6 text-xs text-[var(--text-primary)] focus:outline-none placeholder:text-[var(--text-muted)] transition-all resize-none"
+                    placeholder="Es: Focalizzati sulla tensione tra i due protagonisti, o analizza se il finale è coerente con la premessa..."
+                    value={instructions}
+                    onChange={(e) => setInstructions(e.target.value)}
+                  />
+                </div>
               </div>
 
               {analysis ? (

@@ -660,12 +660,14 @@ Rispondi in italiano. Sii concreto e originale.`;
           <div className="space-y-6">
             <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4">Sviluppo Intuizioni</span>
-                <textarea 
-                    className="w-full h-48 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[24px] p-6 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]/30 focus:bg-[var(--bg-surface)] transition-all resize-none shadow-inner placeholder:text-[var(--text-muted)]" 
-                    placeholder="Incolla qui pensieri sparsi, frammenti di dialogo o concetti vaghi..." 
-                    value={braindumpInput} 
-                    onChange={(e) => setBraindumpInput(e.target.value)} 
-                />
+                <div className="rounded-[24px] border border-[var(--border-subtle)] overflow-hidden bg-[var(--bg-card)] focus-within:border-[var(--accent)]/30 focus-within:bg-[var(--bg-surface)] transition-all shadow-inner">
+                  <textarea 
+                      className="w-full h-48 bg-transparent p-6 text-xs text-[var(--text-primary)] focus:outline-none placeholder:text-[var(--text-muted)] transition-all resize-none" 
+                      placeholder="Incolla qui pensieri sparsi, frammenti di dialogo o concetti vaghi..." 
+                      value={braindumpInput} 
+                      onChange={(e) => setBraindumpInput(e.target.value)} 
+                  />
+                </div>
             </div>
             <button 
                 onClick={runBraindump} 
