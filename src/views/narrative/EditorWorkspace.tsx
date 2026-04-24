@@ -56,12 +56,15 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
         
         <div className="flex items-center gap-4">
           <button 
-            onClick={() => setNavigatorOpen(!isNavigatorOpen)}
+            onClick={() => {
+              if (!isNavigatorOpen) setSidekickOpen(false);
+              setNavigatorOpen(!isNavigatorOpen);
+            }}
             className={cn(
               "p-3 rounded-2xl transition-all border active:scale-95 group",
-              isNavigatorOpen 
-                ? "bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-bright)]" 
-                : "bg-[var(--accent-soft)] border-[var(--accent)]/30 text-[var(--accent)] shadow-glow-mint"
+              isNavigatorOpen && !isSidekickOpen
+                ? "bg-[var(--accent-soft)] border-[var(--accent)]/30 text-[var(--accent)] shadow-glow-mint"
+                : "bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-bright)]"
             )}
             title={isNavigatorOpen ? "Nascondi Navigatore" : "Mostra Navigatore"}
           >
@@ -72,7 +75,10 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
             onClick={() => {
               const newZen = !isZenMode;
               setZenMode(newZen);
-              if (newZen) setSidekickOpen(false);
+              if (newZen) {
+                setSidekickOpen(false);
+                setNavigatorOpen(false);
+              }
             }}
             className={cn(
               "p-3 rounded-2xl transition-all border active:scale-95 group",
@@ -86,30 +92,21 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
           </button>
           
           <div className="h-8 w-[1px] bg-[var(--border-subtle)] mx-1" />
-                  {activeScene ? (
-              <button 
-                onClick={() => setSidekickOpen(!isSidekickOpen)}
-                className={cn(
-                  "flex items-center gap-3 px-4 xl:px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl group",
-                  "bg-[var(--accent)] text-[var(--bg-deep)] hover:scale-105 shadow-glow-mint"
-                )}
-              >
-                <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-                <span className="hidden xl:inline">AI Sidekick</span>
-              </button>
-          ) : (
-            <button 
-              onClick={() => setSidekickOpen(!isSidekickOpen)}
-              className={cn(
-                "p-3 rounded-2xl transition-all border active:scale-95 group focus:outline-none",
-                isSidekickOpen 
-                  ? "bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-bright)]" 
-                  : "bg-[var(--accent-soft)] border-[var(--accent)]/30 text-[var(--accent)] shadow-glow-mint"
-              )}
-            >
-              <Sparkles className="w-5 h-5" />
-            </button>
-          )}
+          <button 
+            onClick={() => {
+              if (!isSidekickOpen) setNavigatorOpen(false);
+              setSidekickOpen(!isSidekickOpen);
+            }}
+            className={cn(
+              "flex items-center gap-3 px-4 xl:px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl group",
+              isSidekickOpen 
+                ? "bg-[var(--accent)] text-[var(--bg-deep)] shadow-glow-mint" 
+                : "bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-bright)] hover:bg-[var(--accent-soft)]"
+            )}
+          >
+            <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+            <span className="hidden xl:inline">AI Sidekick</span>
+          </button>
         </div>
       </div>
 

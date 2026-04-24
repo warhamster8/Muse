@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
-import { AISidekick } from './components/AISidekick';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useStore } from './store/useStore';
 import { supabase, isConfigured } from './lib/supabase';
@@ -26,7 +25,6 @@ function App() {
   const activeTab = useStore(s => s.activeTab);
   const setUser = useStore(s => s.setUser);
   const isZenMode = useStore(s => s.isZenMode);
-  const isSidekickOpen = useStore(s => s.isSidekickOpen);
   const setAIConfig = useStore(s => s.setAIConfig);
   const theme = useStore(s => s.theme);
   const [showAuth, setShowAuth] = useState(false);
@@ -241,19 +239,6 @@ function App() {
           </div>
         </main>
         
-        <AnimatePresence>
-          {activeTab === 'narrative' && isSidekickOpen && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-              className="z-40 h-full flex-shrink-0 absolute xl:relative right-0 border-l border-[var(--border-subtle)] shadow-2xl bg-[var(--bg-card)]/90 backdrop-blur-3xl xl:bg-transparent xl:backdrop-blur-none"
-            >
-              <AISidekick />
-            </motion.div>
-          )}
-        </AnimatePresence>
       </ErrorBoundary>
       <ToastContainer />
     </div>
