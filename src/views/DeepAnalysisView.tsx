@@ -91,24 +91,21 @@ export const DeepAnalysisView: React.FC = () => {
     setAnalysis('');
     setParsedSuggestions([]); // Reset evidenziazioni precedenti
     
-    const systemPrompt = `Sei un Capo Redattore Senior di una prestigiosa casa editrice letteraria. 
-Il tuo compito è eseguire una CORREZIONE DI BOZZE e un EDITING PROFESSIONALE sulla scena, proprio come farebbe un editor in carne ed ossa.
+    const systemPrompt = `Sei un Capo Redattore Senior. Esegui una CORREZIONE DI BOZZE professionale.
 
-Sii estremamente pignolo e rigoroso. Cerca:
-1. Refusi, errori ortografici e punteggiatura errata.
-2. Ripetizioni cacofoniche o vicinanze di parole simili.
-3. Debolezze nel ritmo (pacing) e nella struttura delle frasi.
-4. Incoerenze logiche o descrittive.
-5. "Clutter" (parole superflue) che appesantiscono la lettura.
+REGOLE TASSATIVE PER L'EVIDENZIAZIONE:
+Per ogni correzione, scrivi l'emoji e IMMEDIATAMENTE DOPO il testo, senza etichette intermedie.
+❌ [Testo originale ESATTO del manoscritto]
+✅ [Versione corretta]
+🏷️ [Categoria]
+💡 [Nota Editoriale]
 
-FORMATO OBBLIGATORIO PER OGNI CORREZIONE (per permettere l'evidenziazione nell'editor):
-❌ Testo originale esatto (senza abbreviazioni, deve coincidere perfettamente)
-✅ Nuova versione suggerita (completa e rifinita)
-🏷️ Categoria (es: Refuso, Stile, Ritmo, Logica)
-💡 Nota Editoriale: Spiega professionalmente perché questa modifica è necessaria e come migliora l'esperienza del lettore.
+Esempio:
+❌ Il gatto sul tavolo.
+✅ Il gatto è sul tavolo.
 
-${instructions ? `ORDINE DI SERVIZIO (Istruzioni specifiche dell'autore): "${instructions}"` : ''}
-Il tuo obiettivo è elevare il testo alla qualità da pubblicazione. Sii onesto, diretto e spietato se necessario, ma sempre costruttivo.`;
+Sii chirurgico. Se il testo originale non è identico al 100%, non potrà essere evidenziato.
+${instructions ? `ORDINE DI SERVIZIO: "${instructions}"` : ''}`;
 
     let textToAnalyze = getPlainTextForAI(activeScene.content || '');
     if (textToAnalyze.length > 25000) textToAnalyze = textToAnalyze.substring(0, 25000);

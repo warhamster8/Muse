@@ -16,33 +16,38 @@ export function parseAIAnalysis(text: string): AISuggestion[] {
     if (!trimmedLine) return;
 
     // Detection patterns matching StructuredOutput.tsx logic
-    if (/^(?:\d+\.\s*)?❌/.test(trimmedLine)) {
+    if (/❌/.test(trimmedLine)) {
       if (currentSuggestion?.original && currentSuggestion?.suggestion) {
         suggestions.push(currentSuggestion as AISuggestion);
       }
       const cleanOriginal = trimmedLine
-        .replace(/^(?:\d+\.\s*)?❌\s*/, '')
+        .replace(/.*❌\s*(?:TESTO\s*ORIGINALE\s*(?:ESATTO)?:?)?\s*/i, '')
         .replace(/\*\*/g, '')
         .replace(/^["“”«»]+|["“”«»]+$/g, '')
         .trim();
-      if (cleanOriginal) {
-        currentSuggestion = { original: cleanOriginal };
-      }
-    } else if (/^(?:\d+\.\s*)?✅/.test(trimmedLine)) {
+      currentSuggestion = { original: cleanOriginal };
+    } else if (/✅/.test(trimmedLine)) {
       if (currentSuggestion) {
         currentSuggestion.suggestion = trimmedLine
-          .replace(/^(?:\d+\.\s*)?✅\s*/, '')
+          .replace(/.*✅\s*(?:NUOVA\s*VERSIONE\s*(?:SUGGERITA)?:?)?\s*/i, '')
           .replace(/\*\*/g, '')
           .replace(/^["“”«»]+|["“”«»]+$/g, '')
           .trim();
       }
-    } else if (/^(?:\d+\.\s*)?💡/.test(trimmedLine)) {
+    } else if (/💡/.test(trimmedLine)) {
       if (currentSuggestion) {
-        currentSuggestion.reason = trimmedLine.replace(/^(?:\d+\.\s*)?💡\s*/, '').trim();
+        currentSuggestion.reason = trimmedLine.replace(/.*💡\s*(?:NOTA\s*EDITORIALE:?)?\s*/i, '').trim();
       }
-    } else if (/^(?:\d+\.\s*)?🏷️/.test(trimmedLine)) {
+    } else if (/🏷️/.test(trimmedLine)) {
       if (currentSuggestion) {
-        currentSuggestion.category = trimmedLine.replace(/^(?:\d+\.\s*)?🏷️\s*/, '').trim();
+        currentSuggestion.category = trimmedLine.replace(/.*🏷️\s*(?:CATEGORIA:?)?\s*/i, '').trim();
+      }
+    } else if (currentSuggestion && !trimmedLine.includes('❌') && !trimmedLine.includes('✅')) {
+      // Append multi-line text if it's continuing the original or suggestion
+      if (currentSuggestion.original && !currentSuggestion.suggestion) {
+        currentSuggestion.original += ' ' + trimmedLine;
+      } else if (currentSuggestion.suggestion) {
+        currentSuggestion.suggestion += ' ' + trimmedLine;
       }
     }
   });
