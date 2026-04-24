@@ -22,7 +22,7 @@ export function parseAIAnalysis(text: string): AISuggestion[] {
       }
       const cleanOriginal = trimmedLine
         .replace(/^(?:\d+\.\s*)?❌\s*/, '')
-        .replace(/^\*\*.*?\*\*\s*/, '')
+        .replace(/\*\*/g, '')
         .replace(/^["“”«»]+|["“”«»]+$/g, '')
         .trim();
       if (cleanOriginal) {
@@ -32,7 +32,7 @@ export function parseAIAnalysis(text: string): AISuggestion[] {
       if (currentSuggestion) {
         currentSuggestion.suggestion = trimmedLine
           .replace(/^(?:\d+\.\s*)?✅\s*/, '')
-          .replace(/^\*\*.*?\*\*\s*/, '')
+          .replace(/\*\*/g, '')
           .replace(/^["“”«»]+|["“”«»]+$/g, '')
           .trim();
       }
