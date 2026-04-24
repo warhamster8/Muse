@@ -28,7 +28,9 @@ export function parseAIAnalysis(text: string): AISuggestion[] {
       const contentMatch = line.match(/❌\s*(?:TESTO\s*ORIGINALE\s*(?:ESATTO)?|SUGGERIMENTO\s*\d+|SUGGESTIONE\s*\d+)?\s*:?\s*(.*)/i);
       const cleanOriginal = (contentMatch ? contentMatch[1] : '')
         .replace(/\*\*/g, '')
-        .replace(/^["“”«»\[]+|["“”«»\]]+$/g, '');
+        .replace(/^["“”«»\[]+|["“”«»\]]+$/g, '')
+        .replace(/(?:Suggerimento|Suggestione|Correzione)\s*\d+[:\s]*/gi, '')
+        .trim();
       currentSuggestion = { original: cleanOriginal };
     } else if (hasSuggestionEmoji) {
       if (currentSuggestion) {
@@ -37,7 +39,9 @@ export function parseAIAnalysis(text: string): AISuggestion[] {
           .replace(/\*\*/g, '')
           .replace(/^["“”«»\[]+|["“”«»\]]+$/g, '')
           .replace(/\s*\*\(Correzione:.*?\)\*/gi, '')
-          .replace(/\s*\(Correzione:.*?\)/gi, '');
+          .replace(/\s*\(Correzione:.*?\)/gi, '')
+          .replace(/(?:Suggerimento|Suggestione|Correzione)\s*\d+[:\s]*/gi, '')
+          .trim();
       }
     } else if (hasReasonEmoji) {
       if (currentSuggestion) {
@@ -54,6 +58,15 @@ export function parseAIAnalysis(text: string): AISuggestion[] {
         currentSuggestion.suggestion += (currentSuggestion.suggestion ? ' ' : '') + line.trim();
       }
     }
+    
+    // Final check for all fields to remove any leakage
+    if (currentSuggestion?.original) {
+      currentSuggestion.original = currentSuggestion.original.replace(/(?:Suggerimento|Suggestione|Correzione)\s*\d+[:\s]*/gi, '').trim();
+    }
+    if (currentSuggestion?.suggestion) {
+      currentSuggestion.suggestion = currentSuggestion.suggestion.replace(/(?:Suggerimento|Suggestione|Correzione)\s*\d+[:\s]*/gi, '').trim();
+    }
+  });
   });
 
   const final: any = currentSuggestion;

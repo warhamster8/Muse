@@ -405,14 +405,16 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
               };
 
               let activeSuggestion: any = null;
-              let activePos = from;
+              let startPos = from;
+              let endPos = from;
 
               // 1. Priorità: Suggerimento attivo tramite indice (navigazione)
               if (suggestionIndex >= 0 && parsedSuggestions[suggestionIndex]) {
                 activeSuggestion = parsedSuggestions[suggestionIndex];
                 const matches = findMatchesInDoc(editor.state.doc, activeSuggestion.original);
                 if (matches.length > 0) {
-                  activePos = matches[0].from;
+                  startPos = matches[0].from;
+                  endPos = matches[0].to;
                 } else {
                   activeSuggestion = null; 
                 }
@@ -426,22 +428,29 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
                 if (highlight) {
                   const text = highlight.getAttribute('data-suggestion-text') || '';
                   activeSuggestion = parsedSuggestions.find(s => s.original === text);
-                  activePos = from;
+                  if (activeSuggestion) {
+                    const matches = findMatchesInDoc(editor.state.doc, activeSuggestion.original);
+                    if (matches.length > 0) {
+                      startPos = matches[0].from;
+                      endPos = matches[0].to;
+                    }
+                  }
                 }
               }
               
               if (!activeSuggestion || !activeSuggestion.suggestion) return null;
 
 
-              // Calculate position
-              const coords = editor.view.coordsAtPos(activePos);
+              // Calculate position based on the END of the highlight to avoid overlapping
+              const startCoords = editor.view.coordsAtPos(startPos);
+              const endCoords = editor.view.coordsAtPos(endPos);
               
               return (
                 <div 
                   className="fixed z-[100]" 
                   style={{ 
-                    top: coords.bottom + 15, 
-                    left: Math.max(20, Math.min(window.innerWidth - 820, coords.left - 400)), 
+                    top: endCoords.bottom + 20, 
+                    left: Math.max(20, Math.min(window.innerWidth - 820, startCoords.left - 300)), 
                   }}
                 >
                    <InTextSuggestionCard 
