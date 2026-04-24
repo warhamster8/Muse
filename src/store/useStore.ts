@@ -183,6 +183,8 @@ export const useStore = create<AppState>()(
         isZenMode: state.isZenMode || false,
         timelineEvents: state.timelineEvents || [],
         theme: state.theme || 'dark',
+        currentSceneContent: state.currentSceneContent || '',
+        chapters: state.chapters || [],
         aiConfig: {
           ...state.aiConfig,
           deepseekKey: '', // Mai persistere la chiave nel localStorage

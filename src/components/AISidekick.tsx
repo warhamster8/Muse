@@ -196,7 +196,10 @@ export const AISidekick: React.FC = React.memo(() => {
   };
 
   const runDraftRevision = async () => {
-    if (!plainText || (activeSelection ? activeSelection.length < 1 : plainText.length < 10)) return;
+    if (!plainText || (activeSelection ? activeSelection.length < 1 : plainText.length < 10)) {
+      addToast('Seleziona del testo o apri una scena per procedere con la revisione.', 'error');
+      return;
+    }
     
     // Abort previous if any
     if (abortControllerRef.current) abortControllerRef.current.abort();
@@ -326,7 +329,10 @@ REVISIONA IL TARGET SOPRA.`;
   };
 
   const runGrammarAnalysis = async () => {
-    if (!plainText || (activeSelection ? activeSelection.length < 1 : plainText.length < 5)) return;
+    if (!plainText || (activeSelection ? activeSelection.length < 1 : plainText.length < 5)) {
+      addToast('Nessun testo rilevato per la correzione grammaticale.', 'error');
+      return;
+    }
     
     if (abortControllerRef.current) abortControllerRef.current.abort();
     abortControllerRef.current = new AbortController();
