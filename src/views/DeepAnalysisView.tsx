@@ -13,6 +13,7 @@ import { aiService } from '../lib/aiService';
 import { cn } from '../lib/utils';
 import { StructuredOutput } from '../components/analysis/StructuredOutput';
 import { getPlainTextForAI } from '../lib/textUtils';
+import { parseAIAnalysis } from '../lib/aiParsing';
 import { ManuscriptNavigator } from './narrative/ManuscriptNavigator';
 import { EditorWorkspace } from './narrative/EditorWorkspace';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -29,6 +30,7 @@ export const DeepAnalysisView: React.FC = () => {
   const setActiveSceneId = useStore(s => s.setActiveSceneId);
   const isNavigatorOpen = useStore(s => s.isNavigatorOpen);
   const isZenMode = useStore(s => s.isZenMode);
+  const setParsedSuggestions = useStore(s => s.setParsedSuggestions);
   const { addToast } = useToast();
   
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -77,10 +79,26 @@ export const DeepAnalysisView: React.FC = () => {
 
     setIsAnalyzing(true);
     setAnalysis('');
+    setParsedSuggestions([]); // Reset evidenziazioni precedenti
     
-    const systemPrompt = `Sei un esperto editor letterario. Analizza ESCLUSIVAMENTE la scena fornita. 
-Fornisci suggerimenti stilistici, di ritmo e di coerenza.
-${instructions ? `Focus richiesto: "${instructions}"` : ''}`;
+    const systemPrompt = `Sei un Capo Redattore Senior di una prestigiosa casa editrice letteraria. 
+Il tuo compito è eseguire una CORREZIONE DI BOZZE e un EDITING PROFESSIONALE sulla scena, proprio come farebbe un editor in carne ed ossa.
+
+Sii estremamente pignolo e rigoroso. Cerca:
+1. Refusi, errori ortografici e punteggiatura errata.
+2. Ripetizioni cacofoniche o vicinanze di parole simili.
+3. Debolezze nel ritmo (pacing) e nella struttura delle frasi.
+4. Incoerenze logiche o descrittive.
+5. "Clutter" (parole superflue) che appesantiscono la lettura.
+
+FORMATO OBBLIGATORIO PER OGNI CORREZIONE (per permettere l'evidenziazione nell'editor):
+❌ Testo originale esatto (senza abbreviazioni, deve coincidere perfettamente)
+✅ Nuova versione suggerita (completa e rifinita)
+🏷️ Categoria (es: Refuso, Stile, Ritmo, Logica)
+💡 Nota Editoriale: Spiega professionalmente perché questa modifica è necessaria e come migliora l'esperienza del lettore.
+
+${instructions ? `ORDINE DI SERVIZIO (Istruzioni specifiche dell'autore): "${instructions}"` : ''}
+Il tuo obiettivo è elevare il testo alla qualità da pubblicazione. Sii onesto, diretto e spietato se necessario, ma sempre costruttivo.`;
 
     let textToAnalyze = getPlainTextForAI(activeScene.content || '');
     if (textToAnalyze.length > 25000) textToAnalyze = textToAnalyze.substring(0, 25000);
@@ -92,7 +110,13 @@ ${instructions ? `Focus richiesto: "${instructions}"` : ''}`;
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `SCENA: ${activeScene.title}\n\nCONTENUTO:\n${textToAnalyze}\n\nRICHIESTA: ${customQuery || "Analisi strutturale profonda."}` }
         ],
-        (chunk) => setAnalysis(prev => prev + chunk),
+        (chunk) => {
+          setAnalysis(prev => {
+            const next = prev + chunk;
+            setParsedSuggestions(parseAIAnalysis(next));
+            return next;
+          });
+        },
         { signal: abortControllerRef.current.signal }
       );
     } catch (err: any) {
