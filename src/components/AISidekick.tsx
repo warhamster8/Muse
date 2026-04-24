@@ -13,8 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  Trash2,
-  Camera
+  Trash2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useStore } from '../store/useStore';
