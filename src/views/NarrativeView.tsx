@@ -138,7 +138,7 @@ export const NarrativeView: React.FC = React.memo(() => {
   };
 
   return (
-    <div className="flex h-full overflow-hidden animate-in fade-in duration-700 bg-[var(--bg-deep)] p-2 gap-3">
+    <div className="flex h-full overflow-hidden animate-in fade-in duration-700 bg-[var(--bg-deep)] p-2 gap-4">
       {/* Mattoncino: Navigazione */}
       {/* Mattoncino: Pannello Laterale (Navigazione o AI) */}
       <AnimatePresence mode="wait">

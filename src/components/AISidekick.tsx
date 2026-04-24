@@ -420,7 +420,7 @@ Rispondi in italiano. Sii concreto e originale.`;
   const currentLastPhrase = activeSceneId ? lastAnalyzedPhrase[`${activeSceneId}-${activeTab}`] : null;
 
   return (
-    <div className="w-full md:w-56 xl:w-72 2xl:w-80 h-full glass rounded-none md:rounded-[32px] flex-shrink-0 flex flex-col shadow-premium z-20 transition-all duration-500 overflow-hidden relative border-[var(--border-subtle)]">
+    <div className="w-full md:w-56 xl:w-72 2xl:w-80 h-full glass rounded-none md:rounded-[32px] flex-shrink-0 flex flex-col shadow-lg z-20 transition-all duration-500 overflow-hidden relative border-[var(--border-subtle)]">
       <div className="p-4 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-surface)]/30">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-[var(--accent-soft)] rounded-xl border border-[var(--accent)]/20 shadow-glow-mint">
@@ -458,7 +458,7 @@ Rispondi in italiano. Sii concreto e originale.`;
                   className={cn(
                     "py-2 px-1 rounded-[18px] text-[8px] font-black uppercase tracking-widest transition-all duration-300 text-center",
                     activeTab === tab 
-                      ? "bg-[var(--accent)] text-[var(--bg-deep)] shadow-lg scale-105" 
+                      ? "bg-[var(--accent)] text-[var(--bg-deep)] shadow-md" 
                       : "text-[var(--text-secondary)] hover:text-[var(--text-bright)] hover:bg-[var(--accent-soft)]"
                   )}
                >
