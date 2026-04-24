@@ -41,7 +41,15 @@ export const DeepAnalysisView: React.FC = () => {
   const [query, setQuery] = useState('');
   const [instructions, setInstructions] = useState('');
   
+  const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
   const activeScene = chapters.flatMap(c => c.scenes || []).find(s => s.id === activeSceneId);
+  
+  const toggleChapter = (id: string) => {
+    const next = new Set(expandedChapters);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setExpandedChapters(next);
+  };
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -238,8 +246,8 @@ Il tuo obiettivo è elevare il testo alla qualità da pubblicazione. Sii onesto,
                   setSidekickOpen(true); 
                   setNavigatorOpen(false);
                 }} 
-                expandedChapters={new Set()} 
-                onToggleChapter={() => {}} 
+                expandedChapters={expandedChapters} 
+                onToggleChapter={toggleChapter} 
                 onCreateChapter={() => {}} 
                 onCreateScene={() => {}} 
                 onReorder={() => {}} 
