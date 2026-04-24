@@ -32,6 +32,7 @@ export const DeepAnalysisView: React.FC = () => {
   const isSidekickOpen = useStore(s => s.isSidekickOpen);
   const setSidekickOpen = useStore(s => s.setSidekickOpen);
   const isZenMode = useStore(s => s.isZenMode);
+  const parsedSuggestions = useStore(s => s.parsedSuggestions);
   const setParsedSuggestions = useStore(s => s.setParsedSuggestions);
   const { addToast } = useToast();
   
@@ -199,6 +200,54 @@ ${instructions ? `ORDINE DI SERVIZIO: "${instructions}"` : ''}`;
                       <Zap className="w-3.5 h-3.5" />
                     </button>
                   </div>
+
+                  {/* Suggerimenti a Blocchi (Categorizzati) */}
+                  {!isAnalyzing && parsedSuggestions.length > 0 && (
+                    <div className="mt-8 space-y-6 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar pb-10">
+                      {Array.from(new Set(parsedSuggestions.map(s => s.category || 'Generale'))).map(cat => (
+                        <div key={cat} className="space-y-3">
+                          <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--accent)] px-1 flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
+                            {cat}
+                          </h3>
+                          <div className="space-y-2">
+                            {parsedSuggestions.filter(s => (s.category || 'Generale') === cat).map((sug, i) => (
+                              <button
+                                key={i}
+                                onClick={() => {
+                                  // Trigger scroll nell'editor
+                                  useStore.getState().setHighlightedText(sug.original);
+                                  useStore.getState().requestScrollToHighlight();
+                                }}
+                                className="w-full text-left p-3 rounded-xl bg-[var(--bg-surface)]/40 border border-[var(--border-subtle)] hover:border-[var(--accent)]/30 transition-all group"
+                              >
+                                <div className="text-[10px] font-medium text-[var(--text-bright)] line-clamp-2 mb-1 group-hover:text-[var(--accent)] transition-colors">
+                                  {sug.suggestion || sug.original}
+                                </div>
+                                <div className="text-[9px] text-[var(--text-muted)] italic line-clamp-1">
+                                  {sug.reason}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {isAnalyzing && (
+                    <div className="mt-6 p-4 rounded-2xl bg-[var(--accent-soft)]/10 border border-[var(--accent)]/10 animate-in fade-in slide-in-from-top-4 duration-500">
+                      <div className="flex items-center gap-3 mb-2">
+                        <RefreshCw className="w-4 h-4 text-[var(--accent)] animate-spin" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-bright)]">
+                          Indagine in corso...
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-[var(--text-secondary)] leading-relaxed">
+                        Il Capo Redattore sta scansionando il testo alla ricerca di refusi, ripetizioni e debolezze stilistiche. Le correzioni appariranno a blocchi qui sotto e nell'editor.
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
