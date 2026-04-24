@@ -28,14 +28,14 @@ export function parseAIAnalysis(text: string): AISuggestion[] {
       const contentMatch = line.match(/❌\s*(?:TESTO\s*ORIGINALE\s*(?:ESATTO)?:?)?\s*(.*)/i);
       const cleanOriginal = (contentMatch ? contentMatch[1] : '')
         .replace(/\*\*/g, '')
-        .replace(/^["“”«»]+|["“”«»]+$/g, '');
+        .replace(/^["“”«»\[]+|["“”«»\]]+$/g, '');
       currentSuggestion = { original: cleanOriginal };
     } else if (hasSuggestionEmoji) {
       if (currentSuggestion) {
         const contentMatch = line.match(/✅\s*(?:NUOVA\s*VERSIONE\s*(?:SUGGERITA)?:?)?\s*(.*)/i);
         currentSuggestion.suggestion = (contentMatch ? contentMatch[1] : '')
           .replace(/\*\*/g, '')
-          .replace(/^["“”«»]+|["“”«»]+$/g, '')
+          .replace(/^["“”«»\[]+|["“”«»\]]+$/g, '')
           .replace(/\s*\*\(Correzione:.*?\)\*/gi, '')
           .replace(/\s*\(Correzione:.*?\)/gi, '');
       }
