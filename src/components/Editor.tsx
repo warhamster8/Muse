@@ -169,9 +169,9 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   if (!editor) return null;
 
   return (
-    <div className="flex flex-col bg-[var(--bg-surface)] shadow-2xl rounded-xl border border-[var(--border-subtle)] relative overflow-visible">
+    <div className="flex flex-col bg-[var(--bg-surface)] shadow-2xl rounded-[40px] border border-[var(--border-subtle)] relative overflow-visible">
       {/* TOOLBAR */}
-      <div className="sticky top-0 bg-[var(--bg-card)]/90 p-2 border-b border-[var(--border-subtle)] flex flex-wrap items-center gap-1 z-20 rounded-t-[11px] backdrop-blur-xl">
+      <div className="sticky top-0 bg-[var(--bg-card)]/90 p-3 border-b border-[var(--border-subtle)] flex flex-wrap items-center gap-1 z-20 rounded-t-[39px] backdrop-blur-xl px-6">
         
         {/* Basic Block */}
         <div className="flex items-center gap-1 px-1">

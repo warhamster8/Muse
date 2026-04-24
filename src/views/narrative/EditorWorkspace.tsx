@@ -28,7 +28,7 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
   const setZenMode = useStore(s => s.setZenMode);
 
   return (
-    <div className="flex-1 min-w-0 flex flex-col bg-[var(--bg-surface)] relative overflow-hidden animate-in fade-in duration-500">
+    <div className="flex-1 min-w-0 flex flex-col bg-[var(--bg-surface)] relative overflow-hidden animate-in fade-in duration-500 rounded-[40px] border border-[var(--border-subtle)] shadow-sm">
       {/* Background Decorative Element */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--accent)]/5 blur-[100px] pointer-events-none opacity-50" />
 

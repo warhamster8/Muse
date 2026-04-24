@@ -50,14 +50,14 @@ export const Sidebar: React.FC = React.memo(() => {
   };
 
   return (
-    <div className="w-full md:w-20 xl:w-64 h-16 md:h-full glass rounded-t-[24px] md:rounded-b-none md:rounded-3xl flex flex-row md:flex-col p-2 md:p-4 xl:p-5 z-40 md:z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] md:shadow-2xl relative overflow-hidden transition-all duration-500 items-center md:items-stretch">
+    <div className="w-full md:w-20 xl:w-64 h-16 md:h-full glass rounded-t-[24px] md:rounded-b-none md:rounded-[40px] flex flex-row md:flex-col p-2 md:p-4 xl:p-5 z-40 md:z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] md:shadow-2xl relative overflow-hidden transition-all duration-500 items-center md:items-stretch">
       {/* Sidebar background decorative glow */}
       <div className="absolute top-0 left-0 w-full h-32 bg-[var(--accent)]/5 blur-[60px] pointer-events-none" />
 
       {/* Internal Scrollable Container to keep scrollbars within rounded borders */}
       <div className="flex flex-row md:flex-col items-center md:items-stretch w-full h-full overflow-x-auto md:overflow-x-visible md:overflow-y-auto scrollbar-hide">
         <div className="hidden md:flex relative flex-col items-center mb-6 xl:mb-8 pt-2">
-          <div className="w-12 xl:w-48 aspect-square flex items-center justify-center logo-glow overflow-hidden group relative bg-[var(--bg-surface)] rounded-[24px] xl:rounded-[32px] p-2 border border-[var(--border-subtle)] shadow-inner transition-all hover:border-[var(--accent)]/20">
+          <div className="w-12 xl:w-48 aspect-square flex items-center justify-center logo-glow overflow-hidden group relative bg-[var(--bg-deep)] rounded-[24px] xl:rounded-[40px] p-2 border border-[var(--border-subtle)] shadow-inner transition-all hover:border-[var(--accent)]/20">
             <img 
               src="/logo.png" 
               alt="Muse Logo" 
