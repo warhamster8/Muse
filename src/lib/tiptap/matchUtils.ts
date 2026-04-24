@@ -34,20 +34,19 @@ export const findMatchInText = (fullText: string, query: string): { start: numbe
   }
 
   const normalizedText = normalizedChars.join('');
-  const normalizedQuery = query.split('').map(normalizeChar).join('').replace(/\s+/g, ' ').trim();
+  // Preserviamo gli spazi della query (tranne il collasso di spazi multipli) senza trim() finale
+  const normalizedQuery = query.split('').map(normalizeChar).join('').replace(/\s+/g, ' ');
   
-  if (!normalizedQuery) return null;
+  if (!normalizedQuery.trim()) return null;
 
   // 2. Simple fuzzy search: ignore whitespace differences in the query
-  // We turn the query into a regex that allows flexible whitespace
   const escapedQuery = normalizedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   
-  // High robustness: allow optional whitespace (\s*) between words AND after punctuation
-  // This helps when AI says "word.word" but document has "word. Word" or "word.\nWord"
+  // Robustezza: permettiamo \s+ dove c'è uno spazio nella query, 
+  // ma evitiamo di mangiare spazi dopo la punteggiatura se non presenti nella query originale.
   const regexStr = escapedQuery
     .split(/\s+/)
-    .join('\\s+')
-    .replace(/([.,!?;:…»"'])/g, '$1\\s*');
+    .join('\\s+');
   
   try {
     const regex = new RegExp(regexStr, 'gi');

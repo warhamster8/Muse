@@ -75,18 +75,15 @@ export const DeepAnalysisView: React.FC = () => {
 REGOLE TASSATIVE (NON DEROGARE):
 1. EVIDENZIAZIONE: 
    ❌ [Testo originale ESATTO]
-   ✅ [SOLO il testo finale del libro. NON includere commenti, spiegazioni tra parentesi o note come "(Correzione:...)" qui.]
-   🏷️ [Categoria]
-   💡 [Nota Editoriale: Sposta qui ogni spiegazione o commento sulla modifica.]
+   ✅ [Testo finale PULITO. Mai includere note o commenti qui.]
+2. SPAZI E PUNTEGGIATURA: Rispetta rigorosamente lo SPAZIO DOPO IL PUNTO. Non generare mai testo come "fine frase.Inizio frase". Deve essere sempre "fine frase. Inizio frase".
+3. NO COMMENTI NEL TESTO: Sposta ogni spiegazione nel campo Nota Editoriale.
 
-2. SPAZI E PUNTEGGIATURA: Rispetta rigorosamente gli spazi.
-3. NO COMMENTI NEL TESTO: Il campo ✅ deve essere pronto per la stampa. Se aggiungi note tra parentesi nel campo ✅, rovinerai il manoscritto dell'autore.
-
-Esempio Corretto:
-❌ mangiò decisamente tutto.
-✅ mangiò tutto.
-🏷️ Stile
-💡 Eliminazione ridondanza "decisamente".
+Esempio:
+❌ casa.Stranamente
+✅ casa. Stranamente
+🏷️ Punteggiatura
+💡 Aggiunto spazio mancante dopo il punto.
 
 ${instructions ? `ORDINE DI SERVIZIO: "${instructions}"` : ''}`;
 

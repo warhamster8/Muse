@@ -385,13 +385,23 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
         <div className="w-full relative">
            {editor && (() => {
               const { from } = editor.state.selection;
-              // Only show if the cursor is within a highlight
-              // Note: the user mentioned "selezionato", but usually clicking/moving cursor is better.
-              // We'll keep it on cursor for now but ensure it's a valid highlight.
               
-              const domAtPos = editor.view.domAtPos(from).node;
-              const element = domAtPos instanceof Element ? domAtPos : domAtPos.parentElement;
-              const highlight = element?.closest('.suggestion-highlight-pulse');
+              // Helper per trovare l'elemento di evidenziazione vicino al cursore
+              const findHighlight = (pos: number) => {
+                try {
+                  const dom = editor.view.domAtPos(pos).node;
+                  const el = dom instanceof Element ? dom : dom.parentElement;
+                  return el?.closest('.suggestion-highlight-pulse');
+                } catch {
+                  return null;
+                }
+              };
+
+              // Controlliamo sia la posizione attuale che quella precedente (per i click a fine parola)
+              let highlight = findHighlight(from);
+              if (!highlight && from > 0) {
+                highlight = findHighlight(from - 1);
+              }
               
               if (!highlight) return null;
               

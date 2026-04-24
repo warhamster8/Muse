@@ -24,18 +24,18 @@ export function parseAIAnalysis(text: string): AISuggestion[] {
           suggestions.push(currentSuggestion as AISuggestion);
         }
       }
-      const cleanOriginal = line
-        .replace(/.*❌\s*(?:TESTO\s*ORIGINALE\s*(?:ESATTO)?:?)?\s*/i, '')
+      // Cerchiamo di isolare il testo dopo l'emoji o l'etichetta senza mangiare lo spazio iniziale del contenuto
+      const contentMatch = line.match(/❌\s*(?:TESTO\s*ORIGINALE\s*(?:ESATTO)?:?)?\s*(.*)/i);
+      const cleanOriginal = (contentMatch ? contentMatch[1] : '')
         .replace(/\*\*/g, '')
         .replace(/^["“”«»]+|["“”«»]+$/g, '');
       currentSuggestion = { original: cleanOriginal };
     } else if (hasSuggestionEmoji) {
       if (currentSuggestion) {
-        currentSuggestion.suggestion = line
-          .replace(/.*✅\s*(?:NUOVA\s*VERSIONE\s*(?:SUGGERITA)?:?)?\s*/i, '')
+        const contentMatch = line.match(/✅\s*(?:NUOVA\s*VERSIONE\s*(?:SUGGERITA)?:?)?\s*(.*)/i);
+        currentSuggestion.suggestion = (contentMatch ? contentMatch[1] : '')
           .replace(/\*\*/g, '')
           .replace(/^["“”«»]+|["“”«»]+$/g, '')
-          // Rimuove commenti tra parentesi che l'IA potrebbe aver infilato per errore
           .replace(/\s*\*\(Correzione:.*?\)\*/gi, '')
           .replace(/\s*\(Correzione:.*?\)/gi, '');
       }
