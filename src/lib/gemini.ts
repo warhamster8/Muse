@@ -25,8 +25,10 @@ export const geminiService = {
       throw new Error('Configurazione di sicurezza: Chiave Gemini non valida');
     }
 
-    // Normalizzazione del nome modello per gli endpoint stabili
-    const normalizedModel = model === 'gemini-flash-latest' ? 'gemini-1.5-flash' : model;
+    // Normalizzazione del nome modello — usa l'alias stabile supportato da v1beta
+    const normalizedModel = (model === 'gemini-flash-latest' || model === 'gemini-1.5-flash') 
+      ? 'gemini-1.5-flash-latest' 
+      : model;
 
     // Strategia di compatibilità massima: incorporiamo le istruzioni di sistema nel primo messaggio utente
     const systemInstruction = messages.find((m) => m.role === 'system')?.content;
@@ -143,7 +145,9 @@ export const geminiService = {
     headers.set('Content-Type', 'application/json');
     headers.delete('Authorization'); // Prevents any phantom Bearer tokens from triggering 401
 
-    const normalizedModel = model.includes('gemini-1.5-flash') ? 'gemini-1.5-flash' : model;
+    const normalizedModel = (model === 'gemini-flash-latest' || model === 'gemini-1.5-flash') 
+      ? 'gemini-1.5-flash-latest' 
+      : model;
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${normalizedModel}:generateContent?key=${apiKey.trim()}`, {
         method: 'POST',
