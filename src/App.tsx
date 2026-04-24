@@ -14,7 +14,6 @@ const ConfigView = lazyRetry(() => import('./views/ConfigView').then(m => ({ def
 const AuthView = lazyRetry(() => import('./views/AuthView').then(m => ({ default: m.AuthView })), 'AuthView');
 const ProjectSelector = lazyRetry(() => import('./views/ProjectSelector').then(m => ({ default: m.ProjectSelector })), 'ProjectSelector');
 const TimelineView = lazyRetry(() => import('./views/TimelineView').then(m => ({ default: m.TimelineView })), 'TimelineView');
-const DeepAnalysisView = lazyRetry(() => import('./views/DeepAnalysisView').then(m => ({ default: m.DeepAnalysisView })), 'DeepAnalysisView');
 import { AlertCircle, Cloud } from 'lucide-react';
 import { ToastContainer } from './components/Toast';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -145,8 +144,6 @@ function App() {
         return <AnalysisView />;
       case 'timeline':
         return <TimelineView />;
-      case 'deep-analysis':
-        return <DeepAnalysisView />;
       default:
         return <NarrativeView />;
     }

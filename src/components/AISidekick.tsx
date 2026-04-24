@@ -204,31 +204,42 @@ export const AISidekick: React.FC = React.memo(() => {
     let fullResponse = '';
 
     try {
-      const systemPrompt = `Sei un editor letterario senior esperto in narrativa italiana.
-Revisiona la bozza fornita con precisione e profondità.
+      const systemPrompt = `Sei il Capo Redattore di Muse. Il tuo compito è revisionare il testo (TARGET) garantendo coerenza assoluta con l'intera scena (CONTESTO).
 
-REQUISITO DI TEMPO NARRATIVO:
-Individua se il testo è scritto al passato o al presente. Tutte le tue proposte di revisione (✅) DEVONO mantenere lo STESSO TEMPO NARRATIVO del testo originale per garantire coerenza stilistica.
+REQUISITI DI COERENZA:
+1. POV E TEMPO: Mantieni rigorosamente lo stesso punto di vista e tempo narrativo del contesto.
+2. STILE: Adattati allo stile dell'autore. Se il testo è asciutto, non suggerire frasi barocche.
+3. PERSONAGGI: Assicurati che i nomi e i modi di fare siano coerenti con quanto appare nel contesto.
 
 REGOLE MANDATORIE:
 1. Inizia IMMEDIATAMENTE con "## Analisi Revisione".
-2. Segui RIGOROSAMENTE l'ordine del testo linearmente.
-3. Formato Suggerimento:
-   ❌ [Testo originale ESATTO - deve essere identico a quello nel manoscritto]
-   ✅ [Nuova versione migliorata - stesso tempo verbale del testo]
+2. Segui l'ordine del testo linearmente.
+3. Formato Suggerimento (ESATTO):
+   ❌ [Testo originale ESATTO - identico al manoscritto]
+   ✅ [Nuova versione migliorata - stessa grammatica/tempo del contesto]
    🏷️ Categoria
    💡 Spiegazione
 
-4. IDENTIFICAZIONE: Identifica 5-7 punti chiave.
-5. Concludi con "## Note Generali".
-
 LINGUA: Italiano.`;
+
+      const userContent = `
+CONTESTO DELL'INTERA SCENA (SOLO PER RIFERIMENTO):
+---
+${plainText.substring(0, 10000)}
+---
+
+TARGET DA REVISIONARE:
+---
+${textToAnalyze}
+---
+
+${isSelection ? 'REVISIONA SOLO IL TARGET SOPRA, MA USA IL CONTESTO PER LA COERENZA.' : 'REVISIONA IL TARGET SOPRA.'}`;
 
       await aiService.streamChat(
         aiConfig,
         [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `${isSelection ? 'REVISIONA SOLO QUESTA SELEZIONE:\n' : (textToAnalyze !== plainText ? 'CONTINUA LA REVISIONE DA QUESTO PUNTO (IGNORA PARTI PRECEDENTI):\n' : 'Revisiona questa bozza:\n')}\n${textToAnalyze}` }
+          { role: 'user', content: userContent }
         ],
         (chunk) => {
           fullResponse += chunk;
@@ -276,12 +287,12 @@ LINGUA: Italiano.`;
     if (textToAnalyze.length > 30000) textToAnalyze = textToAnalyze.substring(0, 30000);
 
     try {
-      const systemPrompt = `Sei un correttore bozze professionista.
-Il tuo compito è correggere errori tecnici (ortografia, punteggiatura, spazi).
-NON suggerire cambiamenti di stile o trama.
+      const systemPrompt = `Sei il Capo Redattore di Muse. Il tuo compito è correggere errori tecnici nel testo (TARGET) mantenendo la coerenza con l'intera scena (CONTESTO).
 
-REQUISITO DI TEMPO NARRATIVO:
-Rispetta rigorosamente il tempo narrativo del testo (Presente o Passato). Non cambiare mai i verbi se il tempo è coerente.
+REQUISITI:
+1. ORTOGRAFIA E PUNTEGGIATURA: Correggi refusi, spazi mancanti e punteggiatura errata.
+2. TEMPI VERBALI: Se il contesto è al passato, non suggerire correzioni che portano al presente (e viceversa).
+3. COERENZA: Rispetta i nomi e lo stile stabiliti nel contesto.
 
 REGOLE MANDATORIE:
 1. Inizia con "## Analisi Tecnica".
@@ -291,13 +302,26 @@ REGOLE MANDATORIE:
    🏷️ Categoria (Ortografia, Punteggiatura, Formattazione)
    💡 Spiegazione
 
-LINGUA: Italiano. Sii estremamente preciso.`;
+LINGUA: Italiano.`;
+
+      const userContent = `
+CONTESTO DELL'INTERA SCENA (SOLO PER RIFERIMENTO):
+---
+${plainText.substring(0, 10000)}
+---
+
+TARGET DA CORREGGERE:
+---
+${textToAnalyze}
+---
+
+${isSelection ? 'CORREGGI SOLO IL TARGET SOPRA, MA USA IL CONTESTO PER LA COERENZA.' : 'CORREGGI IL TARGET SOPRA.'}`;
 
       await aiService.streamChat(
         aiConfig,
         [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `${isSelection ? 'CORREGGI ESCLUSIVAMENTE QUESTA SELEZIONE (IGNORA IL RESTO):\n' : 'Correggi ortografia e punteggiatura di questo testo:\n'}\n${textToAnalyze}` }
+          { role: 'user', content: userContent }
         ],
         (chunk) => setAnalysis(prev => prev + chunk),
         { signal: abortControllerRef.current.signal }

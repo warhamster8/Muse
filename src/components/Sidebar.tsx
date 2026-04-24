@@ -10,7 +10,6 @@ import {
   StickyNote,
   Library,
   GitCommit,
-  ScanSearch,
   Sun,
   Moon
 } from 'lucide-react';
@@ -26,7 +25,6 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { id: 'narrative', label: 'Narrative', icon: BookOpen },
-  { id: 'deep-analysis', label: 'Deep Analysis', icon: ScanSearch },
   { id: 'characters', label: 'Characters', icon: Users },
   { id: 'world', label: 'World Settings', icon: Globe },
   { id: 'notes', label: 'Note', icon: StickyNote },

@@ -7,7 +7,7 @@ import type { AISuggestion } from '../lib/aiParsing';
 
 
 
-export type ViewTab = 'narrative' | 'characters' | 'world' | 'notes' | 'analysis' | 'config' | 'timeline' | 'deep-analysis';
+export type ViewTab = 'narrative' | 'characters' | 'world' | 'notes' | 'analysis' | 'config' | 'timeline';
 
 interface User {
   id: string;
