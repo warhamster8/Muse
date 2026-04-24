@@ -157,7 +157,7 @@ export const CharactersView: React.FC = () => {
               key={char.id}
               onClick={() => setSelectedCharId(char.id)}
               className={cn(
-                "p-5 rounded-[32px] border transition-all duration-500 cursor-pointer flex gap-5 items-center group relative overflow-hidden",
+                "p-4 rounded-[28px] border transition-all duration-500 cursor-pointer flex gap-4 items-center group relative overflow-hidden",
                 selectedCharId === char.id 
                   ? "glass-emerald border-[var(--accent)]/30 shadow-xl" 
                   : "glass border-[var(--border-subtle)] hover:border-[var(--accent)]/20",
@@ -167,7 +167,7 @@ export const CharactersView: React.FC = () => {
               )}
             >
               <div className={cn(
-                "w-16 h-16 rounded-[20px] overflow-hidden bg-[var(--bg-deep)]/40 border flex-shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-700",
+                "w-12 h-12 rounded-[16px] overflow-hidden bg-[var(--bg-deep)]/40 border flex-shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-700",
                 char.role === 'protagonist' ? "border-[var(--accent)]/40 shadow-[0_0_15px_rgba(91,233,177,0.2)]" :
                 char.role === 'co-protagonist' ? "border-cyan-400/40 shadow-[0_0_15px_rgba(34,211,238,0.2)]" :
                 char.role === 'antagonist' ? "border-red-400/40 shadow-[0_0_15px_rgba(248,113,113,0.2)]" : "border-[var(--border-subtle)]"
@@ -213,18 +213,18 @@ export const CharactersView: React.FC = () => {
       <div className="flex-1 min-w-0 glass rounded-3xl border border-[var(--border-subtle)] flex flex-col overflow-hidden shadow-2xl relative">
         {selectedChar ? (
           <div className="flex flex-col h-full bg-[var(--bg-surface)]/20">
-            <div className="p-16 border-b border-[var(--border-subtle)] relative overflow-hidden group/header">
+            <div className="p-10 border-b border-[var(--border-subtle)] relative overflow-hidden group/header">
               {/* Background Glow */}
               <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[var(--accent)]/5 blur-[180px] -mr-48 -mt-48 transition-all group-hover/header:bg-[var(--accent)]/10 pointer-events-none" />
               
-              <div className="relative flex flex-col md:flex-row items-center md:items-end gap-12">
+              <div className="relative flex flex-col md:flex-row items-center md:items-end gap-8">
                 {/* Large Portrait */}
                 <div className="relative">
                   <div 
                     onClick={() => !isAdjusting && fileInputRef.current?.click()}
                     className={cn(
-                      "group relative w-64 h-80 rounded-[48px] bg-[var(--bg-deep)] border border-[var(--border-subtle)] overflow-hidden transition-all duration-700 shadow-2xl flex-shrink-0",
-                      isAdjusting ? "ring-2 ring-[var(--accent)] cursor-move scale-95" : "cursor-pointer hover:border-[var(--accent)]/40 hover:-translate-y-2"
+                      "group relative w-48 h-60 rounded-[32px] bg-[var(--bg-deep)] border border-[var(--border-subtle)] overflow-hidden transition-all duration-700 shadow-2xl flex-shrink-0",
+                      isAdjusting ? "ring-2 ring-[var(--accent)] cursor-move scale-95" : "cursor-pointer hover:border-[var(--accent)]/40 hover:-translate-y-1"
                     )}
                   >
                     {selectedChar.avatar_url ? (
@@ -332,7 +332,7 @@ export const CharactersView: React.FC = () => {
                                 addToast(`Ruolo aggiornato: ${role.label}`, 'success');
                               }}
                               className={cn(
-                                "flex items-center gap-2 px-4 py-2 rounded-[16px] text-[9px] font-black uppercase tracking-widest transition-all relative z-10",
+                                "flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-[8px] font-black uppercase tracking-widest transition-all relative z-10",
                                 (selectedChar.role || 'secondary') === role.id 
                                   ? `${role.activeBg} text-[var(--bg-deep)] shadow-lg` 
                                   : "text-[var(--text-muted)] hover:text-[var(--text-bright)] hover:bg-white/5"
@@ -366,7 +366,7 @@ export const CharactersView: React.FC = () => {
                       <input 
                         value={localName}
                         onChange={(e) => setLocalName(e.target.value)}
-                        className="text-7xl font-black font-display bg-transparent text-[var(--text-bright)] focus:outline-none placeholder:opacity-5 tracking-tighter mb-10 truncate w-full uppercase"
+                        className="text-5xl font-black font-display bg-transparent text-[var(--text-bright)] focus:outline-none placeholder:opacity-5 tracking-tighter mb-6 truncate w-full uppercase"
                         placeholder="Unnamed Character"
                       />
                     </>
@@ -396,8 +396,8 @@ export const CharactersView: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-16 space-y-16 scrollbar-hide">
-              <section className="space-y-8 animate-in slide-in-from-bottom-8 duration-1000 delay-100">
+            <div className="flex-1 overflow-y-auto p-10 space-y-10 scrollbar-hide">
+              <section className="space-y-6 animate-in slide-in-from-bottom-8 duration-1000 delay-100">
                 <div className="flex items-center gap-4 text-[var(--accent)]/40">
                   <FileText className="w-5 h-5" />
                   <h4 className="text-[11px] font-black uppercase tracking-[0.4em]">Historical Context & Roots</h4>

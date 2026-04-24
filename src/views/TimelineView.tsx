@@ -33,6 +33,7 @@ export const TimelineView: React.FC = () => {
   const { addToast } = useToast();
 
 
+  const [activeModel, setActiveModel] = useState<string | null>(null);
   const { updateProjectTimeline, updateSceneMetadata } = useNarrative();
 
   const handleAnalyze = async (isFullReset: boolean = false) => {
@@ -91,6 +92,7 @@ export const TimelineView: React.FC = () => {
       const modifiedSceneIds = new Set(scenesToAnalyze.map(s => s.id));
       const finalNewEvents: GlobalTimelineEvent[] = [];
       let lastKnownEndMinute = 0;
+      let lastModelUsed = 'Auto';
       
       for (const scene of activeScenes) {
         const text = cleanHtml(scene.content || '');
@@ -101,7 +103,8 @@ export const TimelineView: React.FC = () => {
         if (isModified && hasText) {
           try {
             // Passiamo l'ultimo minuto conosciuto come OFFSET per l'AI
-            const events = await timelineUtils.extractEvents(text, aiConfig, lastKnownEndMinute);
+            const { events, modelUsed } = await timelineUtils.extractEvents(text, aiConfig, lastKnownEndMinute);
+            lastModelUsed = modelUsed;
             const eventsWithId = events.map(e => ({ ...e, sceneId: scene.id }));
             finalNewEvents.push(...eventsWithId);
             
@@ -122,6 +125,8 @@ export const TimelineView: React.FC = () => {
           }
         }
       }
+
+      setActiveModel(lastModelUsed);
 
       const conflictMap = timelineUtils.detectOverlaps(finalNewEvents);
       
@@ -169,7 +174,15 @@ export const TimelineView: React.FC = () => {
             <GitCommit className="w-4 h-4 text-[var(--accent)]" />
             <span className="text-[10px] font-black text-[var(--accent)]/50 uppercase tracking-[0.3em]">Temporal Architecture</span>
           </div>
-          <h1 className="text-4xl font-black tracking-tighter text-[var(--text-bright)]">Cronologia Narrativa</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-4xl font-black tracking-tighter text-[var(--text-bright)]">Cronologia Narrativa</h1>
+            {activeModel && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-[var(--accent-soft)] rounded-full border border-[var(--accent)]/20 animate-in fade-in zoom-in duration-500">
+                <div className="w-1.5 h-1.5 bg-[var(--accent)] rounded-full shadow-glow-mint" />
+                <span className="text-[8px] font-black text-[var(--accent)] uppercase tracking-widest">{activeModel} Active</span>
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-4">
           {hasEvents && (

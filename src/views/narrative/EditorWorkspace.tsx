@@ -33,7 +33,7 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
       <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--accent)]/5 blur-[100px] pointer-events-none opacity-50" />
 
       {/* Toolbar Premium (Sempre visibile per controlli layout) */}
-      <div className="h-20 bg-[var(--bg-card)]/50 border-b border-[var(--border-subtle)] flex items-center justify-between px-10 backdrop-blur-md z-10">
+      <div className="sticky top-0 h-20 bg-[var(--bg-card)]/80 border-b border-[var(--border-subtle)] flex items-center justify-between px-10 backdrop-blur-xl z-30 shrink-0">
         <div className="flex items-center gap-6">
           <div className="flex flex-col">
             <span className="text-[9px] font-black text-[var(--accent)] uppercase tracking-[0.4em] mb-1">
@@ -136,8 +136,8 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
             </div>
           </div>
         ) : (
-          <div className="h-full overflow-y-auto custom-scrollbar p-6 lg:p-12 bg-[var(--bg-deep)] transition-colors duration-500">
-            <div className="mx-auto w-full max-w-[1200px]">
+          <div className="h-full overflow-y-auto custom-scrollbar bg-[var(--bg-deep)] transition-colors duration-500">
+            <div className="mx-auto w-full max-w-[1200px] p-6 lg:p-12">
               <Editor 
                 initialContent={activeScene.content || ''} 
                 onChange={(newContent) => onUpdateContent(activeScene.id, newContent)} 

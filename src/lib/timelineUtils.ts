@@ -38,15 +38,29 @@ REGOLE DI OUTPUT:
 Restituisci ESCLUSIVAMENTE l'array JSON [ { ... } ].`;
 
 export const timelineUtils = {
-  async extractEvents(text: string, aiConfig: AIConfig, contextMinutes?: number): Promise<GlobalTimelineEvent[]> {
+  async extractEvents(text: string, aiConfig: AIConfig, contextMinutes?: number): Promise<{ events: GlobalTimelineEvent[], modelUsed: string }> {
     try {
       let fullResponse = '';
       const contextPrompt = contextMinutes 
         ? `\n\n[RIFERIMENTO CRONOLOGICO]: Questa scena avviene DOPO il minuto ${contextMinutes} dal 01/01/2000. Usa questo valore come punto di partenza se non ci sono date diverse nel testo.`
         : '';
 
+      // Smart Routing: Timeline extraction requires high analytical reasoning and long context
+      const timelineConfig: AIConfig = { ...aiConfig };
+      let modelUsed = aiConfig.model || 'Auto';
+
+      if (aiConfig.geminiKey) {
+        timelineConfig.provider = 'gemini';
+        timelineConfig.model = 'gemini-1.5-flash'; // Optimized for structured extraction
+        modelUsed = 'Gemini 1.5 Flash';
+      } else {
+        timelineConfig.provider = 'groq';
+        timelineConfig.model = 'llama-3.3-70b-versatile'; // Best fallback for extraction
+        modelUsed = 'Llama 3.3 70B';
+      }
+
       await aiService.streamChat(
-        aiConfig,
+        timelineConfig,
         [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: `Analizza questo testo ed estrai la timeline in formato JSON:${contextPrompt}\n\n${text}` }
@@ -67,10 +81,12 @@ export const timelineUtils = {
         throw new Error('La risposta AI non è un array di eventi');
       }
       
-      return events.map((e: any, i: number) => ({
+      const mappedEvents = events.map((e: any, i: number) => ({
         ...e,
         id: `evt-${i}-${Math.random().toString(36).substr(2, 9)}`
       }));
+
+      return { events: mappedEvents, modelUsed };
     } catch (err) {
       console.error('[TIMELINE] Errore estrazione:', err);
       throw err;
