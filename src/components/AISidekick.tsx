@@ -12,7 +12,9 @@ import {
   CheckCircle,
   ChevronLeft,
   ChevronRight,
-  X
+  X,
+  Trash2,
+  Camera
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useStore } from '../store/useStore';
@@ -41,6 +43,7 @@ export const AISidekick: React.FC = React.memo(() => {
   const parsedSuggestions = useStore(s => s.parsedSuggestions);
   const suggestionIndex = useStore(s => s.suggestionIndex);
   const setSuggestionIndex = useStore(s => s.setSuggestionIndex);
+  const addIgnoredSuggestion = useStore(s => s.addIgnoredSuggestion);
 
   const setHighlightedText = useStore(s => s.setHighlightedText);
   const requestScrollToHighlight = useStore(s => s.requestScrollToHighlight);
@@ -166,6 +169,25 @@ export const AISidekick: React.FC = React.memo(() => {
   };
 
     const plainText = getPlainTextForAI(content || '');
+  
+  const applySuggestion = async (sug: any) => {
+    if (!activeSceneId || !sug.suggestion) return;
+    
+    // We need to be careful with HTML vs PlainText. 
+    // Since suggestions come from plain text but we edit HTML, we do a simple string replace.
+    // This is a bit risky but usually works if the original text doesn't contain complex HTML tags within the match.
+    const newContent = content.replace(sug.original, sug.suggestion);
+    if (newContent !== content) {
+      await updateSceneContent(activeSceneId, newContent);
+      addToast('Suggerimento applicato', 'success');
+      addIgnoredSuggestion(activeSceneId, sug.original);
+      // Advance to next if possible
+      setSuggestionIndex(prev => {
+        if (parsedSuggestions.length <= 1) return -1;
+        return Math.min(prev, parsedSuggestions.length - 2);
+      });
+    }
+  };
 
   const runDraftRevision = async () => {
     if (!plainText || (activeSelection ? activeSelection.length < 1 : plainText.length < 10)) return;
