@@ -39,6 +39,7 @@ export const AISidekick: React.FC = React.memo(() => {
   const activeSelection = useStore(s => s.activeSelection);
   const aiConfig = useStore(s => s.aiConfig);
   const setParsedSuggestions = useStore(s => s.setParsedSuggestions);
+  const parsedSuggestions = useStore(s => s.parsedSuggestions);
   const suggestionIndex = useStore(s => s.suggestionIndex);
   const setSuggestionIndex = useStore(s => s.setSuggestionIndex);
   const addIgnoredSuggestion = useStore(s => s.addIgnoredSuggestion);
