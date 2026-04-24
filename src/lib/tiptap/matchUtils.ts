@@ -9,10 +9,7 @@ export interface MatchResult {
  * Normalizes a single character for comparison
  */
 const normalizeChar = (c: string): string => {
-  return c
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
+  return c.toLowerCase();
 };
 
 /**

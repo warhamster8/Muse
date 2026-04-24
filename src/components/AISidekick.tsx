@@ -41,6 +41,7 @@ export const AISidekick: React.FC = React.memo(() => {
   const parsedSuggestions = useStore(s => s.parsedSuggestions);
   const suggestionIndex = useStore(s => s.suggestionIndex);
   const setSuggestionIndex = useStore(s => s.setSuggestionIndex);
+
   const setHighlightedText = useStore(s => s.setHighlightedText);
   const requestScrollToHighlight = useStore(s => s.requestScrollToHighlight);
 
@@ -60,6 +61,11 @@ export const AISidekick: React.FC = React.memo(() => {
     if (!activeSceneId) return;
     setSceneAnalysis(activeSceneId, val, activeTab);
   };
+
+  // Reset index when changing tabs to avoid stale state
+  React.useEffect(() => {
+    setSuggestionIndex(-1);
+  }, [activeTab, setSuggestionIndex]);
 
   // Automated parsing of suggestions
   React.useEffect(() => {
@@ -208,8 +214,8 @@ REGOLE MANDATORIE:
 1. Inizia IMMEDIATAMENTE con "## Analisi Revisione".
 2. Segui RIGOROSAMENTE l'ordine del testo linearmente.
 3. Formato Suggerimento:
-   ❌ Frase originale (esatta dal testo)
-   ✅ Nuova versione migliorata (stesso tempo verbale del testo)
+   ❌ [Testo originale ESATTO - deve essere identico a quello nel manoscritto]
+   ✅ [Nuova versione migliorata - stesso tempo verbale del testo]
    🏷️ Categoria
    💡 Spiegazione
 
@@ -279,9 +285,9 @@ Rispetta rigorosamente il tempo narrativo del testo (Presente o Passato). Non ca
 
 REGOLE MANDATORIE:
 1. Inizia con "## Analisi Tecnica".
-2. Usa QUESTO FORMATO:
-   ❌ Errore riscontrato
-   ✅ Versione corretta
+2. Usa QUESTO FORMATO (senza note extra):
+   ❌ [Testo originale ESATTO - deve essere identico a quello nel manoscritto]
+   ✅ [Testo corretto]
    🏷️ Categoria (Ortografia, Punteggiatura, Formattazione)
    💡 Spiegazione
 
@@ -644,6 +650,22 @@ Rispondi in italiano. Sii concreto e originale.`;
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
+                  </div>
+                </div>
+
+                {/* Anteprima Errore */}
+                <div className="p-4 bg-[var(--accent-soft)] rounded-2xl border border-[var(--accent)]/10">
+                  <p className="text-[10px] text-[var(--text-primary)] leading-relaxed italic line-clamp-3">
+                    "{parsedSuggestions[suggestionIndex]?.original}"
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <div className="h-1.5 flex-1 bg-[var(--bg-deep)] rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-[var(--accent)] transition-all duration-500" 
+                      style={{ width: `${((suggestionIndex + 1) / parsedSuggestions.length) * 100}%` }}
+                    />
                   </div>
                 </div>
               </div>

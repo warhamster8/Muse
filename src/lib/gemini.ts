@@ -25,6 +25,9 @@ export const geminiService = {
       throw new Error('Configurazione di sicurezza: Chiave Gemini non valida');
     }
 
+    // Normalizzazione del nome modello per gli endpoint stabili
+    const normalizedModel = model === 'gemini-flash-latest' ? 'gemini-1.5-flash' : model;
+
     const systemInstructionText = messages.find((m) => m.role === 'system')?.content;
     const history = messages
       .filter((m) => m.role !== 'system')
@@ -37,22 +40,20 @@ export const geminiService = {
       contents: history,
       generationConfig: {
         temperature,
-        maxOutputTokens: 4096,
+        maxOutputTokens: 8192,
       },
       safetySettings: [
-        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
-        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
-        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
-        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
+        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
       ]
     };
 
     if (systemInstructionText) {
-      if (history.length > 0 && history[0].role === 'user') {
-        history[0].parts[0].text = `[SYSTEM INSTRUCTION: ${systemInstructionText}]\n\n${history[0].parts[0].text}`;
-      } else {
-        history.unshift({ role: 'user', parts: [{ text: `[SYSTEM INSTRUCTION]:\n${systemInstructionText}` }] });
-      }
+      body.system_instruction = {
+        parts: [{ text: systemInstructionText }]
+      };
     }
 
     const headers = new Headers();
@@ -62,7 +63,7 @@ export const geminiService = {
     headers.delete('Authorization');
 
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey.trim()}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${normalizedModel}:streamGenerateContent?alt=sse&key=${apiKey.trim()}`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(body),
@@ -136,8 +137,9 @@ export const geminiService = {
     headers.set('Content-Type', 'application/json');
     headers.delete('Authorization'); // Prevents any phantom Bearer tokens from triggering 401
 
+    const normalizedModel = model === 'gemini-flash-latest' ? 'gemini-1.5-flash' : model;
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${normalizedModel}:generateContent?key=${apiKey.trim()}`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify({

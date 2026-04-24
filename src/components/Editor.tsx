@@ -156,7 +156,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
         }
       }, 10);
     }
-  }, [scrollRequestToken, editor]);
+  }, [scrollRequestToken, highlightedText, editor]);
 
   // Sync content if it changes externally
   React.useEffect(() => {
