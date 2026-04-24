@@ -61,10 +61,18 @@ export function parseAIAnalysis(text: string): AISuggestion[] {
     
     // Final check for all fields to remove any leakage
     if (currentSuggestion?.original) {
-      currentSuggestion.original = currentSuggestion.original.replace(/(?:Suggerimento|Suggestione|Correzione)\s*\d+[:\s]*/gi, '').trim();
+      currentSuggestion.original = currentSuggestion.original
+        .replace(/(?:Suggerimento|Suggestione|Correzione)\s*\d+[:\s]*/gi, '')
+        .replace(/---/g, '')
+        .replace(/\[(?:INIZIO|FINE)\s*(?:TARGET|CONTESTO)\]/gi, '')
+        .trim();
     }
     if (currentSuggestion?.suggestion) {
-      currentSuggestion.suggestion = currentSuggestion.suggestion.replace(/(?:Suggerimento|Suggestione|Correzione)\s*\d+[:\s]*/gi, '').trim();
+      currentSuggestion.suggestion = currentSuggestion.suggestion
+        .replace(/(?:Suggerimento|Suggestione|Correzione)\s*\d+[:\s]*/gi, '')
+        .replace(/---/g, '')
+        .replace(/\[(?:INIZIO|FINE)\s*(?:TARGET|CONTESTO)\]/gi, '')
+        .trim();
     }
   });
 

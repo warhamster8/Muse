@@ -263,14 +263,14 @@ LINGUA: Italiano.`;
 L'utente desidera revisionare SOLO questa specifica selezione di testo:
 
 TARGET DA REVISIONARE (AGISCI SOLO QUI):
----
+[INIZIO TARGET]
 ${textToAnalyze}
----
+[FINE TARGET]
 
 CONTESTO DELLA SCENA (USA SOLO COME RIFERIMENTO PER LA COERENZA):
----
+[INIZIO CONTESTO]
 ${plainText.substring(0, 10000)}
----
+[FINE CONTESTO]
 
 IMPORTANTE: Fornisci suggerimenti di revisione ESCLUSIVAMENTE per il TARGET sopra. Ignora il resto del contesto per quanto riguarda le correzioni dirette.` 
 : `
@@ -359,14 +359,14 @@ LINGUA: Italiano.`;
 L'utente desidera correggere SOLO questa specifica selezione di testo:
 
 TARGET DA CORREGGERE (AGISCI SOLO QUI):
----
+[INIZIO TARGET]
 ${textToAnalyze}
----
+[FINE TARGET]
 
 CONTESTO DELLA SCENA (USA SOLO COME RIFERIMENTO PER LA COERENZA):
----
+[INIZIO CONTESTO]
 ${plainText.substring(0, 10000)}
----
+[FINE CONTESTO]
 
 IMPORTANTE: Fornisci correzioni tecniche ESCLUSIVAMENTE per il TARGET sopra.` 
 : `
