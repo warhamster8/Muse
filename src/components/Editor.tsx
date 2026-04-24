@@ -383,10 +383,11 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
 
       <div className="flex-1 px-8 py-12 bg-[var(--bg-deep)] rounded-b-[inherit]">
         <div className="w-full relative">
-           {editor && (() => {
+            {editor && (() => {
               const { from } = editor.state.selection;
+              const suggestionIndex = useStore.getState().suggestionIndex;
+              const parsedSuggestions = useStore.getState().parsedSuggestions;
               
-              // Helper per trovare l'elemento di evidenziazione vicino al cursore
               const findHighlight = (pos: number) => {
                 try {
                   const dom = editor.view.domAtPos(pos).node;
@@ -397,25 +398,37 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
                 }
               };
 
-              // Controlliamo sia la posizione attuale che quella precedente (per i click a fine parola)
-              let highlight = findHighlight(from);
-              if (!highlight && from > 0) {
-                highlight = findHighlight(from - 1);
+              let activeSuggestion: any = null;
+              let activePos = from;
+
+              // 1. Priorità: Suggerimento attivo tramite indice (navigazione)
+              if (suggestionIndex >= 0 && parsedSuggestions[suggestionIndex]) {
+                activeSuggestion = parsedSuggestions[suggestionIndex];
+                const matches = findMatchesInDoc(editor.state.doc, activeSuggestion.original);
+                if (matches.length > 0) {
+                  activePos = matches[0].from;
+                } else {
+                  activeSuggestion = null; 
+                }
+              }
+
+              // 2. Fallback: Rilevamento sotto il cursore
+              if (!activeSuggestion) {
+                let highlight = findHighlight(from);
+                if (!highlight && from > 0) highlight = findHighlight(from - 1);
+                
+                if (highlight) {
+                  const text = highlight.getAttribute('data-suggestion-text') || '';
+                  activeSuggestion = parsedSuggestions.find(s => s.original === text);
+                  activePos = from;
+                }
               }
               
-              if (!highlight) return null;
-              
-              const text = highlight.getAttribute('data-suggestion-text') || '';
-              
-              // Verify it's not ignored
-              const ignored = activeSceneId ? (ignoredSuggestions[activeSceneId] || []) : [];
-              if (ignored.includes(text)) return null;
+              if (!activeSuggestion || !activeSuggestion.suggestion) return null;
 
-              const suggestion = parsedSuggestions.find(s => s.original === text);
-              if (!suggestion || !suggestion.suggestion) return null;
 
               // Calculate position
-              const coords = editor.view.coordsAtPos(from);
+              const coords = editor.view.coordsAtPos(activePos);
               
               return (
                 <div 
@@ -426,9 +439,9 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
                   }}
                 >
                    <InTextSuggestionCard 
-                     suggestion={suggestion}
+                     suggestion={activeSuggestion}
                      onApply={() => {
-                        const { original, suggestion: nextText } = suggestion;
+                        const { original, suggestion: nextText } = activeSuggestion;
                         const matches = findMatchesInDoc(editor.state.doc, original);
                         if (matches.length > 0) {
                           const match = matches[0]; 
@@ -437,7 +450,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
                      }}
                      onIgnore={() => {
                         if (activeSceneId) {
-                          addIgnoredSuggestion(activeSceneId, suggestion.original);
+                          addIgnoredSuggestion(activeSceneId, activeSuggestion.original);
                           // Force a re-render by slightly moving the selection or just relying on state
                           editor.view.dispatch(editor.state.tr);
                         }

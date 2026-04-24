@@ -4,7 +4,9 @@ import {
   Zap, 
   RefreshCw,
   Cpu,
-  Activity
+  Activity,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useNarrative } from '../hooks/useNarrative';
@@ -34,6 +36,8 @@ export const DeepAnalysisView: React.FC = () => {
   const isZenMode = useStore(s => s.isZenMode);
   const parsedSuggestions = useStore(s => s.parsedSuggestions);
   const setParsedSuggestions = useStore(s => s.setParsedSuggestions);
+  const suggestionIndex = useStore(s => s.suggestionIndex);
+  const setSuggestionIndex = useStore(s => s.setSuggestionIndex);
   const { addToast } = useToast();
   
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -201,37 +205,54 @@ ${instructions ? `ORDINE DI SERVIZIO: "${instructions}"` : ''}`;
                     </button>
                   </div>
 
-                  {/* Suggerimenti a Blocchi (Categorizzati) */}
+                  {/* Navigazione Suggerimenti a Blocchi (stile Narrative) */}
                   {!isAnalyzing && parsedSuggestions.length > 0 && (
-                    <div className="mt-8 space-y-6 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar pb-10">
-                      {Array.from(new Set(parsedSuggestions.map(s => s.category || 'Generale'))).map(cat => (
-                        <div key={cat} className="space-y-3">
-                          <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--accent)] px-1 flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
-                            {cat}
-                          </h3>
-                          <div className="space-y-2">
-                            {parsedSuggestions.filter(s => (s.category || 'Generale') === cat).map((sug, i) => (
-                              <button
-                                key={i}
-                                onClick={() => {
-                                  // Trigger scroll nell'editor
-                                  useStore.getState().setHighlightedText(sug.original);
-                                  useStore.getState().requestScrollToHighlight();
-                                }}
-                                className="w-full text-left p-3 rounded-xl bg-[var(--bg-surface)]/40 border border-[var(--border-subtle)] hover:border-[var(--accent)]/30 transition-all group"
-                              >
-                                <div className="text-[10px] font-medium text-[var(--text-bright)] line-clamp-2 mb-1 group-hover:text-[var(--accent)] transition-colors">
-                                  {sug.suggestion || sug.original}
-                                </div>
-                                <div className="text-[9px] text-[var(--text-muted)] italic line-clamp-1">
-                                  {sug.reason}
-                                </div>
-                              </button>
-                            ))}
+                    <div className="mt-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] p-6 rounded-[32px] space-y-6 shadow-premium">
+                        <div className="flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-[var(--accent)] uppercase tracking-[0.3em]">Revisione In-Text</span>
+                            <span className="text-[9px] text-[var(--text-muted)] font-bold uppercase mt-1">
+                              {suggestionIndex + 1} di {parsedSuggestions.length} spunti
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => setSuggestionIndex(prev => Math.max(0, prev - 1))}
+                              disabled={suggestionIndex <= 0}
+                              className="p-3 bg-[var(--bg-deep)] border border-[var(--border-subtle)] rounded-2xl text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)]/30 disabled:opacity-30 transition-all"
+                            >
+                              <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => setSuggestionIndex(prev => Math.min(parsedSuggestions.length - 1, prev + 1))}
+                              disabled={suggestionIndex >= parsedSuggestions.length - 1}
+                              className="p-3 bg-[var(--bg-deep)] border border-[var(--border-subtle)] rounded-2xl text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)]/30 disabled:opacity-30 transition-all"
+                            >
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
-                      ))}
+                        
+                        <div className="p-4 bg-[var(--accent-soft)] rounded-2xl border border-[var(--accent)]/10">
+                           <p className="text-[10px] text-[var(--text-primary)] leading-relaxed italic line-clamp-3">
+                             "{parsedSuggestions[suggestionIndex]?.original}"
+                           </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-2">
+                           <div className="h-1.5 flex-1 bg-[var(--bg-deep)] rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-[var(--accent)] transition-all duration-500" 
+                                style={{ width: `${((suggestionIndex + 1) / parsedSuggestions.length) * 100}%` }}
+                              />
+                           </div>
+                        </div>
+                      </div>
+
+                      <p className="text-[9px] text-[var(--text-muted)] text-center italic px-4">
+                        Naviga tra i suggerimenti con le frecce. La scheda di correzione apparirà direttamente sopra il testo nell'editor.
+                      </p>
                     </div>
                   )}
 
@@ -244,7 +265,7 @@ ${instructions ? `ORDINE DI SERVIZIO: "${instructions}"` : ''}`;
                         </span>
                       </div>
                       <div className="text-[10px] text-[var(--text-secondary)] leading-relaxed">
-                        Il Capo Redattore sta scansionando il testo alla ricerca di refusi, ripetizioni e debolezze stilistiche. Le correzioni appariranno a blocchi qui sotto e nell'editor.
+                        Il Capo Redattore sta scansionando il testo. I suggerimenti appariranno in sovrimpressione nell'editor.
                       </div>
                     </div>
                   )}
