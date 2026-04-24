@@ -346,18 +346,20 @@ export const CharactersView: React.FC = () => {
                         {selectedChar.avatar_url && (
                           <button 
                             onClick={() => updateCharacter(selectedChar.id, { avatar_url: '' })}
-                            className="text-[var(--text-muted)] hover:text-red-400 p-2.5 transition-all bg-[var(--bg-surface)]/10 rounded-xl border border-transparent hover:border-red-500/20"
+                            className="text-[var(--text-muted)] hover:text-orange-400 p-2.5 transition-all bg-[var(--bg-surface)]/10 rounded-xl border border-transparent hover:border-orange-500/20"
                             title="Rimuovi foto"
                           >
-                            <Trash2 className="w-5 h-5 opacity-40 hover:opacity-100" />
+                            <Camera className="w-5 h-5 opacity-40 hover:opacity-100" />
                           </button>
                         )}
                         <button 
                             onClick={() => {
-                              deleteCharacter(selectedChar.id);
-                              setSelectedCharId(null);
+                              if (window.confirm(`Eliminare definitivamente ${selectedChar.name}?`)) {
+                                deleteCharacter(selectedChar.id);
+                                setSelectedCharId(null);
+                              }
                             }}
-                            className="text-[var(--text-muted)] hover:text-red-400 p-2.5 transition-all bg-[var(--bg-surface)]/10 rounded-xl border border-transparent hover:border-red-500/20"
+                            className="text-red-400/30 hover:text-red-500 p-2.5 transition-all bg-red-500/5 hover:bg-red-500/10 rounded-xl border border-transparent hover:border-red-500/20"
                             title="Elimina Personaggio"
                           >
                             <Trash2 className="w-5 h-5" />

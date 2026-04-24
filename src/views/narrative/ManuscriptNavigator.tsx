@@ -69,7 +69,7 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
   const setNavigatorOpen = useStore(s => s.setNavigatorOpen);
 
   return (
-    <div className="w-full md:w-64 xl:w-72 h-full flex-shrink-0 glass rounded-none md:rounded-[40px] overflow-hidden flex flex-col shadow-soft border border-[var(--border-subtle)] md:mx-1 md:my-1 transition-all duration-500">
+    <div className="w-full md:w-80 xl:w-96 h-full flex-shrink-0 glass rounded-none md:rounded-[40px] overflow-hidden flex flex-col shadow-soft border border-[var(--border-subtle)] md:mx-1 md:my-1 transition-all duration-500">
       {/* Header del Navigatore */}
       <div className="p-6 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-surface)]/30">
         <div className="flex items-center gap-3">
@@ -214,7 +214,7 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
                                         {...provided.draggableProps}
                                         onClick={() => onSelectScene(scene.id)}
                                         className={cn(
-                                          "flex items-center space-x-4 px-5 py-3 rounded-xl cursor-pointer transition-all group/scene border relative",
+                                          "flex items-center space-x-2 px-3 py-3 rounded-xl cursor-pointer transition-all group/scene border relative",
                                           activeSceneId === scene.id 
                                             ? "bg-[var(--accent)] text-[var(--bg-deep)] border-transparent shadow-lg" 
                                             : "text-[var(--text-secondary)] hover:bg-[var(--accent-soft)] hover:text-[var(--text-bright)] border-transparent",
@@ -248,9 +248,9 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
                                           <span 
                                             onDoubleClick={(e) => handleStartRename(e, scene.id, scene.title)}
                                             className={cn(
-                                              "text-[11px] truncate font-black uppercase tracking-tight transition-all duration-500",
-                                              activeSceneId === scene.id ? "text-[var(--bg-deep)] translate-x-1" : "text-[var(--text-secondary)]",
-                                              scene.exclude_from_timeline && "opacity-30 italic"
+                                              "text-[11px] truncate font-black uppercase tracking-tight transition-all duration-500 flex-1 min-w-0",
+                                              activeSceneId === scene.id ? "text-[var(--bg-deep)]" : "text-[var(--text-secondary)]",
+                                              scene.exclude_from_timeline && "opacity-60 italic"
                                             )}
                                           >
                                             {scene.title}
