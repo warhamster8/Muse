@@ -21,6 +21,10 @@ export const NarrativeView: React.FC = React.memo(() => {
     chapters, 
     addChapter, 
     addScene, 
+    renameChapter,
+    renameScene,
+    deleteChapter,
+    deleteScene,
     updateSceneContent, 
     reorderScenes, 
     reorderChapters,
@@ -194,6 +198,11 @@ export const NarrativeView: React.FC = React.memo(() => {
                 expandedChapters={expandedChapters}
                 onToggleChapter={toggleChapter}
                 onSelectScene={setActiveSceneId}
+                onRenameChapter={renameChapter}
+                onRenameScene={renameScene}
+                onDeleteChapter={deleteChapter}
+                onDeleteScene={deleteScene}
+                onToggleSceneExclusion={(id, exclude) => updateSceneMetadata(id, { exclude_from_timeline: exclude })}
                 onCreateChapter={() => setModalType('chapter')}
                 onCreateScene={(chapterId) => {
                   setTargetChapterId(chapterId);

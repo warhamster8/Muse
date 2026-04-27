@@ -12,8 +12,7 @@ import {
   EyeOff, 
   X, 
   Trash2, 
-  Search, 
-  Tag 
+  Search 
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { Skeleton } from '../../components/Skeleton';
