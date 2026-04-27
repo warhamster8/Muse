@@ -1,5 +1,6 @@
 import React from 'react';
 import { useEditor, EditorContent, Extension } from '@tiptap/react';
+import BubbleMenuExtension from '@tiptap/extension-bubble-menu';
 import StarterKit from '@tiptap/starter-kit';
 import CharacterCount from '@tiptap/extension-character-count';
 import Underline from '@tiptap/extension-underline';
@@ -22,7 +23,8 @@ import {
   Highlighter,
   Type,
   ALargeSmall,
-  Sparkles
+  Sparkles,
+  CheckCircle
 } from 'lucide-react';
 
 import { useStore } from '../store/useStore';
@@ -53,6 +55,21 @@ const CustomShortcuts = Extension.create({
     return {
       'Mod-Alt-1': () => this.editor.commands.insertContent('«'),
       'Mod-Alt-2': () => this.editor.commands.insertContent('»'),
+      'Tab': () => {
+        const { state } = this.editor;
+        if (state.selection.empty) return false;
+        const text = state.doc.textBetween(state.selection.from, state.selection.to, ' ');
+        const suggestions = useStore.getState().parsedSuggestions;
+        const sug = suggestions.find(s => s.original.includes(text) || text.includes(s.original));
+        
+        if (sug) {
+          window.dispatchEvent(new CustomEvent('muse-apply-suggestion', { 
+            detail: { original: sug.original, suggestion: sug.suggestion, sceneId: useStore.getState().activeSceneId } 
+          }));
+          return true;
+        }
+        return false;
+      }
     }
   },
 });
@@ -91,6 +108,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
           store.setSidekickOpen(true);
         }
       }),
+      BubbleMenuExtension,
     ],
     content: initialContent,
     editorProps: {
@@ -131,7 +149,14 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
         
         // If we have a single "highlightedText" from legacy, include it too if not in visible
         if (highlightedText && !visible.some(s => s.original === highlightedText)) {
-          visible.push({ original: highlightedText, suggestion: '', reason: '', category: 'Highlight' });
+          visible.push({ 
+            original: highlightedText, 
+            suggestion: '', 
+            reason: '', 
+            category: 'Highlight',
+            severity: 'low',
+            type: 'stile'
+          });
         }
         
         storage.suggestionHighlight.suggestions = visible;
@@ -420,10 +445,6 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
 
       <div className="flex-1 px-8 py-12 bg-[var(--bg-deep)] rounded-b-[inherit]">
         <div className="w-full relative">
-            {editor && (() => {
-              // Popup inline rimosso per migliorare la leggibilità (usare AI Sidekick)
-              return null;
-            })()}
            <EditorContent editor={editor} />
         </div>
       </div>

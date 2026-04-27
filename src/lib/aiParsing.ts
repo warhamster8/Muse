@@ -3,6 +3,8 @@ export interface AISuggestion {
   suggestion: string;
   reason: string;
   category: string;
+  severity: 'low' | 'medium' | 'high';
+  type: 'coerenza' | 'taglio' | 'stile' | 'grammatica';
 }
 
 export function parseAIAnalysis(text: string): AISuggestion[] {
@@ -49,7 +51,24 @@ export function parseAIAnalysis(text: string): AISuggestion[] {
       }
     } else if (hasCategoryEmoji) {
       if (currentSuggestion) {
-        currentSuggestion.category = line.replace(/.*🏷️\s*(?:CATEGORIA:?)?\s*/i, '').trim();
+        const cat = line.replace(/.*🏷️\s*(?:CATEGORIA:?)?\s*/i, '').trim();
+        currentSuggestion.category = cat;
+        
+        // Mapping intelligence
+        const lowerCat = cat.toLowerCase();
+        if (lowerCat.includes('coerenza') || lowerCat.includes('pov')) {
+          currentSuggestion.type = 'coerenza';
+          currentSuggestion.severity = 'high';
+        } else if (lowerCat.includes('ritmo') || lowerCat.includes('taglio') || lowerCat.includes('darlings')) {
+          currentSuggestion.type = 'taglio';
+          currentSuggestion.severity = 'medium';
+        } else if (lowerCat.includes('grammatica') || lowerCat.includes('ortografia')) {
+          currentSuggestion.type = 'grammatica';
+          currentSuggestion.severity = 'low';
+        } else {
+          currentSuggestion.type = 'stile';
+          currentSuggestion.severity = 'medium';
+        }
       }
     } else if (currentSuggestion && !hasOriginalEmoji && !hasSuggestionEmoji && line.trim()) {
       const cleanLine = line.replace(/^\d+\.\s*/, '').replace(/\*/g, '').replace(/-{3,}/g, '').trim();

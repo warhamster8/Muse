@@ -2,6 +2,7 @@ import { Extension } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { findMatchesInDoc } from './matchUtils';
+import { cn } from '../utils';
 import type { AISuggestion } from '../aiParsing';
 
 export interface SuggestionHighlightOptions {
@@ -57,11 +58,13 @@ export const SuggestionHighlight = Extension.create<SuggestionHighlightOptions, 
             suggestions.forEach((sug, index) => {
               const matches = findMatchesInDoc(doc, sug.original);
               matches.forEach(match => {
+                const typeClass = `suggestion-type-${sug.type || 'stile'}`;
                 decorations.push(
                   Decoration.inline(match.from, match.to, {
-                    class: 'suggestion-highlight-pulse',
+                    class: cn('suggestion-highlight-pulse', typeClass),
                     'data-suggestion-id': index.toString(),
-                    'data-suggestion-text': sug.original,
+                    'data-suggestion-type': sug.type || 'stile',
+                    'data-suggestion-severity': sug.severity || 'medium',
                   })
                 );
               });

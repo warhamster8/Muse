@@ -24,6 +24,7 @@ import { findMatchInText } from '../lib/tiptap/matchUtils';
 import { StructuredOutput } from './analysis/StructuredOutput';
 import { getPlainTextForAI } from '../lib/textUtils';
 import { parseAIAnalysis } from '../lib/aiParsing';
+import { diffWords } from '../lib/diffUtils';
 
 
 type SidekickTab = 'revision' | 'grammar' | 'braindump' | 'transformer' | 'lexicon';
@@ -49,6 +50,8 @@ export const AISidekick: React.FC = React.memo(() => {
   const requestScrollToHighlight = useStore(s => s.requestScrollToHighlight);
 
   const setSidekickOpen = useStore(s => s.setSidekickOpen);
+  const chapters = useStore(s => s.chapters);
+  const currentProject = useStore(s => s.currentProject);
   
   const { updateSceneContent } = useNarrative();
   const { addToast } = useToast();
@@ -238,61 +241,54 @@ export const AISidekick: React.FC = React.memo(() => {
     let fullResponse = '';
 
     try {
-      const systemPrompt = `Sei il Capo Redattore di Muse. Il tuo compito è revisionare il testo (TARGET) garantendo coerenza assoluta con l'intera scena (CONTESTO).
-Non limitarti alla grammatica o alla punteggiatura: agisci come un editor di alto livello che migliora il ritmo, l'impatto emotivo e la vividezza della prosa.
+      const activeChapter = chapters.find((c: any) => c.scenes?.some((s: any) => s.id === activeSceneId));
+      const activeScene = activeChapter?.scenes?.find((s: any) => s.id === activeSceneId);
 
-OBIETTIVI DI REVISIONE PROFONDA:
-1. RITMO E FLUSSO: Identifica frasi troppo lunghe o spezzettate che frenano la narrazione. Suggerisci dove spezzare o unire per migliorare il "respiro" della pagina.
-2. DIALOGHI: Rendi le battute più naturali, incisive e coerenti con la voce del personaggio. Proponi alternative che dicano di più con meno parole.
-3. MOSTRA, NON DIRE (SHOW DON'T TELL): Trasforma descrizioni astratte o spiegazioni di stati d'animo in immagini sensoriali concrete e azioni significative.
-4. TENSIONE E SCENA: Se una battuta o una scena manca di mordente, suggerisci come aumentare il conflitto, il sottotesto o la posta in gioco.
+      const systemPrompt = `RUOLO: Agisci come un Editor Senior e Copywriter Letterario con un occhio ossessivo per lo stile, il ritmo e la coerenza narrativa. Il tuo obiettivo non è solo correggere il testo (TARGET), ma ELEVARLO qualitativamente, mantenendo intatta la voce dell'autore.
 
-REQUISITI DI COERENZA:
-1. POV E TEMPO: Mantieni rigorosamente lo stesso punto di vista e tempo narrativo del contesto (Presente o Passato).
-2. STILE: Adattati allo stile dell'autore (minimalista, lirico, ecc.) ma elevalo qualitativamente.
-3. PERSONAGGI: Assicurati che le azioni e le parole siano coerenti con la psicologia mostrata nel contesto.
+ANALISI DEL CONTESTO:
+Prima di proporre modifiche, analizza:
+1. Tone of Voice: È minimalista, barocco, d'azione o introspettivo?
+2. Ritmo (Pacing): La lunghezza delle frasi riflette lo stato emotivo della scena?
+3. Coerenza: Le azioni e i dialoghi sono naturali per i personaggi coinvolti?
 
-REGOLE MANDATORIE:
+ISTRUZIONI OPERATIVE:
+Fornisci suggerimenti specifici che includano:
+- SOSTITUZIONI: Migliora la scelta dei verbi (usa verbi forti invece di avverbi).
+- TAGLI (Kill your darlings): Identifica ripetizioni, ridondanze o "spiegazioni" superflue (Show, Don't Tell). Sii severo ma onesto: se una parte rallenta il ritmo, taglia senza pietà.
+- ESPANSIONI: Suggerisci dove aggiungere dettagli sensoriali o pause introspettive.
+- CADENZA: Modifica la punteggiatura per creare un flusso armonioso o una tensione incalzante.
+
+REGOLE MANDATORIE DI FORMATO (ESATTO):
 1. Inizia IMMEDIATAMENTE con "## Analisi Revisione".
-2. Segui l'ordine del testo linearmente.
-3. GRANULARITÀ: Anche se il TARGET è un intero blocco o selezione, NON restituire mai un'unica correzione gigante. Spezzala in micro-correzioni (singole frasi o brevi passaggi) in modo che l'autore possa navigarle e accettarle una per una.
-4. Formato Suggerimento (ESATTO):
-   ❌ [Testo originale ESATTO - identico al manoscritto]
+2. Usa questo formato per ogni suggerimento:
+   ❌ [Testo originale ESATTO dal manoscritto]
    ✅ [Nuova versione migliorata - stessa grammatica/tempo del contesto]
-   🏷️ Categoria (es. Ritmo, Dialogo, Show Don't Tell, Emozione)
-   💡 Spiegazione approfondita del perché questo cambiamento rende la scena più potente.
-   IMPORTANTE: Non aggiungere mai prefissi come "Suggerimento 1:" o "Correzione:" all'interno delle righe ❌ o ✅.
-   IMPORTANTE: Rispetta gli a capo. Se il testo originale contiene dei ritorni a capo (paragrafi), mantienili anche nella versione suggerita. Non unire paragrafi distinti senza un motivo editoriale gravissimo.
-   IMPORTANTE: NON usare mai la formattazione Markdown (es. **grassetto**, *corsivo*) o separatori (es. **** o ---) all'interno delle righe ❌ e ✅. Il testo deve essere puro e pronto per essere inserito nel manoscritto.
+   🏷️ Categoria (es. Ritmo, Stile, Show Don't Tell, Dialogo)
+   💡 Razionale Editoriale: Spiega PERCHÉ questa modifica eleva la scena (es. "Aumenta la tensione", "Elimina un cliché", "Rende il dialogo più realistico").
+
+IMPORTANTE: NON usare mai Markdown (**grassetto**, *corsivo*) o separatori (****, ---) nelle righe ❌ e ✅.
+IMPORTANTE: Rispetta i paragrafi originali.
 
 LINGUA: Italiano.`;
 
-      const userContent = isSelection ? `
-L'utente desidera revisionare SOLO questa specifica selezione di testo:
-
-TARGET DA REVISIONARE (AGISCI SOLO QUI):
+      const userContent = `
+TESTO DA ANALIZZARE (TARGET):
 [INIZIO TARGET]
 ${textToAnalyze}
 [FINE TARGET]
 
-CONTESTO DELLA SCENA (USA SOLO COME RIFERIMENTO PER LA COERENZA):
+METADATI DI CONTESTO:
+Progetto: ${currentProject?.title || 'Senza Titolo'}
+Capitolo: ${activeChapter?.title || 'Senza Titolo'}
+Scena: ${activeScene?.title || 'Senza Titolo'}
+
+CONTESTO NARRATIVO (SOLO PER RIFERIMENTO):
 [INIZIO CONTESTO]
-${plainText.substring(0, 10000)}
+${plainText.substring(0, 8000)}
 [FINE CONTESTO]
 
-IMPORTANTE: Fornisci suggerimenti di revisione ESCLUSIVAMENTE per il TARGET sopra. Ignora il resto del contesto per quanto riguarda le correzioni dirette.` 
-: `
-TARGET DA REVISIONARE:
-[INIZIO TARGET]
-${textToAnalyze}
-[FINE TARGET]
-
-CONTESTO DELLA SCENA (SOLO PER RIFERIMENTO):
-[INIZIO CONTESTO]
-${plainText.substring(0, 10000)}
-[FINE CONTESTO]
-
-REVISIONA IL TARGET SOPRA.`;
+REVISIONA IL TARGET SOPRA CON OCCHIO SEVERO E ANALITICO.`;
 
       await aiService.streamChat(
         aiConfig,
@@ -304,7 +300,10 @@ REVISIONA IL TARGET SOPRA.`;
           fullResponse += chunk;
           setAnalysis(prev => prev + chunk);
         },
-        { signal: abortControllerRef.current.signal }
+        { 
+          temperature: 0.7,
+          signal: abortControllerRef.current.signal 
+        }
       );
 
       // Post-processing: Sort results from top to bottom based on position in full text
@@ -665,8 +664,9 @@ Rispondi in italiano. Sii concreto e originale.`;
             </div>
 
             {parsedSuggestions.length > 0 ? (
-              <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] p-6 rounded-[32px] space-y-6 shadow-premium animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex items-center justify-between">
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {/* Header Suggerimenti */}
+                <div className="flex items-center justify-between px-2">
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black text-[var(--accent)] uppercase tracking-[0.3em]">Revisione In-Text</span>
                     <span className="text-[9px] text-[var(--text-muted)] font-bold uppercase mt-1">
@@ -690,63 +690,104 @@ Rispondi in italiano. Sii concreto e originale.`;
                     </button>
                   </div>
                 </div>
-                
-                <div className="space-y-5">
-                  <div className="p-5 bg-[var(--bg-deep)]/60 rounded-[24px] border border-[var(--border-subtle)] space-y-4 shadow-inner">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="px-3 py-1 bg-[var(--accent)]/10 text-[var(--accent)] text-[9px] font-black uppercase tracking-widest rounded-lg border border-[var(--accent)]/20">
-                        {parsedSuggestions[suggestionIndex]?.category || 'Analisi'}
-                      </span>
+
+                {/* Card Professionale */}
+                <div 
+                  className="group/card relative bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-3xl p-6 space-y-6 hover:border-[var(--accent)]/40 transition-all duration-500 shadow-xl overflow-hidden cursor-pointer"
+                  onClick={() => {
+                    setHighlightedText(parsedSuggestions[suggestionIndex].original);
+                    requestScrollToHighlight();
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className={cn(
+                      "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border font-sans",
+                      parsedSuggestions[suggestionIndex].type === 'coerenza' ? "bg-amber-500/10 text-amber-400 border-amber-500/20" :
+                      parsedSuggestions[suggestionIndex].type === 'taglio' ? "bg-rose-500/10 text-rose-400 border-rose-500/20" :
+                      parsedSuggestions[suggestionIndex].type === 'grammatica' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                      "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                    )}>
+                      {parsedSuggestions[suggestionIndex].category}
                     </div>
-                    
-                    <div className="space-y-4">
-                       <div className="text-[13px] text-[var(--text-muted)] line-through decoration-red-500/40 opacity-70 italic leading-relaxed whitespace-pre-line font-serif">
-                         "{parsedSuggestions[suggestionIndex]?.original}"
-                       </div>
-                       <div className="text-[15px] text-[var(--text-bright)] font-medium leading-relaxed bg-[var(--accent)]/10 p-5 rounded-2xl border border-[var(--accent)]/20 shadow-sm whitespace-pre-line font-serif">
-                         {parsedSuggestions[suggestionIndex]?.suggestion}
-                       </div>
+                    <div className="flex gap-1">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className={cn(
+                          "w-1.5 h-1.5 rounded-full",
+                          i <= (parsedSuggestions[suggestionIndex].severity === 'high' ? 3 : parsedSuggestions[suggestionIndex].severity === 'medium' ? 2 : 1)
+                            ? "bg-[var(--accent)] shadow-[0_0_5px_var(--accent)]"
+                            : "bg-[var(--bg-deep)]"
+                        )} />
+                      ))}
                     </div>
                   </div>
 
-                  {parsedSuggestions[suggestionIndex]?.reason && (
-                    <div className="flex gap-4 px-3">
-                      <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0 shadow-[0_0_8px_var(--accent)]" />
-                      <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed italic font-medium">
-                        {parsedSuggestions[suggestionIndex]?.reason}
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-[var(--accent-soft)] rounded-xl">
+                        <Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" />
+                      </div>
+                      <p className="text-[13px] text-[var(--text-bright)] leading-relaxed font-sans font-medium">
+                        {parsedSuggestions[suggestionIndex].reason}
                       </p>
                     </div>
-                  )}
+                  </div>
 
-                  <div className="flex items-center gap-3 pt-2">
+                  <div className="space-y-4 pt-2">
+                    <div className="relative">
+                      <div className="absolute -left-3 top-0 bottom-0 w-1 bg-rose-500/30 rounded-full" />
+                      <div className="text-[13px] text-[var(--text-muted)] line-through decoration-rose-500/30 opacity-80 leading-relaxed font-serif p-1">
+                        {diffWords(parsedSuggestions[suggestionIndex].original, parsedSuggestions[suggestionIndex].suggestion).map((part, i) => (
+                          <span key={i} className={part.removed ? "bg-rose-500/10 text-rose-300" : ""}>
+                            {part.value}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <div className="absolute -left-3 top-0 bottom-0 w-1 bg-emerald-500/50 rounded-full" />
+                      <div className="text-[15px] text-[var(--text-bright)] font-medium leading-relaxed bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10 shadow-sm font-serif">
+                        {diffWords(parsedSuggestions[suggestionIndex].original, parsedSuggestions[suggestionIndex].suggestion).map((part, i) => (
+                          <span key={i} className={part.added ? "bg-emerald-500/20 text-emerald-300 px-0.5 rounded" : ""}>
+                            {part.value}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 pt-4 border-t border-[var(--border-subtle)]/50">
                     <button 
-                      onClick={() => applySuggestion(parsedSuggestions[suggestionIndex])}
-                      className="flex-1 py-3 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--bg-deep)] rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        applySuggestion(parsedSuggestions[suggestionIndex]);
+                      }}
+                      className="flex-1 py-4 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--bg-deep)] rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-glow-mint active:scale-95 flex items-center justify-center gap-2"
                     >
+                      <CheckCircle className="w-3.5 h-3.5" />
                       Applica
                     </button>
                     <button 
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         if (activeSceneId) {
                           addIgnoredSuggestion(activeSceneId, parsedSuggestions[suggestionIndex].original);
-                          // L'indice si aggiusterà da solo grazie allo useEffect sopra che filtra i suggerimenti
                         }
                       }}
-                      className="p-3 text-[var(--text-muted)] hover:text-red-400 bg-[var(--bg-deep)] border border-[var(--border-subtle)] rounded-xl hover:border-red-400/30 transition-all"
-                      title="Ignora"
+                      className="p-4 text-[var(--text-muted)] hover:text-rose-400 bg-[var(--bg-deep)] border border-[var(--border-subtle)] rounded-2xl hover:border-rose-400/30 transition-all active:scale-90"
+                      title="Scarta"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-2">
-                   <div className="h-1 flex-1 bg-[var(--bg-deep)] rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-[var(--accent)] transition-all duration-500" 
-                        style={{ width: `${((suggestionIndex + 1) / parsedSuggestions.length) * 100}%` }}
-                      />
-                   </div>
+                {/* Progress Bar */}
+                <div className="h-1 bg-[var(--bg-deep)] rounded-full overflow-hidden mx-4">
+                  <div 
+                    className="h-full bg-[var(--accent)] transition-all duration-500" 
+                    style={{ width: `${((suggestionIndex + 1) / parsedSuggestions.length) * 100}%` }}
+                  />
                 </div>
               </div>
             ) : (

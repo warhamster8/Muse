@@ -233,18 +233,37 @@
 
 /* Suggestion Highlighting - Subtle & Contextual */
 .suggestion-highlight-pulse {
-  background-color: var(--accent-soft);
   border-bottom: 2px solid var(--accent);
-  border-radius: 4px;
+  border-radius: 2px;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
+  padding: 1px 0;
+}
+
+.suggestion-type-coerenza {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-bottom-color: #f59e0b;
+}
+.suggestion-type-taglio {
+  background-color: rgba(217, 70, 239, 0.1);
+  border-bottom-color: #d946ef;
+}
+.suggestion-type-stile {
+  background-color: rgba(99, 102, 241, 0.1);
+  border-bottom-color: #6366f1;
+}
+.suggestion-type-grammatica {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-bottom-color: #10b981;
 }
 
 .suggestion-highlight-pulse:hover {
-  background-color: rgba(99, 102, 241, 0.2);
+  background-color: rgba(99, 102, 241, 0.15);
   border-bottom-width: 3px;
+  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.1);
 }
+
 
 /* Drop Caps Styles */
 .ProseMirror p[data-drop-cap="classic"]::first-letter {
