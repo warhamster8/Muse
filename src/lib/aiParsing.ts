@@ -53,15 +53,16 @@ export function parseAIAnalysis(text: string): AISuggestion[] {
       }
     } else if (currentSuggestion && !hasOriginalEmoji && !hasSuggestionEmoji && line.trim()) {
       if (currentSuggestion.original && !currentSuggestion.suggestion) {
-        currentSuggestion.original += (currentSuggestion.original ? '\n' : '') + line.trim();
+        currentSuggestion.original += (currentSuggestion.original ? '\n' : '') + line.replace(/^\d+\.\s*/, '').trim();
       } else if (currentSuggestion.suggestion) {
-        currentSuggestion.suggestion += (currentSuggestion.suggestion ? '\n' : '') + line.trim();
+        currentSuggestion.suggestion += (currentSuggestion.suggestion ? '\n' : '') + line.replace(/^\d+\.\s*/, '').trim();
       }
     }
     
     // Final check for all fields to remove any leakage
     if (currentSuggestion?.original) {
       currentSuggestion.original = currentSuggestion.original
+        .replace(/^\d+\.\s*/gm, '')
         .replace(/(?:Suggerimento|Suggestione|Correzione)\s*\d+[:\s]*/gi, '')
         .replace(/---/g, '')
         .replace(/\[(?:INIZIO|FINE)\s*(?:TARGET|CONTESTO)\]/gi, '')
@@ -69,6 +70,7 @@ export function parseAIAnalysis(text: string): AISuggestion[] {
     }
     if (currentSuggestion?.suggestion) {
       currentSuggestion.suggestion = currentSuggestion.suggestion
+        .replace(/^\d+\.\s*/gm, '')
         .replace(/(?:Suggerimento|Suggestione|Correzione)\s*\d+[:\s]*/gi, '')
         .replace(/---/g, '')
         .replace(/\[(?:INIZIO|FINE)\s*(?:TARGET|CONTESTO)\]/gi, '')
