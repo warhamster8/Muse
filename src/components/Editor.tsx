@@ -464,7 +464,7 @@ let activeSuggestion: any = null;
                 }
               }
 
-if (!activeSuggestion || !activeSuggestion.suggestion || hiddenSuggestionId === suggestionIndex) return null;
+return null;
 
               // Calculate position based on the END of the highlight to avoid overlapping
               const startCoords = editor.view.coordsAtPos(startPos);

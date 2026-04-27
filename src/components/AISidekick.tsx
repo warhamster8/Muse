@@ -686,28 +686,28 @@ Rispondi in italiano. Sii concreto e originale.`;
                   </div>
                 </div>
                 
-                <div className="space-y-4">
-                  <div className="p-4 bg-[var(--bg-deep)]/40 rounded-2xl border border-[var(--border-subtle)] space-y-3">
+                <div className="space-y-5">
+                  <div className="p-5 bg-[var(--bg-deep)]/60 rounded-[24px] border border-[var(--border-subtle)] space-y-4 shadow-inner">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="px-2 py-0.5 bg-[var(--accent)]/10 text-[var(--accent)] text-[8px] font-black uppercase tracking-widest rounded-md border border-[var(--accent)]/20">
+                      <span className="px-3 py-1 bg-[var(--accent)]/10 text-[var(--accent)] text-[9px] font-black uppercase tracking-widest rounded-lg border border-[var(--accent)]/20">
                         {parsedSuggestions[suggestionIndex]?.category || 'Analisi'}
                       </span>
                     </div>
                     
-                    <div className="space-y-2">
-                       <div className="text-[10px] text-[var(--text-muted)] line-through decoration-red-400/30 opacity-60 italic leading-relaxed whitespace-pre-line">
+                    <div className="space-y-4">
+                       <div className="text-[13px] text-[var(--text-muted)] line-through decoration-red-500/40 opacity-70 italic leading-relaxed whitespace-pre-line font-serif">
                          "{parsedSuggestions[suggestionIndex]?.original}"
                        </div>
-                       <div className="text-[11px] text-[var(--text-bright)] font-medium leading-relaxed bg-[var(--accent)]/5 p-3 rounded-xl border border-[var(--accent)]/10 whitespace-pre-line">
+                       <div className="text-[15px] text-[var(--text-bright)] font-medium leading-relaxed bg-[var(--accent)]/10 p-5 rounded-2xl border border-[var(--accent)]/20 shadow-sm whitespace-pre-line font-serif">
                          {parsedSuggestions[suggestionIndex]?.suggestion}
                        </div>
                     </div>
                   </div>
 
                   {parsedSuggestions[suggestionIndex]?.reason && (
-                    <div className="flex gap-3 px-2">
-                      <div className="mt-1 w-1 h-1 rounded-full bg-[var(--accent)] shrink-0" />
-                      <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed italic">
+                    <div className="flex gap-4 px-3">
+                      <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0 shadow-[0_0_8px_var(--accent)]" />
+                      <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed italic font-medium">
                         {parsedSuggestions[suggestionIndex]?.reason}
                       </p>
                     </div>
