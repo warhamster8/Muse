@@ -16,11 +16,11 @@ export function useKeyboardShortcuts() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const isMod = e.ctrlKey || e.metaKey;
+      const isMod = (e.ctrlKey || e.metaKey) && !e.altKey;
       const target = e.target as HTMLElement;
       const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
 
-      // 1. Tab Switching (Ctrl/Cmd + 1-6)
+      // 1. Tab Switching (Ctrl/Cmd + 1-6) - STRICT: no Alt allowed to avoid conflicts with special chars
       if (isMod && e.key >= '1' && e.key <= '7') {
         e.preventDefault();
         const tabs: any[] = ['narrative', 'characters', 'world', 'notes', 'analysis', 'config', 'timeline'];

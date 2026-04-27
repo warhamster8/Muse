@@ -145,7 +145,10 @@ export function useNarrative() {
           order_index: idx,
           title: s.title,
           content: s.content,
-          timeline_events: s.timeline_events
+          status: s.status || 'draft',
+          tags: s.tags || [],
+          timeline_events: s.timeline_events || [],
+          exclude_from_timeline: s.exclude_from_timeline || false
         })) || []
       );
       
