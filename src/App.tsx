@@ -106,25 +106,41 @@ function App() {
     if (user) {
       const fetchProfile = async () => {
         if (!supabase) return;
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .select('deepseek_api_key, gemini_api_key, groq_api_key, ai_settings')
-          .eq('user_id', user.id)
-          .single();
         
-        if (data && !error) {
-          const savedSettings = data.ai_settings || {};
-          // Guard: normalize stale Gemini model strings that are no longer valid
-          const VALID_GEMINI_MODELS = ['gemini-flash-latest', 'gemini-2.0-flash', 'gemini-2.0-flash-001', 'gemini-2.0-flash-exp:free', 'gemini-2.5-flash', 'gemini-pro-latest'];
-          if (savedSettings.provider === 'gemini' && savedSettings.model && !VALID_GEMINI_MODELS.includes(savedSettings.model)) {
-            savedSettings.model = 'gemini-2.0-flash-exp:free';
+        try {
+          // Recuperiamo prima i settings (sempre presenti)
+          const { data: settingsData } = await supabase
+            .from('user_profiles')
+            .select('ai_settings')
+            .eq('user_id', user.id)
+            .single();
+
+          // Tentiamo di recuperare le chiavi. Se una colonna manca, la query fallirà, 
+          // quindi le recuperiamo singolarmente o verifichiamo la risposta.
+          const { data: keysData, error: keysError } = await supabase
+            .from('user_profiles')
+            .select('*') // Usiamo * per essere sicuri di prendere quello che c'è
+            .eq('user_id', user.id)
+            .single();
+
+          if (keysData) {
+            const savedSettings = settingsData?.ai_settings || keysData.ai_settings || {};
+            
+            // Guard: normalize stale Gemini model strings
+            const VALID_GEMINI_MODELS = ['gemini-flash-latest', 'gemini-2.0-flash', 'gemini-2.0-flash-001', 'gemini-2.0-flash-exp:free', 'gemini-2.5-flash', 'gemini-pro-latest'];
+            if (savedSettings.provider === 'gemini' && savedSettings.model && !VALID_GEMINI_MODELS.includes(savedSettings.model)) {
+              savedSettings.model = 'gemini-2.0-flash-exp:free';
+            }
+
+            setAIConfig({ 
+              ...savedSettings,
+              deepseekKey: keysData.deepseek_api_key || '',
+              geminiKey: keysData.gemini_api_key || '',
+              groqKey: keysData.groq_api_key || ''
+            });
           }
-          setAIConfig({ 
-            ...savedSettings,
-            deepseekKey: data.deepseek_api_key,
-            geminiKey: data.gemini_api_key,
-            groqKey: data.groq_api_key
-          });
+        } catch (err) {
+          console.error('[SECURITY LOG] Fallimento caricamento profilo:', err);
         }
       };
       fetchProfile();
