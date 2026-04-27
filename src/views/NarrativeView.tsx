@@ -63,6 +63,17 @@ export const NarrativeView: React.FC = React.memo(() => {
     }
   }, [activeSceneId, chapters, setCurrentSceneContent]);
 
+  /**
+   * Effetto: Espandi automaticamente i capitoli al caricamento iniziale
+   * per garantire che l'utente veda tutto il contenuto (es. Prologo).
+   */
+  useEffect(() => {
+    if (chapters.length > 0 && expandedChapters.size === 0) {
+      const allIds = new Set(chapters.map(c => c.id));
+      setExpandedChapters(allIds);
+    }
+  }, [chapters]);
+
   // --- Handlers delle Azioni (Mattoncini Logici) ---
 
   const toggleChapter = (id: string) => {

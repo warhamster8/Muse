@@ -51,11 +51,23 @@ export function useNarrative() {
         .eq('project_id', currentProject.id)
         .order('order_index', { ascending: true });
 
-      if (!chaptersError) {
+      if (chaptersError) {
+        console.error('[CORE] Error fetching chapters/scenes:', chaptersError);
+        alert('Errore nel caricamento del manoscritto: ' + chaptersError.message);
+      } else {
+        console.log(`[CORE] Data sync: ${chaptersData?.length || 0} chapters fetched for project ${currentProject.id}`);
         const sortedChapters = (chaptersData as any[]).map((ch: any) => ({
           ...ch,
           scenes: ch.scenes.sort((a: Scene, b: Scene) => a.order_index - b.order_index)
         }));
+        
+        // Debug: Log all scene titles to help find the prologue
+        sortedChapters.forEach(ch => {
+          ch.scenes.forEach((s: any) => {
+            console.log(`[CORE] Found Scene: "${s.title}" in Chapter: "${ch.title}" (ID: ${s.id})`);
+          });
+        });
+
         setChapters(sortedChapters);
       }
     }
