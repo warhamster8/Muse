@@ -90,6 +90,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
           const store = useStore.getState();
           store.setSuggestionIndex(index);
           store.setSidekickOpen(true);
+          window.dispatchEvent(new CustomEvent('muse-suggestion-clicked', { detail: index }));
         }
       }),
     ],
@@ -122,6 +123,17 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   const activeSceneId = useStore(s => s.activeSceneId);
   const ignoredSuggestions = useStore(s => s.ignoredSuggestions);
   const suggestionIndex = useStore(s => s.suggestionIndex);
+
+  // Listen for explicit clicks to override hidden state
+  React.useEffect(() => {
+    const handleReset = (e: any) => {
+      if (e.detail === suggestionIndex) {
+        setHiddenSuggestionId(null);
+      }
+    };
+    window.addEventListener('muse-suggestion-clicked', handleReset);
+    return () => window.removeEventListener('muse-suggestion-clicked', handleReset);
+  }, [suggestionIndex]);
   const [hiddenSuggestionId, setHiddenSuggestionId] = React.useState<number | null>(null);
 
   // Reset hidden state when selection or global index changes
