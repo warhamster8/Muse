@@ -29,7 +29,6 @@ import { useStore } from '../store/useStore';
 import { SuggestionHighlight } from '../lib/tiptap/SuggestionHighlight';
 import { findMatchesInDoc } from '../lib/tiptap/matchUtils';
 import { cn } from '../lib/utils';
-import { InTextSuggestionCard } from './InTextSuggestionCard';
 
 // Custom Paragraph extension to support Drop Caps
 const CustomParagraph = Paragraph.extend({
@@ -90,7 +89,6 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
           const store = useStore.getState();
           store.setSuggestionIndex(index);
           store.setSidekickOpen(true);
-          window.dispatchEvent(new CustomEvent('muse-suggestion-clicked', { detail: index }));
         }
       }),
     ],
@@ -123,23 +121,6 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   const activeSceneId = useStore(s => s.activeSceneId);
   const ignoredSuggestions = useStore(s => s.ignoredSuggestions);
   const suggestionIndex = useStore(s => s.suggestionIndex);
-
-  // Listen for explicit clicks to override hidden state
-  React.useEffect(() => {
-    const handleReset = (e: any) => {
-      if (e.detail === suggestionIndex) {
-        setHiddenSuggestionId(null);
-      }
-    };
-    window.addEventListener('muse-suggestion-clicked', handleReset);
-    return () => window.removeEventListener('muse-suggestion-clicked', handleReset);
-  }, [suggestionIndex]);
-  const [hiddenSuggestionId, setHiddenSuggestionId] = React.useState<number | null>(null);
-
-  // Reset hidden state when selection or global index changes
-  React.useEffect(() => {
-    setHiddenSuggestionId(null);
-  }, [activeSceneId, suggestionIndex]);
 
   // Update decorations when suggestions change
   React.useEffect(() => {
@@ -416,101 +397,8 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
       <div className="flex-1 px-8 py-12 bg-[var(--bg-deep)] rounded-b-[inherit]">
         <div className="w-full relative">
             {editor && (() => {
-              const { from } = editor.state.selection;
-const suggestionIndex = useStore.getState().suggestionIndex;
-              const parsedSuggestions = useStore.getState().parsedSuggestions;
-               
-              const getHighlightAtPos = (pos: number) => {
-                try {
-                  const dom = editor.view.domAtPos(pos).node;
-                  const el = dom instanceof Element ? dom : dom.parentElement;
-                  return el?.closest('.suggestion-highlight-pulse');
-                } catch {
-                  return null;
-                }
-              };
-
-let activeSuggestion: any = null;
-              let startPos = from;
-              let endPos = from;
-
-              // Use the stored suggestion index (set by clicking on highlight)
-              if (suggestionIndex >= 0 && parsedSuggestions[suggestionIndex]) {
-                activeSuggestion = parsedSuggestions[suggestionIndex];
-                const matches = findMatchesInDoc(editor.state.doc, activeSuggestion.original);
-                if (matches.length > 0) {
-                  startPos = matches[0].from;
-                  endPos = matches[0].to;
-                } else {
-                  activeSuggestion = null; 
-                }
-              }
-
-              // Fallback: detect highlight under cursor
-              if (!activeSuggestion) {
-                let highlight = getHighlightAtPos(from);
-                if (!highlight && from > 0) highlight = getHighlightAtPos(from - 1);
-                
-                if (highlight) {
-                  const text = highlight.getAttribute('data-suggestion-text') || '';
-                  activeSuggestion = parsedSuggestions.find(s => s.original === text);
-                  if (activeSuggestion) {
-                    const matches = findMatchesInDoc(editor.state.doc, activeSuggestion.original);
-                    if (matches.length > 0) {
-                      startPos = matches[0].from;
-                      endPos = matches[0].to;
-                    }
-                  }
-                }
-              }
-
-return null;
-
-              // Calculate position based on the END of the highlight to avoid overlapping
-              const startCoords = editor.view.coordsAtPos(startPos);
-              const endCoords = editor.view.coordsAtPos(endPos);
-              
-              // Calculate if the card would overflow bottom of viewport - if so, show above instead
-              const cardHeight = 350; // Approximate card height
-              const spaceBelow = window.innerHeight - endCoords.bottom;
-              const showAbove = spaceBelow < cardHeight + 20;
-              
-              return (
-                <div 
-                  className="absolute z-[100]" 
-                  style={{ 
-                    top: showAbove 
-                      ? startCoords.top - cardHeight - 12 
-                      : endCoords.bottom + 12, 
-                    left: Math.max(10, Math.min(window.innerWidth - 430, startCoords.left)),
-                    maxWidth: '420px'
-                  }}
-                >
-                   <InTextSuggestionCard 
-                     suggestion={activeSuggestion}
-                     onApply={() => {
-                        const { original, suggestion: nextText } = activeSuggestion;
-                        const matches = findMatchesInDoc(editor.state.doc, original);
-                        if (matches.length > 0) {
-                          const match = matches[0]; 
-                          // Check if there's a space after the original text and preserve it
-                          const charAfter = editor.state.doc.textBetween(match.to, match.to + 1, ' ', ' ');
-                          const needsSpace = charAfter === ' ' && !nextText.endsWith(' ');
-                          const finalText = needsSpace ? nextText + ' ' : nextText;
-                          editor.chain().focus().insertContentAt({ from: match.from, to: match.to }, finalText).run();
-                        }
-                     }}
-                     onIgnore={() => {
-                        if (activeSceneId) {
-                          addIgnoredSuggestion(activeSceneId, activeSuggestion.original);
-                          // Force a re-render by slightly moving the selection or just relying on state
-                          editor.view.dispatch(editor.state.tr);
-                        }
-                     }}
-                     onClose={() => setHiddenSuggestionId(suggestionIndex)}
-                   />
-</div>
-              );
+              // Popup inline rimosso per migliorare la leggibilità (usare AI Sidekick)
+              return null;
             })()}
            <EditorContent editor={editor} />
         </div>
@@ -518,4 +406,3 @@ return null;
     </div>
   );
 });
-
