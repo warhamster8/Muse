@@ -51,8 +51,8 @@ export const timelineUtils = {
 
       if (aiConfig.geminiKey) {
         timelineConfig.provider = 'gemini';
-        timelineConfig.model = 'gemini-1.5-flash'; // Optimized for structured extraction
-        modelUsed = 'Gemini 1.5 Flash';
+        timelineConfig.model = 'gemini-2.0-flash-exp:free'; // Optimized for structured extraction
+        modelUsed = 'Gemini 2.0 Flash Exp';
       } else {
         timelineConfig.provider = 'groq';
         timelineConfig.model = 'llama-3.3-70b-versatile'; // Best fallback for extraction

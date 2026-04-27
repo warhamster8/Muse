@@ -62,7 +62,7 @@ export const DeepAnalysisView: React.FC = () => {
   }, []);
 
   const handleProviderChange = (provider: 'groq' | 'deepseek' | 'gemini') => {
-    const model = provider === 'groq' ? 'llama-3.3-70b-versatile' : (provider === 'gemini' ? 'gemini-1.5-flash' : 'deepseek-chat');
+    const model = provider === 'groq' ? 'llama-3.3-70b-versatile' : (provider === 'gemini' ? 'gemini-2.0-flash-exp:free' : 'deepseek-chat');
     setAIConfig({ provider, model });
     addToast(`Motore: ${provider.toUpperCase()}`, 'success');
   };

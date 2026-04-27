@@ -638,14 +638,14 @@ Rispondi in italiano. Sii concreto e originale.`;
                         value={aiConfig.provider}
                         onChange={(e) => {
                           const provider = e.target.value as any;
-                          const model = provider === 'groq' ? 'llama-3.3-70b-versatile' : (provider === 'gemini' ? 'gemini-flash-latest' : 'deepseek-chat');
+                          const model = provider === 'groq' ? 'llama-3.3-70b-versatile' : (provider === 'gemini' ? 'gemini-2.0-flash-exp:free' : 'deepseek-chat');
                           useStore.getState().setAIConfig({ provider, model });
                         }}
                         className="bg-transparent text-[11px] text-[var(--text-secondary)] font-medium hover:text-[var(--accent)] transition-colors outline-none cursor-pointer border-none p-0 appearance-none"
                       >
                         <option value="groq" className="bg-[var(--bg-card)] text-[var(--text-primary)]">Groq (Llama 3.3)</option>
                         <option value="deepseek" className="bg-[var(--bg-card)] text-[var(--text-primary)]">DeepSeek V3</option>
-                        <option value="gemini" className="bg-[var(--bg-card)] text-[var(--text-primary)]">Gemini 1.5 Flash</option>
+                        <option value="gemini" className="bg-[var(--bg-card)] text-[var(--text-primary)]">Gemini 2.0 Flash Exp</option>
                       </select>
                       <ChevronRight className="w-3 h-3 text-[var(--text-muted)] opacity-50" />
                     </div>

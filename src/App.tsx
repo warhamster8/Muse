@@ -106,21 +106,22 @@ function App() {
         if (!supabase) return;
         const { data, error } = await supabase
           .from('user_profiles')
-          .select('deepseek_api_key, gemini_api_key, ai_settings')
+          .select('deepseek_api_key, gemini_api_key, groq_api_key, ai_settings')
           .eq('user_id', user.id)
           .single();
         
         if (data && !error) {
           const savedSettings = data.ai_settings || {};
           // Guard: normalize stale Gemini model strings that are no longer valid
-          const VALID_GEMINI_MODELS = ['gemini-flash-latest', 'gemini-2.0-flash', 'gemini-2.0-flash-001', 'gemini-2.5-flash', 'gemini-pro-latest'];
+          const VALID_GEMINI_MODELS = ['gemini-flash-latest', 'gemini-2.0-flash', 'gemini-2.0-flash-001', 'gemini-2.0-flash-exp:free', 'gemini-2.5-flash', 'gemini-pro-latest'];
           if (savedSettings.provider === 'gemini' && savedSettings.model && !VALID_GEMINI_MODELS.includes(savedSettings.model)) {
-            savedSettings.model = 'gemini-flash-latest';
+            savedSettings.model = 'gemini-2.0-flash-exp:free';
           }
           setAIConfig({ 
             ...savedSettings,
             deepseekKey: data.deepseek_api_key,
-            geminiKey: data.gemini_api_key
+            geminiKey: data.gemini_api_key,
+            groqKey: data.groq_api_key
           });
         }
       };
