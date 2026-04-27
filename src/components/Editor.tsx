@@ -121,6 +121,12 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   const addIgnoredSuggestion = useStore(s => s.addIgnoredSuggestion);
   const activeSceneId = useStore(s => s.activeSceneId);
   const ignoredSuggestions = useStore(s => s.ignoredSuggestions);
+  const [hiddenSuggestionId, setHiddenSuggestionId] = React.useState<number | null>(null);
+
+  // Reset hidden state when selection or global index changes
+  React.useEffect(() => {
+    setHiddenSuggestionId(null);
+  }, [activeSceneId, suggestionIndex]);
 
   // Update decorations when suggestions change
   React.useEffect(() => {
@@ -444,8 +450,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
                   }
                 }
               }
-              
-              if (!activeSuggestion || !activeSuggestion.suggestion) return null;
+                            if (!activeSuggestion || !activeSuggestion.suggestion || hiddenSuggestionId === suggestionIndex) return null;
 
 
               // Calculate position based on the END of the highlight to avoid overlapping
@@ -456,8 +461,8 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
                 <div 
                   className="fixed z-[100]" 
                   style={{ 
-                    top: endCoords.bottom + 20, 
-                    left: Math.max(20, Math.min(window.innerWidth - 820, startCoords.left - 300)), 
+                    top: endCoords.bottom + 12, 
+                    left: Math.max(20, Math.min(window.innerWidth - 450, startCoords.left - 100)), 
                   }}
                 >
                    <InTextSuggestionCard 
@@ -477,9 +482,10 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
                           editor.view.dispatch(editor.state.tr);
                         }
                      }}
+                     onClose={() => setHiddenSuggestionId(suggestionIndex)}
                    />
                 </div>
-              );
+              ); );
            })()}
            <EditorContent editor={editor} />
         </div>
