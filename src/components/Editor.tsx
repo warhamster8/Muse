@@ -140,6 +140,32 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
     }
   }, [parsedSuggestions, highlightedText, ignoredSuggestions, activeSceneId, editor]);
 
+  // Listen for robust suggestion applications from Sidebar
+  React.useEffect(() => {
+    if (!editor) return;
+
+    const handleApply = (e: any) => {
+      const { original, suggestion, sceneId } = e.detail;
+      if (sceneId !== activeSceneId) return;
+
+      const matches = findMatchesInDoc(editor.state.doc, original);
+      if (matches.length > 0) {
+        const match = matches[0];
+        
+        // Use a transaction to replace the text across paragraph boundaries
+        editor.chain()
+          .focus()
+          .insertContentAt({ from: match.from, to: match.to }, suggestion)
+          .run();
+      } else {
+        console.warn('Could not find match for suggestion application:', original);
+      }
+    };
+
+    window.addEventListener('muse-apply-suggestion', handleApply);
+    return () => window.removeEventListener('muse-apply-suggestion', handleApply);
+  }, [editor, activeSceneId]);
+
   // Handle scroll requests
   React.useEffect(() => {
     if (editor && highlightedText && scrollRequestToken > 0) {

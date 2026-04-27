@@ -179,20 +179,23 @@ export const AISidekick: React.FC = React.memo(() => {
   const applySuggestion = async (sug: any) => {
     if (!activeSceneId || !sug.suggestion) return;
     
-    // We need to be careful with HTML vs PlainText. 
-    // Since suggestions come from plain text but we edit HTML, we do a simple string replace.
-    // This is a bit risky but usually works if the original text doesn't contain complex HTML tags within the match.
-    const newContent = content.replace(sug.original, sug.suggestion);
-    if (newContent !== content) {
-      await updateSceneContent(activeSceneId, newContent);
-      addToast('Suggerimento applicato', 'success');
-      addIgnoredSuggestion(activeSceneId, sug.original);
-      // Advance to next if possible
-      setSuggestionIndex(prev => {
-        if (parsedSuggestions.length <= 1) return -1;
-        return Math.min(prev, parsedSuggestions.length - 2);
-      });
-    }
+    // Dispatch a custom event to the Editor to handle the replacement robustly
+    window.dispatchEvent(new CustomEvent('muse-apply-suggestion', { 
+      detail: {
+        original: sug.original,
+        suggestion: sug.suggestion,
+        sceneId: activeSceneId
+      }
+    }));
+
+    addToast('Richiesta applicazione inviata', 'info');
+    addIgnoredSuggestion(activeSceneId, sug.original);
+    
+    // Advance to next if possible
+    setSuggestionIndex(prev => {
+      if (parsedSuggestions.length <= 1) return -1;
+      return Math.min(prev, parsedSuggestions.length - 2);
+    });
   };
 
   const runDraftRevision = async () => {
