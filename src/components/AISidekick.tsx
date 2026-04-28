@@ -843,16 +843,15 @@ Rispondi in italiano. Sii concreto e originale.`;
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
-                </div>
 
-                {/* Progress Bar */}
-                <div className="h-1 bg-[var(--bg-deep)] rounded-full overflow-hidden mx-4">
-                  <div 
-                    className="h-full bg-[var(--accent)] transition-all duration-500" 
-                    style={{ width: `${((suggestionIndex + 1) / parsedSuggestions.length) * 100}%` }}
-                  />
+                  {/* Progress Bar */}
+                  <div className="h-1 bg-[var(--bg-deep)] rounded-full overflow-hidden mx-4">
+                    <div 
+                      className="h-full bg-[var(--accent)] transition-all duration-500" 
+                      style={{ width: `${((suggestionIndex + 1) / parsedSuggestions.length) * 100}%` }}
+                    />
+                  </div>
                 </div>
-              </div>
             ) : isAnalyzing ? (
               <div className="flex flex-col items-center justify-center h-48 space-y-4 animate-pulse">
                 <div className="p-4 bg-[var(--accent-soft)] rounded-full">
@@ -969,18 +968,17 @@ Rispondi in italiano. Sii concreto e originale.`;
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-2 pt-2">
-                   <div className="h-1 flex-1 bg-[var(--bg-deep)] rounded-full overflow-hidden">
+                  <div className="flex items-center gap-2 pt-2">
+                    <div className="h-1 flex-1 bg-[var(--bg-deep)] rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-[var(--accent)] transition-all duration-500" 
                         style={{ width: `${((suggestionIndex + 1) / parsedSuggestions.length) * 100}%` }}
                       />
-                   </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ) : (
+              ) : (
               !isAnalyzing && <div className="flex flex-col items-center justify-center h-48 text-[var(--text-muted)] space-y-4 bg-[var(--accent-soft)] rounded-[32px] border border-dashed border-[var(--border-subtle)]"><CheckCircle className="w-10 h-10 opacity-20" /><p className="text-[10px] font-bold border-t border-[var(--border-subtle)] pt-4 uppercase tracking-[0.2em]">Nessuna anomalia tecnica rilevata</p></div>
             )}
           </div>
