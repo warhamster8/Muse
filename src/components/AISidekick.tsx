@@ -156,6 +156,40 @@ export const AISidekick: React.FC = React.memo(() => {
   };
 
   const sortAnalysisResults = (fullText: string, analysisText: string) => {
+    const trimmed = analysisText.trim();
+    const isJSON = (trimmed.startsWith('[') && trimmed.endsWith(']')) || (trimmed.startsWith('{') && trimmed.endsWith('}'));
+
+    if (isJSON) {
+      try {
+        const suggestions = parseAIAnalysis(analysisText); // This handles both JSON and legacy
+        if (suggestions.length === 0) return analysisText;
+
+        const sorted = suggestions
+          .map(sug => {
+            const matchPos = findMatchInText(fullText, sug.original);
+            return { sug, index: matchPos ? matchPos.start : -1 };
+          })
+          .sort((a, b) => {
+            if (a.index === -1) return 1;
+            if (b.index === -1) return -1;
+            return a.index - b.index;
+          })
+          .map(item => ({
+            original_fragment: item.sug.original,
+            replacement_text: item.sug.suggestion,
+            type: item.sug.type,
+            severity: item.sug.severity,
+            category: item.sug.category,
+            reason: item.sug.reason
+          }));
+
+        return JSON.stringify(sorted, null, 2);
+      } catch (e) {
+        return analysisText;
+      }
+    }
+
+    // Legacy format fallback
     const sections = analysisText.split(/(?=## |❌ )/);
     const header = sections.find(s => s.startsWith('##')) || '';
     const suggestions = sections.filter(s => s.startsWith('❌'));
@@ -314,15 +348,12 @@ REVISIONA IL TARGET SOPRA CON OCCHIO SEVERO E ANALITICO.`;
       const sortedResult = sortAnalysisResults(plainText, fullResponse);
       setAnalysis(sortedResult);
 
-      // Automatic checkpointing (only for full scene analysis)
+      // Automatic checkpointing
       if (activeSceneId && !isSelection) {
-        const lines = sortedResult.split('\n');
-        const lastErrorLine = lines.reverse().find(l => l.trim().startsWith('❌'));
-        if (lastErrorLine) {
-          const phrase = lastErrorLine.replace(/^❌\s*/, '').replace(/^["“”«»]+|["“”«»]+$/g, '').trim();
-          if (phrase) {
-            setLastAnalyzedPhrase(activeSceneId, phrase, 'revision');
-          }
+        const finalSuggestions = parseAIAnalysis(sortedResult);
+        if (finalSuggestions.length > 0) {
+          const lastSug = finalSuggestions[finalSuggestions.length - 1];
+          setLastAnalyzedPhrase(activeSceneId, lastSug.original, 'revision');
         }
       }
 
