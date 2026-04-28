@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Maximize2, Minimize2, LayoutList, ChevronDown, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Sparkles, Maximize2, Minimize2, LayoutList, ChevronDown, CheckCircle2, AlertCircle, Languages, Image } from 'lucide-react';
 import { Editor } from '../../components/Editor';
 import type { Scene } from '../../types/narrative';
 import { useStore } from '../../store/useStore';
@@ -153,6 +153,36 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest">Correzione Tecnica</p>
                     <p className="text-[8px] opacity-60 uppercase mt-0.5">Grammatica e Refusi</p>
+                  </div>
+                </button>
+
+                <div className="my-2 h-[1px] bg-white/5" />
+
+                <button
+                  onClick={() => {
+                    if (activeScene) runAnalysis(activeScene.id, currentSceneContent, 'synonyms');
+                    setShowAIMenu(false);
+                  }}
+                  className="w-full flex items-center gap-3 p-3 hover:bg-[var(--accent)] hover:text-[var(--bg-deep)] rounded-xl transition-all group text-left"
+                >
+                  <Languages className="w-4 h-4 text-[var(--accent)] group-hover:text-[var(--bg-deep)]" />
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest">Sinonimi e Contrari</p>
+                    <p className="text-[8px] opacity-60 uppercase mt-0.5">Ricchezza Lessicale</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (activeScene) runAnalysis(activeScene.id, currentSceneContent, 'metaphors');
+                    setShowAIMenu(false);
+                  }}
+                  className="w-full flex items-center gap-3 p-3 hover:bg-[var(--accent)] hover:text-[var(--bg-deep)] rounded-xl transition-all group text-left"
+                >
+                  <Image className="w-4 h-4 text-[var(--accent)] group-hover:text-[var(--bg-deep)]" />
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest">Metafore e Similitudini</p>
+                    <p className="text-[8px] opacity-60 uppercase mt-0.5">Potenziamento Creativo</p>
                   </div>
                 </button>
 

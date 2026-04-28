@@ -21,11 +21,12 @@ export const useAIAnalysis = () => {
     setIsAnalyzing(false);
   };
 
-  const runAnalysis = async (sceneId: string, content: string, tab: 'revision' | 'grammar') => {
+  const runAnalysis = async (sceneId: string, content: string, tab: 'revision' | 'grammar' | 'synonyms' | 'metaphors') => {
     if (!sceneId || !content) return;
     
     setIsAnalyzing(true);
-    setSceneAnalysis(sceneId, '', tab);
+    // Clear previous for the relevant conceptual tab
+    setSceneAnalysis(sceneId, '', tab === 'grammar' ? 'grammar' : 'revision');
     
     const plainText = getPlainTextForAI(content);
     if (plainText.length < 5) {
@@ -40,11 +41,31 @@ export const useAIAnalysis = () => {
     abortControllerRef.current = new AbortController();
     
     try {
-      const systemPrompt = tab === 'revision' 
-        ? `Sei un editor professionista. Analizza il testo e restituisci suggerimenti in formato JSON:
-           { "original": "testo esatto", "suggestion": "testo corretto", "reason": "spiegazione", "type": "stile" }`
-        : `Sei un correttore bozze. Analizza il testo e restituisci suggerimenti in formato JSON:
-           { "original": "testo esatto", "suggestion": "testo corretto", "reason": "spiegazione", "type": "grammatica" }`;
+      let systemPrompt = '';
+      switch (tab) {
+        case 'revision':
+          systemPrompt = `Sei un Senior Editor e Copywriter. Il tuo obiettivo è elevare la qualità letteraria del testo. 
+                         Non limitarti alla correzione: agisci sul ritmo, elimina le ridondanze (mostra, non dire), e suggerisci varianti più incisive, evocative e professionali. 
+                         Trasforma passaggi piatti in prosa vibrante. Restituisci suggerimenti in formato JSON:
+                         { "original": "testo esatto", "suggestion": "testo elevato e riscritto", "reason": "spiegazione editoriale del perché questa versione migliora il ritmo o l'impatto", "type": "stile" }`;
+          break;
+        case 'grammar':
+          systemPrompt = `Sei un correttore bozze. Trova errori grammaticali, refusi o punteggiatura errata e restituisci in formato JSON:
+                         { "original": "testo esatto", "suggestion": "testo corretto", "reason": "spiegazione", "type": "grammatica" }`;
+          break;
+        case 'synonyms':
+          systemPrompt = `Sei un esperto linguista e filologo. Trova parole ripetitive, banali o pigre. 
+                         Suggerisci sinonimi ricercati, termini tecnici precisi o contrari per creare contrasto dinamico. 
+                         L'obiettivo è la precisione terminologica e la varietà lessicale. Restituisci in formato JSON:
+                         { "original": "parola esatta", "suggestion": "termine ricercato/preciso", "reason": "spiegazione del valore semantico aggiunto", "type": "stile" }`;
+          break;
+        case 'metaphors':
+          systemPrompt = `Sei un autore di narrativa pluripremiato. Identifica descrizioni piatte, letterali o didascaliche. 
+                         Suggerisci metafore potenti, similitudini insolite o immagini sensoriali che colpiscano il lettore. 
+                         Passa dal 'dire' al 'far sentire'. Restituisci in formato JSON:
+                         { "original": "descrizione piatta", "suggestion": "immagine metaforica/sensoriale", "reason": "spiegazione dell'emozione o dell'immagine evocata", "type": "stile" }`;
+          break;
+      }
 
       const userPrompt = `Testo da analizzare:
       ${plainText}
@@ -59,7 +80,9 @@ export const useAIAnalysis = () => {
           { role: 'user', content: userPrompt }
         ],
         (chunk: string) => {
-          setSceneAnalysis(sceneId, (prev) => prev + chunk, tab);
+          // Map all stylistic tasks to 'revision' display tab
+          const storeTab = tab === 'grammar' ? 'grammar' : 'revision';
+          setSceneAnalysis(sceneId, (prev) => prev + chunk, storeTab);
         },
         { signal: abortControllerRef.current.signal }
       );

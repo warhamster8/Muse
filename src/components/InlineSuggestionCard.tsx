@@ -14,7 +14,7 @@ interface Props {
 export const InlineSuggestionCard: React.FC<Props> = ({ suggestion, onApply, onIgnore, onClose, position }) => {
   return (
     <div 
-      className="fixed z-[100] w-80 glass-dark rounded-[24px] border border-[var(--accent)]/30 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+      className="fixed z-[100] w-80 glass rounded-[24px] border border-[var(--accent)]/30 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
       style={{ 
         top: `${position.top}px`, 
         left: `${position.left}px`,
@@ -34,7 +34,7 @@ export const InlineSuggestionCard: React.FC<Props> = ({ suggestion, onApply, onI
               {suggestion.category || 'Suggerimento AI'}
             </span>
           </div>
-          <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-lg transition-colors">
+          <button onClick={onClose} className="p-1 hover:bg-[var(--accent-soft)] rounded-lg transition-colors">
             <X className="w-4 h-4 text-[var(--text-muted)]" />
           </button>
         </div>
@@ -43,13 +43,13 @@ export const InlineSuggestionCard: React.FC<Props> = ({ suggestion, onApply, onI
           <div className="text-[11px] text-[var(--text-muted)] line-through decoration-rose-500/30 italic px-1">
             "{suggestion.original}"
           </div>
-          <div className="text-[13px] text-[var(--text-bright)] leading-relaxed font-serif bg-white/5 p-3 rounded-xl border border-white/5">
+          <div className="text-[13px] text-[var(--text-bright)] leading-relaxed font-serif bg-[var(--bg-deep)]/5 p-3 rounded-xl border border-[var(--border-subtle)]">
             {suggestion.suggestion}
           </div>
         </div>
 
         {suggestion.reason && (
-          <div className="flex gap-2 p-3 bg-[var(--accent-soft)]/50 rounded-xl border border-[var(--accent)]/10">
+          <div className="flex gap-2 p-3 bg-[var(--accent-soft)] rounded-xl border border-[var(--accent)]/10">
             <Zap className="w-3.5 h-3.5 text-[var(--accent)] shrink-0 mt-0.5" />
             <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed italic">
               {suggestion.reason}
@@ -60,7 +60,7 @@ export const InlineSuggestionCard: React.FC<Props> = ({ suggestion, onApply, onI
         <div className="flex items-center gap-2 pt-2">
           <button 
             onClick={onApply}
-            className="flex-1 flex items-center justify-center gap-2 py-3 bg-[var(--accent)] text-[var(--bg-deep)] rounded-xl text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-glow-mint"
+            className="flex-1 flex items-center justify-center gap-2 py-3 bg-[var(--accent)] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-glow-mint"
           >
             <Check className="w-3.5 h-3.5" />
             Applica
@@ -76,7 +76,7 @@ export const InlineSuggestionCard: React.FC<Props> = ({ suggestion, onApply, onI
       </div>
 
       {/* Little arrow pointing down */}
-      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 glass-dark border-r border-b border-[var(--accent)]/30 rotate-45" />
+      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 glass border-r border-b border-[var(--accent)]/30 rotate-45" />
     </div>
   );
 };
