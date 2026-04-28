@@ -713,7 +713,7 @@ Rispondi in italiano. Sii concreto e originale.`;
               </div>
             </div>
 
-            {parsedSuggestions.length > 0 ? (
+            {parsedSuggestions.length > 0 && suggestionIndex >= 0 && parsedSuggestions[suggestionIndex] ? (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {/* Header Suggerimenti */}
                 <div className="flex items-center justify-between px-2">
@@ -745,25 +745,28 @@ Rispondi in italiano. Sii concreto e originale.`;
                 <div 
                   className="group/card relative bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-3xl p-6 space-y-6 hover:border-[var(--accent)]/40 transition-all duration-500 shadow-xl overflow-hidden cursor-pointer"
                   onClick={() => {
-                    setHighlightedText(parsedSuggestions[suggestionIndex].original);
-                    requestScrollToHighlight();
+                    const sug = parsedSuggestions[suggestionIndex];
+                    if (sug) {
+                      setHighlightedText(sug.original);
+                      requestScrollToHighlight();
+                    }
                   }}
                 >
                   <div className="flex items-center justify-between">
                     <div className={cn(
                       "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border font-sans",
-                      parsedSuggestions[suggestionIndex].type === 'coerenza' ? "bg-amber-500/10 text-amber-400 border-amber-500/20" :
-                      parsedSuggestions[suggestionIndex].type === 'taglio' ? "bg-rose-500/10 text-rose-400 border-rose-500/20" :
-                      parsedSuggestions[suggestionIndex].type === 'grammatica' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                      parsedSuggestions[suggestionIndex]?.type === 'coerenza' ? "bg-amber-500/10 text-amber-400 border-amber-500/20" :
+                      parsedSuggestions[suggestionIndex]?.type === 'taglio' ? "bg-rose-500/10 text-rose-400 border-rose-500/20" :
+                      parsedSuggestions[suggestionIndex]?.type === 'grammatica' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
                       "bg-blue-500/10 text-blue-400 border-blue-500/20"
                     )}>
-                      {parsedSuggestions[suggestionIndex].category}
+                      {parsedSuggestions[suggestionIndex]?.category}
                     </div>
                     <div className="flex gap-1">
                       {[1, 2, 3].map(i => (
                         <div key={i} className={cn(
                           "w-1.5 h-1.5 rounded-full",
-                          i <= (parsedSuggestions[suggestionIndex].severity === 'high' ? 3 : parsedSuggestions[suggestionIndex].severity === 'medium' ? 2 : 1)
+                          i <= (parsedSuggestions[suggestionIndex]?.severity === 'high' ? 3 : parsedSuggestions[suggestionIndex]?.severity === 'medium' ? 2 : 1)
                             ? "bg-[var(--accent)] shadow-[0_0_5px_var(--accent)]"
                             : "bg-[var(--bg-deep)]"
                         )} />
@@ -777,7 +780,7 @@ Rispondi in italiano. Sii concreto e originale.`;
                         <Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" />
                       </div>
                       <p className="text-[13px] text-[var(--text-bright)] leading-relaxed font-sans font-bold">
-                        {parsedSuggestions[suggestionIndex].reason}
+                        {parsedSuggestions[suggestionIndex]?.reason}
                       </p>
                     </div>
                   </div>
@@ -786,7 +789,7 @@ Rispondi in italiano. Sii concreto e originale.`;
                     <div className="relative">
                       <div className="absolute -left-3 top-0 bottom-0 w-1 bg-rose-500/50 rounded-full" />
                       <div className="text-[13px] text-[var(--text-muted)] line-through decoration-rose-500/50 opacity-90 leading-relaxed font-serif p-1">
-                        {diffWords(parsedSuggestions[suggestionIndex].original, parsedSuggestions[suggestionIndex].suggestion).map((part, i) => (
+                        {diffWords(parsedSuggestions[suggestionIndex]?.original || '', parsedSuggestions[suggestionIndex]?.suggestion || '').map((part, i) => (
                           <span key={i} className={part.removed ? "bg-rose-500/20 text-rose-500 dark:text-rose-400 px-0.5 rounded" : ""}>
                             {part.value}
                           </span>
@@ -797,7 +800,7 @@ Rispondi in italiano. Sii concreto e originale.`;
                     <div className="relative">
                       <div className="absolute -left-3 top-0 bottom-0 w-1 bg-emerald-500 rounded-full" />
                       <div className="text-[15px] text-[var(--text-bright)] font-medium leading-relaxed bg-emerald-500/[0.07] p-5 rounded-2xl border border-emerald-500/20 shadow-sm font-serif">
-                        {diffWords(parsedSuggestions[suggestionIndex].original, parsedSuggestions[suggestionIndex].suggestion).map((part, i) => (
+                        {diffWords(parsedSuggestions[suggestionIndex]?.original || '', parsedSuggestions[suggestionIndex]?.suggestion || '').map((part, i) => (
                           <span key={i} className={part.added ? "bg-emerald-500/30 text-emerald-600 dark:text-emerald-300 px-0.5 rounded" : ""}>
                             {part.value}
                           </span>
@@ -810,7 +813,8 @@ Rispondi in italiano. Sii concreto e originale.`;
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        applySuggestion(parsedSuggestions[suggestionIndex]);
+                        const sug = parsedSuggestions[suggestionIndex];
+                        if (sug) applySuggestion(sug);
                       }}
                       className="flex-1 py-4 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--bg-deep)] rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-glow-mint active:scale-95 flex items-center justify-center gap-2"
                     >
@@ -820,8 +824,9 @@ Rispondi in italiano. Sii concreto e originale.`;
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (activeSceneId) {
-                          addIgnoredSuggestion(activeSceneId, parsedSuggestions[suggestionIndex].original);
+                        const sug = parsedSuggestions[suggestionIndex];
+                        if (sug && activeSceneId) {
+                          addIgnoredSuggestion(activeSceneId, sug.original);
                         }
                       }}
                       className="p-4 text-[var(--text-muted)] hover:text-rose-400 bg-[var(--bg-deep)] border border-[var(--border-subtle)] rounded-2xl hover:border-rose-400/30 transition-all active:scale-90"
