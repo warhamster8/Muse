@@ -28,7 +28,6 @@ export const AISidekick: React.FC = React.memo(() => {
   const setCurrentSceneContent = useStore(s => s.setCurrentSceneContent);
   const lastAnalyzedPhrase = useStore(s => s.lastAnalyzedPhrase);
   const setLastAnalyzedPhrase = useStore(s => s.setLastAnalyzedPhrase);
-  const sceneAnalysis = useStore(s => s.sceneAnalysis);
   const setSceneAnalysis = useStore(s => s.setSceneAnalysis);
   const activeSelection = useStore(s => s.activeSelection);
   const aiConfig = useStore(s => s.aiConfig);
@@ -51,11 +50,7 @@ export const AISidekick: React.FC = React.memo(() => {
   const clearSceneAnalysis = useStore(s => s.clearSceneAnalysis);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
-  const analysis = React.useMemo(() => {
-    if (!activeSceneId) return '';
-    const key = `${activeSceneId}-${activeTab}`;
-    return sceneAnalysis[key] || '';
-  }, [sceneAnalysis, activeSceneId, activeTab]);
+  const analysis = useStore(s => (activeSceneId && activeTab) ? s.sceneAnalysis[`${activeSceneId}-${activeTab}`] || '' : '');
 
   const setAnalysis = (val: string | ((prev: string) => string)) => {
     if (!activeSceneId) return;

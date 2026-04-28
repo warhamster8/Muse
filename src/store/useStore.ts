@@ -13,9 +13,8 @@ const syncSuggestions = (state: AppState, analysisText: string, sceneId: string,
     
     let newIndex = state.suggestionIndex;
     if (visible.length > 0) {
-      // Se avevamo un indice valido, cerchiamo di mantenerlo o agganciarlo all'ultimo disponibile
-      if (newIndex === -1) newIndex = 0;
-      else newIndex = Math.min(newIndex, visible.length - 1);
+      if (newIndex < 0) newIndex = 0;
+      else if (newIndex >= visible.length) newIndex = visible.length - 1;
     } else {
       newIndex = -1;
     }
