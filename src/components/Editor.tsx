@@ -257,13 +257,23 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
 
   // Sync content if it changes externally
   React.useEffect(() => {
-    if (editor && initialContent.trim() !== editor.getHTML().trim()) {
-      isExternallyUpdating.current = true;
-      editor.commands.setContent(initialContent, { emitUpdate: false });
-      
-      setTimeout(() => {
-        isExternallyUpdating.current = false;
-      }, 0);
+    if (!editor) return;
+
+    const currentHTML = editor.getHTML();
+    const normalizedInitial = initialContent.trim();
+    const normalizedCurrent = currentHTML.trim();
+
+    // Only update if content is genuinely different AND we are not focused
+    // or if the content is completely different (different scene load)
+    if (normalizedInitial !== normalizedCurrent) {
+      if (!editor.isFocused || Math.abs(normalizedInitial.length - normalizedCurrent.length) > 50) {
+        isExternallyUpdating.current = true;
+        editor.commands.setContent(initialContent, { emitUpdate: false });
+        
+        setTimeout(() => {
+          isExternallyUpdating.current = false;
+        }, 50);
+      }
     }
   }, [initialContent, editor]);
 

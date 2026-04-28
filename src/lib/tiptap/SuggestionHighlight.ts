@@ -1,7 +1,7 @@
 import { Extension } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
-import { findMatchesInDoc } from './matchUtils';
+import { getDocTextAndMap, findMatchInText } from './matchUtils';
 import { cn } from '../utils';
 import type { AISuggestion } from '../aiParsing';
 
@@ -41,7 +41,8 @@ export const SuggestionHighlight = Extension.create<SuggestionHighlightOptions, 
               const suggestionId = target.getAttribute('data-suggestion-id');
               if (suggestionId !== null) {
                 extension.options.onSuggestionClick(parseInt(suggestionId, 10));
-                return true; // prevent default handling
+                // we return false to let Prosemirror handle the click and set the cursor
+                return false; 
               }
             }
             return false;
@@ -54,17 +55,25 @@ export const SuggestionHighlight = Extension.create<SuggestionHighlightOptions, 
 
             const { doc } = state;
             const decorations: Decoration[] = [];
+            
+            // Optimization: Build text and map ONCE for all suggestions
+            const { fullText, posMap } = getDocTextAndMap(doc);
 
             suggestions.forEach((sug, index) => {
-              const matches = findMatchesInDoc(doc, sug.original);
+              const matches = findMatchInText(fullText, sug.original);
               matches.forEach(match => {
+                const startPM = posMap[match.start];
+                const endPM = posMap[match.end - 1] + 1;
+                
+                if (startPM === undefined || endPM === undefined) return;
+
                 const typeClass = `suggestion-type-${sug.type || 'stile'}`;
                 decorations.push(
-                  Decoration.inline(match.from, match.to, {
+                  Decoration.inline(startPM, endPM, {
                     class: cn('suggestion-highlight-pulse', typeClass),
                     'data-suggestion-id': index.toString(),
                     'data-suggestion-type': sug.type || 'stile',
-                    'data-suggestion-severity': sug.severity || 'medium',
+                    'data-suggestion-id-original': index.toString(),
                   })
                 );
               });

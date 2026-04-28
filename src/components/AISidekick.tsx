@@ -77,7 +77,7 @@ export const AISidekick: React.FC = React.memo(() => {
       setHighlightedText(sug.original);
       requestScrollToHighlight();
     }
-  }, [suggestionIndex, parsedSuggestions, setHighlightedText, requestScrollToHighlight]);
+  }, [suggestionIndex, requestScrollToHighlight, setHighlightedText]); // Removed parsedSuggestions to avoid scroll-lock during streaming
 
   const [braindumpInput, setBraindumpInput] = React.useState<string>('');
   const [lexiconInput, setLexiconInput] = React.useState<string>('');
@@ -140,8 +140,8 @@ export const AISidekick: React.FC = React.memo(() => {
 
         const sorted = suggestions
           .map(sug => {
-            const matchPos = findMatchInText(fullText, sug.original);
-            return { sug, index: matchPos ? matchPos.start : -1 };
+            const matches = findMatchInText(fullText, sug.original);
+            return { sug, index: matches.length > 0 ? matches[0].start : -1 };
           })
           .sort((a, b) => {
             if (a.index === -1) return 1;
@@ -173,8 +173,8 @@ export const AISidekick: React.FC = React.memo(() => {
       .map(sug => {
         const match = sug.match(/❌\s*(.+?)(?=\n|✅|$)/);
         const phrase = match ? match[1].replace(/^["“”«»]+|["“”«»]+$/g, '').trim() : '';
-        const matchPos = phrase ? findMatchInText(fullText, phrase) : null;
-        return { content: sug, index: matchPos ? matchPos.start : -1 };
+        const matches = phrase ? findMatchInText(fullText, phrase) : [];
+        return { content: sug, index: matches.length > 0 ? matches[0].start : -1 };
       })
       .sort((a, b) => {
         if (a.index === -1) return 1;
@@ -245,8 +245,8 @@ export const AISidekick: React.FC = React.memo(() => {
       }
     }
 
-    if (textToAnalyze.length > 30000) {
-      textToAnalyze = textToAnalyze.substring(0, 30000);
+    if (textToAnalyze.length > 100000) {
+      textToAnalyze = textToAnalyze.substring(0, 100000);
     }
 
     let fullResponse = isIncremental ? (sceneAnalysis[memoryKey] || '') : '';
@@ -299,7 +299,7 @@ Scena: ${activeScene?.title || 'Senza Titolo'}
 
 CONTESTO NARRATIVO (SOLO PER RIFERIMENTO):
 [INIZIO CONTESTO]
-${plainText.substring(0, 8000)}
+${plainText.substring(0, 100000)}
 [FINE CONTESTO]
 
 REVISIONA IL TARGET SOPRA CON OCCHIO SEVERO E ANALITICO.`;
@@ -357,7 +357,7 @@ REVISIONA IL TARGET SOPRA CON OCCHIO SEVERO E ANALITICO.`;
     setAnalysis('');
     let textToAnalyze = activeSelection || plainText;
     const isSelection = !!activeSelection;
-    if (textToAnalyze.length > 30000) textToAnalyze = textToAnalyze.substring(0, 30000);
+    if (textToAnalyze.length > 100000) textToAnalyze = textToAnalyze.substring(0, 100000);
 
     try {
       const systemPrompt = `Sei il Capo Redattore di Muse. Il tuo compito è correggere errori tecnici nel testo (TARGET) mantenendo la coerenza con l'intera scena (CONTESTO).
@@ -402,7 +402,7 @@ ${textToAnalyze}
 
 CONTESTO DELL'INTERA SCENA (SOLO PER RIFERIMENTO):
 [INIZIO CONTESTO]
-${plainText.substring(0, 10000)}
+${plainText}
 [FINE CONTESTO]
 
 CORREGGI IL TARGET SOPRA.`;

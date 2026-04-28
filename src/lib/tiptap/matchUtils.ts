@@ -15,62 +15,66 @@ const normalizeChar = (c: string): string => {
 /**
  * Finds matches of a query string within a document text using a robust index-mapping strategy
  */
+/**
+ * Finds matches of a query string within a document text using a robust index-mapping strategy
+ */
 export const findMatchInText = (fullText: string, query: string): { start: number; end: number }[] => {
   if (!query || query.trim().length < 1) return [];
 
-  // 1. Create a normalized version of the text and a map back to original indices
-  const normalizedChars: string[] = [];
-  const indexMap: number[] = [];
-
-  for (let i = 0; i < fullText.length; i++) {
-    const char = fullText[i];
-    const norm = normalizeChar(char);
-    normalizedChars.push(norm);
-    indexMap.push(i);
-  }
-
-  const normalizedText = normalizedChars.join('');
-  const normalizedQuery = query.split('').map(normalizeChar).join('').replace(/\s+/g, ' ');
-  
+  const normalizedQuery = query.toLowerCase().replace(/\s+/g, ' ');
   if (!normalizedQuery.trim()) return [];
 
-  // 2. Build regex
-  // We allow optional punctuation and whitespace between words to handle AI cleaning
-  const escapedQuery = normalizedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const words = escapedQuery.split(/\s+/).filter(w => w.length > 0);
-  
   // Strategy: Try strict match first, then relaxed
+  const words = normalizedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').split(/\s+/).filter(w => w.length > 0);
+  
   const tryRegex = (separator: string) => {
     const regexStr = words.join(separator);
     const results: { start: number; end: number }[] = [];
     try {
-      const regex = new RegExp(regexStr, 'giu');
+      const regex = new RegExp(regexStr, 'gi');
       let match;
-      while ((match = regex.exec(normalizedText)) !== null) {
-        const startIdx = match.index;
-        const endIdx = startIdx + match[0].length;
-        
+      const normalizedFullText = fullText.toLowerCase();
+      while ((match = regex.exec(normalizedFullText)) !== null) {
         results.push({
-          start: indexMap[startIdx],
-          end: indexMap[endIdx - 1] + 1
+          start: match.index,
+          end: match.index + match[0].length
         });
-        
-        // Prevent infinite loops with empty matches
-        if (match.index === regex.lastIndex) {
-          regex.lastIndex++;
-        }
+        if (match.index === regex.lastIndex) regex.lastIndex++;
       }
     } catch (e) {}
     return results;
   };
 
-  // Pass 1: Strict (only whitespace)
   const strictMatches = tryRegex('\\s+');
   if (strictMatches.length > 0) return strictMatches;
 
-  // Pass 2: Relaxed (allow punctuation/quotes between words)
-  // This helps when AI removes quotes or commas
   return tryRegex('[\\s\\p{P}\\p{S}]+');
+};
+
+/**
+ * Builds a flat text representation of a Prosemirror document with a map back to PM positions efficiently
+ */
+export const getDocTextAndMap = (doc: ProsemirrorNode): { fullText: string, posMap: number[] } => {
+  const textChunks: string[] = [];
+  const posMap: number[] = [];
+
+  doc.descendants((node, pos) => {
+    if (node.isText) {
+      const nodeText = node.text || '';
+      textChunks.push(nodeText);
+      for (let i = 0; i < nodeText.length; i++) {
+        posMap.push(pos + i);
+      }
+    } else if (node.isBlock && textChunks.length > 0 && !textChunks[textChunks.length - 1].endsWith('\n')) {
+      textChunks.push('\n');
+      posMap.push(pos);
+    }
+  });
+
+  return {
+    fullText: textChunks.join(''),
+    posMap
+  };
 };
 
 /**
@@ -79,24 +83,7 @@ export const findMatchInText = (fullText: string, query: string): { start: numbe
 export const findMatchesInDoc = (doc: ProsemirrorNode, suggestion: string): MatchResult[] => {
   if (!suggestion || suggestion.trim().length < 1) return [];
 
-  // 1. Build a flat text representation with PM positions
-  let fullText = '';
-  const posMap: number[] = [];
-
-  doc.descendants((node, pos) => {
-    if (node.isText) {
-      const nodeText = node.text || '';
-      for (let i = 0; i < nodeText.length; i++) {
-        fullText += nodeText[i];
-        posMap.push(pos + i);
-      }
-    } else if (node.isBlock && fullText.length > 0 && !fullText.endsWith('\n')) {
-      fullText += '\n';
-      posMap.push(pos);
-    }
-  });
-
-  // 2. Use our robust text matcher
+  const { fullText, posMap } = getDocTextAndMap(doc);
   const matches = findMatchInText(fullText, suggestion);
   
   return matches.map(match => {

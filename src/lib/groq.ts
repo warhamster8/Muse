@@ -66,7 +66,7 @@ export const groqService = {
         model,
         stream: true,
         temperature,
-        max_tokens: 4096, // Ottimizzato per output lunghi
+        max_tokens: 8192, // Ottimizzato per output lunghi
       }, { signal });
 
       for await (const chunk of stream) {
