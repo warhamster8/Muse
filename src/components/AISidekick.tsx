@@ -218,24 +218,27 @@ export const AISidekick: React.FC = React.memo(() => {
     if (abortControllerRef.current) abortControllerRef.current.abort();
     abortControllerRef.current = new AbortController();
     
+    // Determine if we should append to existing analysis (incremental) or start fresh
+    const memoryKey = `${activeSceneId}-${activeTab}`;
+    const lastPhrase = activeSceneId ? lastAnalyzedPhrase[memoryKey] : null;
+    const isIncremental = !activeSelection && !!lastPhrase;
+
+    if (!isIncremental) {
+      setAnalysis('');
+    }
+
     setIsAnalyzing(true);
-    setAnalysis('');
 
     let textToAnalyze = activeSelection || plainText;
     const isSelection = !!activeSelection;
 
-    if (!isSelection) {
-      const memoryKey = `${activeSceneId}-${activeTab}`;
-      const lastPhrase = activeSceneId ? lastAnalyzedPhrase[memoryKey] : null;
-
-      if (lastPhrase) {
-        // Use fuzzy matching for checkpointing
-        const match = findMatchInText(plainText, lastPhrase);
-        if (match) {
-          const startIndex = Math.max(0, match.end);
-          if (startIndex < plainText.length - 20) {
-             textToAnalyze = plainText.substring(startIndex);
-          }
+    if (isIncremental && lastPhrase) {
+      // Use fuzzy matching for checkpointing
+      const match = findMatchInText(plainText, lastPhrase);
+      if (match) {
+        const startIndex = Math.max(0, match.end);
+        if (startIndex < plainText.length - 20) {
+           textToAnalyze = plainText.substring(startIndex);
         }
       }
     }
@@ -244,7 +247,7 @@ export const AISidekick: React.FC = React.memo(() => {
       textToAnalyze = textToAnalyze.substring(0, 30000);
     }
 
-    let fullResponse = '';
+    let fullResponse = isIncremental ? (sceneAnalysis[memoryKey] || '') : '';
 
     try {
       const activeChapter = chapters.find((c: any) => c.scenes?.some((s: any) => s.id === activeSceneId));
@@ -835,9 +838,16 @@ Rispondi in italiano. Sii concreto e originale.`;
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-36 text-[var(--text-muted)] space-y-2">
-                <AlertTriangle className="w-8 h-8 opacity-20" />
-                <p className="text-xs text-center px-4">
-                  {analysis ? "Analisi completata: nessun suggerimento trovato." : "Seleziona una scena e premi Analizza per ricevere suggerimenti."}
+                {analysis?.startsWith('❌') ? (
+                  <AlertTriangle className="w-8 h-8 text-rose-500 animate-pulse" />
+                ) : (
+                  <AlertTriangle className="w-8 h-8 opacity-20" />
+                )}
+                <p className={cn("text-xs text-center px-4", analysis?.startsWith('❌') ? "text-rose-400 font-bold" : "")}>
+                  {analysis?.startsWith('❌') 
+                    ? analysis.replace('❌', '').trim() 
+                    : (analysis ? "Analisi completata: nessun suggerimento trovato." : "Seleziona una scena e premi Analizza per ricevere suggerimenti.")
+                  }
                 </p>
               </div>
             )}

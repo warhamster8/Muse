@@ -3,6 +3,8 @@
  * Gestisce lo streaming e la diagnostica di connessione in modo robusto tramite REST nativo,
  * risolvendo problemi noti di auth con l'SDK ufficiale e environment non standard.
  */
+const envKey = import.meta.env.VITE_GEMINI_API_KEY;
+
 export const geminiService = {
   /**
    * Avvia una chat completion in streaming.
@@ -21,7 +23,7 @@ export const geminiService = {
     temperature = 0.5,
     signal?: AbortSignal
   ) {
-    const apiKey = providedKey?.trim();
+    const apiKey = (providedKey || envKey || '').trim();
     if (!apiKey) {
       throw new Error('Configurazione di sicurezza: Chiave Gemini non valida');
     }

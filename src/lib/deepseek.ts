@@ -2,6 +2,8 @@
  * Servizio per l'interazione con l'API di DeepSeek.
  * Implementa streaming e test di connessione con gestione errori sicura.
  */
+const envKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
+
 export const deepseekService = {
   /**
    * Avvia una chat completion in streaming.
@@ -20,7 +22,7 @@ export const deepseekService = {
     temperature = 0.7,
     signal?: AbortSignal
   ) {
-    const apiKey = providedKey.trim();
+    const apiKey = (providedKey || envKey || '').trim();
     // Validazione rigida: la chiave deve avere il prefisso corretto e una lunghezza minima
     if (!apiKey || !apiKey.startsWith('sk-') || apiKey.length < 20) {
       throw new Error('Configurazione di sicurezza: Chiave DeepSeek non valida o malformata');
@@ -31,7 +33,7 @@ export const deepseekService = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey.trim()}`,
+          'Authorization': `Bearer ${apiKey}`,
         },
         signal,
         body: JSON.stringify({
@@ -44,12 +46,21 @@ export const deepseekService = {
 
       if (!response.ok) {
         // Gestione errori sicura: log dettagliato interno e messaggio generico
-        const errorData = await response.json().catch(() => ({}));
+        let errorMessage = `Sorgente AI non disponibile (Status: ${response.status})`;
+        try {
+          const errorData = await response.json();
+          if (errorData.error?.message) {
+             errorMessage = `DeepSeek Error: ${errorData.error.message}`;
+          }
+        } catch (e) {
+          // Fallback if not JSON
+        }
+        
         console.error('[SECURITY LOG] DeepSeek API Error:', {
           status: response.status,
-          detail: errorData.error?.message
+          message: errorMessage
         });
-        throw new Error(`Sorgente AI non disponibile (Status: ${response.status}). Riprova più tardi.`);
+        throw new Error(`${errorMessage}. Riprova più tardi.`);
       }
 
       const reader = response.body?.getReader();
