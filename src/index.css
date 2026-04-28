@@ -242,19 +242,19 @@
 }
 
 .suggestion-type-coerenza {
-  background-color: rgba(245, 158, 11, 0.1);
+  background-color: rgba(245, 158, 11, 0.25);
   border-bottom-color: #f59e0b;
 }
 .suggestion-type-taglio {
-  background-color: rgba(217, 70, 239, 0.1);
-  border-bottom-color: #d946ef;
+  background-color: rgba(244, 63, 94, 0.25);
+  border-bottom-color: #f43f5e;
 }
 .suggestion-type-stile {
-  background-color: rgba(99, 102, 241, 0.1);
+  background-color: rgba(99, 102, 241, 0.25);
   border-bottom-color: #6366f1;
 }
 .suggestion-type-grammatica {
-  background-color: rgba(16, 185, 129, 0.1);
+  background-color: rgba(16, 185, 129, 0.25);
   border-bottom-color: #10b981;
 }
 

@@ -740,9 +740,9 @@ Rispondi in italiano. Sii concreto e originale.`;
                     </div>
                   </div>
 
-                  <div className="space-y-3 bg-[var(--accent-soft)]/30 p-4 rounded-2xl border border-[var(--accent)]/10">
+                  <div className="space-y-3 bg-[var(--accent-soft)]/50 p-4 rounded-2xl border border-[var(--accent)]/20 shadow-sm">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-[var(--accent)]/10 rounded-xl">
+                      <div className="p-2 bg-[var(--accent)]/20 rounded-xl">
                         <Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" />
                       </div>
                       <p className="text-[13px] text-[var(--text-bright)] leading-relaxed font-sans font-bold">
@@ -753,10 +753,10 @@ Rispondi in italiano. Sii concreto e originale.`;
 
                   <div className="space-y-4 pt-2">
                     <div className="relative">
-                      <div className="absolute -left-3 top-0 bottom-0 w-1 bg-rose-500/30 rounded-full" />
-                      <div className="text-[13px] text-[var(--text-muted)] line-through decoration-rose-500/30 opacity-80 leading-relaxed font-serif p-1">
+                      <div className="absolute -left-3 top-0 bottom-0 w-1 bg-rose-500/50 rounded-full" />
+                      <div className="text-[13px] text-[var(--text-muted)] line-through decoration-rose-500/50 opacity-90 leading-relaxed font-serif p-1">
                         {diffWords(parsedSuggestions[suggestionIndex].original, parsedSuggestions[suggestionIndex].suggestion).map((part, i) => (
-                          <span key={i} className={part.removed ? "bg-rose-500/10 text-rose-300" : ""}>
+                          <span key={i} className={part.removed ? "bg-rose-500/20 text-rose-500 dark:text-rose-400 px-0.5 rounded" : ""}>
                             {part.value}
                           </span>
                         ))}
@@ -764,10 +764,10 @@ Rispondi in italiano. Sii concreto e originale.`;
                     </div>
 
                     <div className="relative">
-                      <div className="absolute -left-3 top-0 bottom-0 w-1 bg-emerald-500/50 rounded-full" />
-                      <div className="text-[15px] text-[var(--text-bright)] font-medium leading-relaxed bg-emerald-500/5 p-5 rounded-2xl border border-emerald-500/10 shadow-sm font-serif">
+                      <div className="absolute -left-3 top-0 bottom-0 w-1 bg-emerald-500 rounded-full" />
+                      <div className="text-[15px] text-[var(--text-bright)] font-medium leading-relaxed bg-emerald-500/[0.07] p-5 rounded-2xl border border-emerald-500/20 shadow-sm font-serif">
                         {diffWords(parsedSuggestions[suggestionIndex].original, parsedSuggestions[suggestionIndex].suggestion).map((part, i) => (
-                          <span key={i} className={part.added ? "bg-emerald-500/20 text-emerald-300 px-0.5 rounded" : ""}>
+                          <span key={i} className={part.added ? "bg-emerald-500/30 text-emerald-600 dark:text-emerald-300 px-0.5 rounded" : ""}>
                             {part.value}
                           </span>
                         ))}

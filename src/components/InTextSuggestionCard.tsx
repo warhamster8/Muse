@@ -36,29 +36,29 @@ export const InTextSuggestionCard: React.FC<Omit<InTextSuggestionCardProps, 'onC
       )}
 
       {/* Comparison Section */}
-      <div className="flex flex-col bg-black/5 divide-y divide-[var(--border-subtle)]">
+      <div className="flex flex-col bg-black/10 divide-y divide-[var(--border-subtle)]">
         {/* Original */}
-        <div className="p-6 relative group bg-rose-500/[0.03]">
-          <div className="text-[13px] text-[var(--text-muted)] leading-relaxed font-serif italic line-through decoration-[var(--text-muted)]/30">
+        <div className="p-6 relative group bg-rose-500/[0.05]">
+          <div className="text-[13px] text-[var(--text-muted)] leading-relaxed font-serif italic line-through decoration-rose-500/50">
             {oldParts.map((part, i) => (
-              <span key={i} className={cn(part.removed && "bg-rose-500/10 text-rose-400/80 px-0.5 rounded")}>
+              <span key={i} className={cn(part.removed && "bg-rose-500/20 text-rose-500 dark:text-rose-400 px-0.5 rounded")}>
                 {part.value}
               </span>
             ))}
           </div>
-          <span className="absolute top-2 right-4 text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50 font-sans">Attuale</span>
+          <span className="absolute top-2 right-4 text-[7px] font-black uppercase tracking-widest text-rose-500/60 font-sans">Attuale</span>
         </div>
 
         {/* Proposed */}
-        <div className="p-6 relative group bg-emerald-500/[0.03]">
+        <div className="p-6 relative group bg-emerald-500/[0.05]">
           <div className="text-[15px] text-[var(--text-bright)] leading-relaxed font-serif whitespace-pre-line">
             {newParts.map((part, i) => (
-              <span key={i} className={cn(part.added && "bg-emerald-500/20 text-emerald-400 font-bold px-0.5 rounded")}>
+              <span key={i} className={cn(part.added && "bg-emerald-500/30 text-emerald-600 dark:text-emerald-300 font-bold px-0.5 rounded shadow-sm")}>
                 {part.value}
               </span>
             ))}
           </div>
-          <span className="absolute top-2 right-4 text-[7px] font-black uppercase tracking-widest text-emerald-400 opacity-50 font-sans">Suggerito</span>
+          <span className="absolute top-2 right-4 text-[7px] font-black uppercase tracking-widest text-emerald-500/60 font-sans">Suggerito</span>
         </div>
       </div>
 
