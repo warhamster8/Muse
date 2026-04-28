@@ -37,7 +37,6 @@ export const NarrativeView: React.FC = React.memo(() => {
   const setActiveSceneId = useStore(s => s.setActiveSceneId);
   const setCurrentSceneContent = useStore(s => s.setCurrentSceneContent);
   const isNavigatorOpen = useStore(s => s.isNavigatorOpen);
-  const isSidekickOpen = useStore(s => s.isSidekickOpen);
   const isZenMode = useStore(s => s.isZenMode);
   const currentProject = useStore(s => s.currentProject);
   const authorName = useStore(s => s.authorName);

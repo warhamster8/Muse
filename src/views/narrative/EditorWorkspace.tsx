@@ -220,13 +220,6 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
                   <span className="w-1 h-1 bg-[var(--text-muted)] rounded-full" />
                   <span>Last Edit: Just now</span>
                 </div>
-                <button 
-                  onClick={() => setSidekickOpen(!isSidekickOpen)}
-                  className="flex items-center gap-2 text-[10px] uppercase font-black tracking-[0.3em] text-[var(--accent)] hover:opacity-100 transition-opacity"
-                >
-                  <Sparkles className="w-3 h-3" />
-                  Focus Deep Analysis
-                </button>
               </div>
             </div>
           </div>
