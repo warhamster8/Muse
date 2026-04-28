@@ -3,11 +3,25 @@ import { persist } from 'zustand/middleware';
 import type { Chapter } from '../types/narrative';
 import type { AIConfig } from '../lib/aiService';
 import type { GlobalTimelineEvent } from '../types/timeline';
-import type { AISuggestion } from '../lib/aiParsing';
+import { parseAIAnalysis, type AISuggestion } from '../lib/aiParsing';
 
-
+const syncSuggestions = (state: AppState, analysisText: string, sceneId: string, tabId: string) => {
+  if (tabId === 'revision' || tabId === 'grammar') {
+    const allSuggestions = parseAIAnalysis(analysisText);
+    const ignored = state.ignoredSuggestions?.[sceneId] || [];
+    const visible = allSuggestions.filter(s => !ignored.includes(s.original));
+    return {
+      parsedSuggestions: visible,
+      suggestionIndex: visible.length > 0 && state.suggestionIndex === -1 ? 0 : 
+                       visible.length === 0 ? -1 : 
+                       Math.min(state.suggestionIndex, visible.length - 1)
+    };
+  }
+  return { parsedSuggestions: [], suggestionIndex: -1 };
+};
 
 export type ViewTab = 'narrative' | 'characters' | 'world' | 'notes' | 'analysis' | 'config' | 'timeline';
+export type SidekickTab = 'revision' | 'grammar' | 'braindump' | 'transformer' | 'lexicon';
 
 interface User {
   id: string;
@@ -42,6 +56,7 @@ interface AppState {
   isNavigatorOpen: boolean;
   isZenMode: boolean;
   timelineEvents: GlobalTimelineEvent[];
+  sidekickTab: SidekickTab;
   
   parsedSuggestions: AISuggestion[];
   suggestionIndex: number;
@@ -75,6 +90,7 @@ interface AppState {
   setZenMode: (enabled: boolean) => void;
   setTimelineEvents: (events: GlobalTimelineEvent[]) => void;
   setTheme: (theme: 'dark' | 'light') => void;
+  setSidekickTab: (tab: SidekickTab) => void;
   setParsedSuggestions: (suggestions: AISuggestion[]) => void;
   setSuggestionIndex: (index: number | ((prev: number) => number)) => void;
 }
@@ -112,25 +128,36 @@ export const useStore = create<AppState>()(
       highlightedText: null,
       scrollRequestToken: 0,
       theme: 'dark',
+      sidekickTab: 'revision',
       parsedSuggestions: [],
       suggestionIndex: -1,
       
       setUser: (user) => set({ user }),
       setCurrentProject: (project) => set({ currentProject: project }),
       setActiveTab: (tab) => set({ activeTab: tab }),
-      setActiveSceneId: (id) => set({ activeSceneId: id }),
+      setActiveSceneId: (id) => set((state) => {
+        const analysis = id ? state.sceneAnalysis[`${id}-revision`] || '' : '';
+        const synced = syncSuggestions(state, analysis, id || '', 'revision');
+        return { activeSceneId: id, ...synced };
+      }),
       setCurrentSceneContent: (content) => set({ currentSceneContent: content }),
       setChapters: (chapters) => set({ chapters }),
       setLocalMode: (enabled) => set({ isLocalMode: enabled, user: null, currentProject: null }),
       setLoading: (loading) => set({ isLoading: loading }),
       logout: () => set({ user: null, currentProject: null, isLocalMode: false }),
       setActiveSuggestions: (suggestions) => set({ activeSuggestions: suggestions }),
-      addIgnoredSuggestion: (sceneId, suggestion) => set((state) => ({
-        ignoredSuggestions: {
+      addIgnoredSuggestion: (sceneId, suggestion) => set((state) => {
+        const newIgnored = {
           ...(state.ignoredSuggestions || {}),
           [sceneId]: [...((state.ignoredSuggestions || {})[sceneId] || []), suggestion]
-        }
-      })),
+        };
+        const analysis = sceneId ? state.sceneAnalysis[`${sceneId}-${state.sidekickTab}`] || '' : '';
+        const synced = syncSuggestions({ ...state, ignoredSuggestions: newIgnored }, analysis, sceneId, state.sidekickTab);
+        return {
+          ignoredSuggestions: newIgnored,
+          ...synced
+        };
+      }),
       setLastAnalyzedPhrase: (sceneId, phrase, tabId = 'revision') => set((state) => {
         const key = `${sceneId}-${tabId}`;
         const current = state.lastAnalyzedPhrase?.[key] || '';
@@ -146,11 +173,17 @@ export const useStore = create<AppState>()(
         const key = `${sceneId}-${tabId}`;
         const current = state.sceneAnalysis?.[key] || '';
         const next = typeof analysis === 'function' ? analysis(current) : analysis;
+        
+        if (sceneId === state.activeSceneId && tabId === state.sidekickTab) {
+          const synced = syncSuggestions(state, next, sceneId, tabId);
+          return {
+            sceneAnalysis: { ...(state.sceneAnalysis || {}), [key]: next },
+            ...synced
+          };
+        }
+
         return {
-          sceneAnalysis: {
-            ...(state.sceneAnalysis || {}),
-            [key]: next
-          }
+          sceneAnalysis: { ...(state.sceneAnalysis || {}), [key]: next }
         };
       }),
       setAIConfig: (config) => set((state) => ({
@@ -166,6 +199,11 @@ export const useStore = create<AppState>()(
       setZenMode: (isZenMode) => set({ isZenMode }),
       setTimelineEvents: (timelineEvents) => set({ timelineEvents }),
       setTheme: (theme) => set({ theme }),
+      setSidekickTab: (sidekickTab) => set((state) => {
+        const analysis = state.activeSceneId ? state.sceneAnalysis[`${state.activeSceneId}-${sidekickTab}`] || '' : '';
+        const synced = syncSuggestions(state, analysis, state.activeSceneId || '', sidekickTab);
+        return { sidekickTab, ...synced };
+      }),
       setParsedSuggestions: (suggestions) => set({ parsedSuggestions: suggestions }),
       setSuggestionIndex: (index) => set((state) => ({ 
         suggestionIndex: typeof index === 'function' ? index(state.suggestionIndex) : index 
@@ -178,9 +216,11 @@ export const useStore = create<AppState>()(
         currentProject: state.currentProject, 
         isLocalMode: state.isLocalMode,
         activeTab: state.activeTab,
+        sidekickTab: state.sidekickTab,
         ignoredSuggestions: state.ignoredSuggestions || {},
         lastAnalyzedPhrase: state.lastAnalyzedPhrase || {},
         sceneAnalysis: state.sceneAnalysis || {},
+        suggestionIndex: state.suggestionIndex,
         authorName: state.authorName || '',
         isSidekickOpen: state.isSidekickOpen !== undefined ? state.isSidekickOpen : true,
         isNavigatorOpen: state.isNavigatorOpen !== undefined ? state.isNavigatorOpen : true,

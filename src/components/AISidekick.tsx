@@ -55,7 +55,8 @@ export const AISidekick: React.FC = React.memo(() => {
   
   const { updateSceneContent } = useNarrative();
   const { addToast } = useToast();
-  const [activeTab, setActiveTab] = React.useState<SidekickTab>('revision');
+  const activeTab = useStore(s => s.sidekickTab);
+  const setActiveTab = useStore(s => s.setSidekickTab);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   const analysis = React.useMemo(() => {
@@ -68,33 +69,6 @@ export const AISidekick: React.FC = React.memo(() => {
     if (!activeSceneId) return;
     setSceneAnalysis(activeSceneId, val, activeTab);
   };
-
-  // Reset index when changing tabs to avoid stale state
-  React.useEffect(() => {
-    setSuggestionIndex(-1);
-  }, [activeTab, setSuggestionIndex]);
-
-  // Automated parsing of suggestions with filtering
-  React.useEffect(() => {
-    if (activeTab === 'revision' || activeTab === 'grammar') {
-      const allSuggestions = parseAIAnalysis(analysis);
-      const ignored = activeSceneId ? (ignoredSuggestions[activeSceneId] || []) : [];
-      const visible = allSuggestions.filter(s => !ignored.includes(s.original));
-      
-      setParsedSuggestions(visible);
-      
-      if (visible.length > 0 && suggestionIndex === -1) {
-        setSuggestionIndex(0);
-      } else if (visible.length === 0) {
-        setSuggestionIndex(-1);
-      } else if (suggestionIndex >= visible.length) {
-        setSuggestionIndex(visible.length - 1);
-      }
-    } else {
-      setParsedSuggestions([]);
-      setSuggestionIndex(-1);
-    }
-  }, [analysis, activeTab, ignoredSuggestions, activeSceneId]);
 
   // Automated scrolling when navigating
   React.useEffect(() => {
