@@ -7,7 +7,7 @@ import { parseAIAnalysis, type AISuggestion } from '../lib/aiParsing';
 
 const syncSuggestions = (state: AppState, analysisText: string, sceneId: string, tabId: string) => {
   if (tabId === 'revision' || tabId === 'grammar') {
-    const allSuggestions = parseAIAnalysis(analysisText);
+    const allSuggestions = (analysisText && analysisText.trim()) ? parseAIAnalysis(analysisText) : [];
     const ignored = state.ignoredSuggestions?.[sceneId] || [];
     const visible = allSuggestions.filter(s => !ignored.includes(s.original));
     

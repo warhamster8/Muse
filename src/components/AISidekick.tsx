@@ -627,7 +627,7 @@ Rispondi in italiano. Sii concreto e originale.`;
                   </button>
                 ) : analysis ? (
                   <button 
-                    onClick={() => setAnalysis('')}
+                    onClick={handleStop}
                     title="Rimuovi suggerimenti"
                     className="p-2.5 text-[var(--text-muted)] hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20"
                   >
@@ -843,10 +843,12 @@ Rispondi in italiano. Sii concreto e originale.`;
                 ) : (
                   <AlertTriangle className="w-8 h-8 opacity-20" />
                 )}
-                <p className={cn("text-xs text-center px-4", analysis?.startsWith('❌') ? "text-rose-400 font-bold" : "")}>
+                <p className={cn("text-xs text-center px-4", (analysis?.startsWith('❌') || (analysis?.trim().startsWith('[') && parsedSuggestions.length === 0)) ? "text-rose-400 font-bold" : "")}>
                   {analysis?.startsWith('❌') 
                     ? analysis.replace('❌', '').trim() 
-                    : (analysis ? "Analisi completata: nessun suggerimento trovato." : "Seleziona una scena e premi Analizza per ricevere suggerimenti.")
+                    : (analysis?.trim().startsWith('[') && parsedSuggestions.length === 0)
+                      ? "Errore nell'analisi del testo. Riprova."
+                      : (analysis ? "Analisi completata: nessun suggerimento trovato." : "Seleziona una scena e premi Analizza per ricevere suggerimenti.")
                   }
                 </p>
               </div>
