@@ -23,7 +23,8 @@ import {
   Highlighter,
   Type,
   ALargeSmall,
-  Sparkles
+  Sparkles,
+  Quote
 } from 'lucide-react';
 
 import { useStore } from '../store/useStore';
@@ -173,6 +174,34 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   const parsedSuggestions = useStore(s => s.parsedSuggestions);
   const activeSceneId = useStore(s => s.activeSceneId);
   const ignoredSuggestions = useStore(s => s.ignoredSuggestions);
+
+  const handleFixQuotes = React.useCallback(() => {
+    if (!editor) return;
+    
+    const oldHtml = editor.getHTML();
+    const parts = oldHtml.split(/(<[^>]+>)/g);
+    let hasChanges = false;
+    
+    const newHtml = parts.map(part => {
+      if (part.startsWith('<')) return part;
+      
+      const fixed = part
+        .replace(/(^|[\s(>])["“]/g, '$1«')
+        .replace(/["”]/g, '»')
+        .replace(/«\s+/g, '«')
+        .replace(/\s+»/g, '»');
+        
+      if (fixed !== part) hasChanges = true;
+      return fixed;
+    }).join('');
+    
+    if (hasChanges) {
+      editor.commands.setContent(newHtml);
+      addToast("Virgolette convertite in francesi", "success");
+    } else {
+      addToast("Nessuna virgoletta da convertire", "info");
+    }
+  }, [editor, addToast]);
 
   // Update decorations when suggestions change
   React.useEffect(() => {
@@ -424,6 +453,19 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
             title="Giustificato"
           >
             <AlignJustify className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="w-px h-6 bg-[var(--accent-soft)] mx-1" />
+
+        {/* Quotes Fix */}
+        <div className="flex items-center gap-1 px-1">
+          <button
+            onClick={handleFixQuotes}
+            className="p-2 rounded-lg transition-all text-[var(--text-secondary)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+            title="Converti in virgolette francesi («»)"
+          >
+            <Quote className="w-4 h-4" />
           </button>
         </div>
 
