@@ -136,7 +136,7 @@
   background-color: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--border-subtle);
-  @apply shadow-xl;
+  box-shadow: 0 20px 40px -12px rgba(15, 23, 42, 0.15);
 }
 
 .glass-emerald {
@@ -147,10 +147,10 @@
 }
 
 .glass-dark {
-  background-color: rgba(15, 23, 42, 0.4);
+  background-color: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--border-subtle);
-  @apply shadow-xl;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 /* Shadow System: Multi-layered for realistic depth */

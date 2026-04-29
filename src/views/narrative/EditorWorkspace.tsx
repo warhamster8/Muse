@@ -123,68 +123,78 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
             </button>
 
             {showAIMenu && (
-              <div className="absolute top-full right-0 mt-3 w-64 glass-dark rounded-[24px] border border-[var(--border-subtle)] shadow-2xl p-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
-                <div className="p-3 mb-2 border-b border-white/5">
-                  <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Azioni AI Suggerite</p>
+              <div className="absolute top-full right-0 mt-4 w-80 bg-[var(--bg-surface)] backdrop-blur-3xl rounded-[32px] border border-[var(--border-subtle)] shadow-premium p-3 z-[100] animate-in fade-in slide-in-from-top-3 duration-300 ring-1 ring-black/[0.03]">
+                <div className="px-4 py-3 mb-2 border-b border-[var(--border-subtle)]/50">
+                  <p className="text-[10px] font-black text-[var(--accent)] uppercase tracking-[0.3em]">Azioni AI Suggerite</p>
                 </div>
                 
-                <button
-                  onClick={() => {
-                    if (activeScene) runAnalysis(activeScene.id, currentSceneContent, 'revision');
-                    setShowAIMenu(false);
-                  }}
-                  className="w-full flex items-center gap-3 p-3 hover:bg-[var(--accent)] hover:text-[var(--bg-deep)] rounded-xl transition-all group text-left"
-                >
-                  <Sparkles className="w-4 h-4 text-[var(--accent)] group-hover:text-[var(--bg-deep)]" />
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest">Analisi Stilistica</p>
-                    <p className="text-[8px] opacity-60 uppercase mt-0.5">Revisione e Tono</p>
-                  </div>
-                </button>
+                <div className="space-y-1">
+                  <button
+                    onClick={() => {
+                      if (activeScene) runAnalysis(activeScene.id, currentSceneContent, 'revision');
+                      setShowAIMenu(false);
+                    }}
+                    className="w-full flex items-center gap-4 p-3.5 hover:bg-[var(--accent)] hover:text-[var(--bg-deep)] rounded-[24px] transition-all group text-left"
+                  >
+                    <div className="w-10 h-10 flex items-center justify-center bg-[var(--accent-soft)] rounded-xl group-hover:bg-white/20 transition-colors">
+                      <Sparkles className="w-5 h-5 text-[var(--accent)] group-hover:text-white" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-widest">Analisi Stilistica</p>
+                      <p className="text-[9px] opacity-60 uppercase mt-0.5 font-bold">Revisione e Tono Narrativo</p>
+                    </div>
+                  </button>
 
-                <button
-                  onClick={() => {
-                    if (activeScene) runAnalysis(activeScene.id, currentSceneContent, 'grammar');
-                    setShowAIMenu(false);
-                  }}
-                  className="w-full flex items-center gap-3 p-3 hover:bg-emerald-500 hover:text-white rounded-xl transition-all group text-left"
-                >
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 group-hover:text-white" />
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest">Correzione Tecnica</p>
-                    <p className="text-[8px] opacity-60 uppercase mt-0.5">Grammatica e Refusi</p>
-                  </div>
-                </button>
+                  <button
+                    onClick={() => {
+                      if (activeScene) runAnalysis(activeScene.id, currentSceneContent, 'grammar');
+                      setShowAIMenu(false);
+                    }}
+                    className="w-full flex items-center gap-4 p-3.5 hover:bg-emerald-500 hover:text-white rounded-[24px] transition-all group text-left"
+                  >
+                    <div className="w-10 h-10 flex items-center justify-center bg-emerald-500/10 rounded-xl group-hover:bg-white/20 transition-colors">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500 group-hover:text-white" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-widest">Correzione Tecnica</p>
+                      <p className="text-[9px] opacity-60 uppercase mt-0.5 font-bold">Grammatica e Refusi</p>
+                    </div>
+                  </button>
 
-                <div className="my-2 h-[1px] bg-white/5" />
+                  <div className="my-2 h-[1px] bg-[var(--border-subtle)]/30 mx-4" />
 
-                <button
-                  onClick={() => {
-                    if (activeScene) runAnalysis(activeScene.id, currentSceneContent, 'synonyms');
-                    setShowAIMenu(false);
-                  }}
-                  className="w-full flex items-center gap-3 p-3 hover:bg-[var(--accent)] hover:text-[var(--bg-deep)] rounded-xl transition-all group text-left"
-                >
-                  <Languages className="w-4 h-4 text-[var(--accent)] group-hover:text-[var(--bg-deep)]" />
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest">Sinonimi e Contrari</p>
-                    <p className="text-[8px] opacity-60 uppercase mt-0.5">Ricchezza Lessicale</p>
-                  </div>
-                </button>
+                  <button
+                    onClick={() => {
+                      if (activeScene) runAnalysis(activeScene.id, currentSceneContent, 'synonyms');
+                      setShowAIMenu(false);
+                    }}
+                    className="w-full flex items-center gap-4 p-3.5 hover:bg-[var(--accent)] hover:text-[var(--bg-deep)] rounded-[24px] transition-all group text-left"
+                  >
+                    <div className="w-10 h-10 flex items-center justify-center bg-[var(--accent-soft)] rounded-xl group-hover:bg-white/20 transition-colors">
+                      <Languages className="w-5 h-5 text-[var(--accent)] group-hover:text-white" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-widest">Sinonimi e Contrari</p>
+                      <p className="text-[9px] opacity-60 uppercase mt-0.5 font-bold">Ricchezza Lessicale</p>
+                    </div>
+                  </button>
 
-                <button
-                  onClick={() => {
-                    if (activeScene) runAnalysis(activeScene.id, currentSceneContent, 'metaphors');
-                    setShowAIMenu(false);
-                  }}
-                  className="w-full flex items-center gap-3 p-3 hover:bg-[var(--accent)] hover:text-[var(--bg-deep)] rounded-xl transition-all group text-left"
-                >
-                  <Image className="w-4 h-4 text-[var(--accent)] group-hover:text-[var(--bg-deep)]" />
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest">Metafore e Similitudini</p>
-                    <p className="text-[8px] opacity-60 uppercase mt-0.5">Potenziamento Creativo</p>
-                  </div>
-                </button>
+                  <button
+                    onClick={() => {
+                      if (activeScene) runAnalysis(activeScene.id, currentSceneContent, 'metaphors');
+                      setShowAIMenu(false);
+                    }}
+                    className="w-full flex items-center gap-4 p-3.5 hover:bg-[var(--accent)] hover:text-[var(--bg-deep)] rounded-[24px] transition-all group text-left"
+                  >
+                    <div className="w-10 h-10 flex items-center justify-center bg-[var(--accent-soft)] rounded-xl group-hover:bg-white/20 transition-colors">
+                      <Image className="w-5 h-5 text-[var(--accent)] group-hover:text-white" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-widest">Metafore e Similitudini</p>
+                      <p className="text-[9px] opacity-60 uppercase mt-0.5 font-bold">Potenziamento Creativo</p>
+                    </div>
+                  </button>
+                </div>
 
                 {isAnalyzing ? (
                   <button
@@ -192,15 +202,15 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
                       stopAnalysis();
                       setShowAIMenu(false);
                     }}
-                    className="w-full flex items-center gap-3 p-3 text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all text-left mt-2 border border-rose-500/10"
+                    className="w-full flex items-center justify-center gap-3 p-4 text-rose-500 hover:bg-rose-500/10 rounded-[24px] transition-all text-center mt-3 border border-rose-500/20 font-black text-[10px] uppercase tracking-widest"
                   >
                     <AlertCircle className="w-4 h-4" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Interrompi</span>
+                    Interrompi Analisi
                   </button>
                 ) : (
                   parsedSuggestions.length > 0 && (
-                    <div className="mt-2 p-3 bg-[var(--accent-soft)] rounded-xl border border-[var(--accent)]/10">
-                      <p className="text-[9px] font-black text-[var(--accent)] uppercase tracking-widest text-center">
+                    <div className="mt-3 p-4 bg-[var(--accent-soft)] rounded-[24px] border border-[var(--accent)]/20 text-center">
+                      <p className="text-[10px] font-black text-[var(--accent)] uppercase tracking-[0.2em]">
                         {parsedSuggestions.length} Suggerimenti Pronti
                       </p>
                     </div>

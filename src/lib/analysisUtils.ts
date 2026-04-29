@@ -15,13 +15,6 @@ export const lexicalDiversity = (text: string): number => {
   return (uniqueWords.size / words.length) * 100;
 };
 
-export const avgSentenceLength = (text: string): number => {
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-  if (sentences.length === 0) return 0;
-  const totalWords = countWords(text);
-  return totalWords / sentences.length;
-};
-
 const STOP_WORDS = new Set([
   'il', 'lo', 'la', 'i', 'gli', 'le', 'un', 'uno', 'una', 'di', 'a', 'da', 'in', 'con', 'su', 'per', 'tra', 'fra', 
   'e', 'o', 'ma', 'se', 'che', 'non', 'sono', 'è', 'era', 'erano', 'stata', 'stato', 'stato', 'aveva', 'avevano',
@@ -56,12 +49,3 @@ export const countCharacterMentions = (text: string, characterNames: string[]): 
   return results.sort((a, b) => b.count - a.count);
 };
 
-export const calculateReadability = (text: string): number => {
-  const words = countWords(text);
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
-  if (words === 0 || sentences === 0) return 0;
-  
-  // Simplified Flesch-Kincaid style Index for Italian (approximation)
-  // Low score = simple, High score = academic/complex
-  return (words / sentences) * 0.4; // Weighted just on sentence length for now
-};
