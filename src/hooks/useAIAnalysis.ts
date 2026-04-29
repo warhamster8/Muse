@@ -62,23 +62,23 @@ export const useAIAnalysis = () => {
                          2. Sii CONSERVATIVO: mantieni il ritmo originale ma rendilo più incisivo. 
                          3. Intervieni sulla forma, non sulla sostanza. Non riassumere.
                          4. 'Mostra, non dire' senza tagliare la scena.
-                         FORMATO: Restituisci ESCLUSIVAMENTE oggetti JSON validi:
-                         { "original": "testo esatto", "suggestion": "testo elevato", "reason": "spiegazione editoriale", "type": "stile" }`;
+                         FORMATO DI OUTPUT OBBLIGATORIO: Restituisci SOLO ED ESCLUSIVAMENTE un array di oggetti JSON. Nessun commento o testo aggiuntivo. Schema:
+                         [ { "original": "testo esatto", "suggestion": "testo elevato", "reason": "spiegazione editoriale", "type": "stile" } ]`;
           break;
         case 'grammar':
           systemPrompt = `Sei un correttore bozze pignolo. Trova errori grammaticali, refusi, punteggiatura o errori di battitura.
-                         FORMATO: Restituisci ESCLUSIVAMENTE oggetti JSON:
-                         { "original": "testo esatto", "suggestion": "testo corretto", "reason": "spiegazione", "type": "grammatica" }`;
+                         FORMATO DI OUTPUT OBBLIGATORIO: Restituisci SOLO ED ESCLUSIVAMENTE un array di oggetti JSON. Schema:
+                         [ { "original": "testo esatto", "suggestion": "testo corretto", "reason": "spiegazione", "type": "grammatica" } ]`;
           break;
         case 'synonyms':
           systemPrompt = `Sei un esperto linguista. Trova parole ripetitive o generiche. Suggerisci termini più precisi, evocativi o ricercati.
-                         FORMATO: Restituisci ESCLUSIVAMENTE oggetti JSON:
-                         { "original": "parola", "suggestion": "sinonimo ricercato", "reason": "valore semantico", "type": "stile" }`;
+                         FORMATO DI OUTPUT OBBLIGATORIO: Restituisci SOLO ED ESCLUSIVAMENTE un array di oggetti JSON. Schema:
+                         [ { "original": "parola", "suggestion": "sinonimo ricercato", "reason": "valore semantico", "type": "stile" } ]`;
           break;
         case 'metaphors':
           systemPrompt = `Sei un autore di narrativa vincitore del premio Strega. Trasforma descrizioni piatte in immagini sensoriali e metafore potenti.
-                         FORMATO: Restituisci ESCLUSIVAMENTE oggetti JSON:
-                         { "original": "descrizione", "suggestion": "immagine poetica", "reason": "impatto evocativo", "type": "stile" }`;
+                         FORMATO DI OUTPUT OBBLIGATORIO: Restituisci SOLO ED ESCLUSIVAMENTE un array di oggetti JSON. Schema:
+                         [ { "original": "descrizione", "suggestion": "immagine poetica", "reason": "impatto evocativo", "type": "stile" } ]`;
           break;
       }
 
