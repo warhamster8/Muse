@@ -19,9 +19,3 @@ export const getPlainTextForAI = (html: string) => {
   return div.textContent || '';
 };
 
-/**
- * Normalizes temporal markers into something more sortable or comparable.
- */
-export const normalizeTemporalMarker = (time: string) => {
-    return time.trim().toLowerCase();
-};
