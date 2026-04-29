@@ -8,7 +8,7 @@ interface Props {
   onApply: () => void;
   onIgnore: () => void;
   onClose: () => void;
-  position: { top: number; left: number };
+  position: { top: number; left: number; width?: number };
 }
 
 export const InlineSuggestionCard: React.FC<Props> = ({ suggestion, onApply, onIgnore, onClose, position }) => {
@@ -21,15 +21,17 @@ export const InlineSuggestionCard: React.FC<Props> = ({ suggestion, onApply, onI
       const parentRect = cardRef.current.parentElement?.getBoundingClientRect();
       if (parentRect) {
         // Horizontal check: if we are too close to the right edge of the container
-        const spaceOnRight = parentRect.width - position.left;
+        // We anchor to the RIGHT of the highlight (left + width)
+        const highlightRight = position.left + (position.width || 0);
+        const spaceOnRight = parentRect.width - highlightRight;
+        
         if (spaceOnRight < 360) { // Card width (320) + margin
           setSide('left');
         } else {
           setSide('right');
         }
 
-        // Vertical safety: if we are near the very top of the document
-        // we might still need a small offset to not hit the top boundary
+        // Vertical safety
         const viewportTop = parentRect.top + position.top;
         setIsAtTop(viewportTop < 150);
       }
@@ -44,11 +46,10 @@ export const InlineSuggestionCard: React.FC<Props> = ({ suggestion, onApply, onI
         top: position.top, 
         left: position.left,
         // side-popup transform: 
-        // if right: translateX(40px)
-        // if left: translateX(-100%) translateX(-40px)
-        // vertical: center it on the line (-50%) or nudge if flipped
+        // if right: move by highlight width + gap
+        // if left: move by -cardWidth - gap
         transform: `
-          ${side === 'right' ? 'translateX(40px)' : 'translateX(calc(-100% - 40px))'} 
+          ${side === 'right' ? `translateX(${ (position.width || 0) + 40 }px)` : 'translateX(calc(-100% - 40px))'} 
           ${isAtTop ? 'translateY(0px)' : 'translateY(-50%)'}
         `,
         transition: 'transform 0.4s cubic-bezier(0.2, 0, 0, 1), opacity 0.3s ease'

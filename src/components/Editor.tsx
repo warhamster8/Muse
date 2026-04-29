@@ -90,7 +90,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   const [showDropCapMenu, setShowDropCapMenu] = React.useState(false);
   const { addToast } = useToast();
   const [activeSuggestionForPopup, setActiveSuggestionForPopup] = React.useState<AISuggestion | null>(null);
-  const [popupPosition, setPopupPosition] = React.useState({ top: 0, left: 0 });
+  const [popupPosition, setPopupPosition] = React.useState({ top: 0, left: 0, width: 0 });
   const dropCapRef = React.useRef<HTMLDivElement>(null);
   const editorContainerRef = React.useRef<HTMLDivElement>(null);
   const contentContainerRef = React.useRef<HTMLDivElement>(null);
@@ -141,13 +141,20 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
 
         if (matchingSug && contentContainerRef.current) {
           const { view } = editor;
-          const { from: selFrom } = editor.state.selection;
-          const coords = view.coordsAtPos(selFrom);
+          const { from: selFrom, to: selTo } = editor.state.selection;
+          
+          // Get bounding rect of the selection for better positioning
+          const startCoords = view.coordsAtPos(selFrom);
+          const endCoords = view.coordsAtPos(selTo);
           const containerRect = contentContainerRef.current.getBoundingClientRect();
           
+          // For multi-line, width is complex, let's use a safe estimation or just coords
+          const selWidth = Math.abs(endCoords.left - startCoords.left);
+
           setPopupPosition({
-            top: coords.top - containerRect.top,
-            left: coords.left - containerRect.left
+            top: startCoords.top - containerRect.top,
+            left: startCoords.left - containerRect.left,
+            width: selWidth
           });
           setActiveSuggestionForPopup(matchingSug);
         } else {
@@ -233,7 +240,8 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
           setActiveSuggestionForPopup(suggestions[id]);
           setPopupPosition({ 
             top: rect.top - containerRect.top, 
-            left: rect.left - containerRect.left + rect.width / 2
+            left: rect.left - containerRect.left,
+            width: rect.width
           });
           useStore.getState().setSuggestionIndex(id);
         }
