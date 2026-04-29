@@ -35,8 +35,19 @@ export const useAIAnalysis = () => {
       return;
     }
 
-    const memoryKey = `${sceneId}-${tab}`;
-    const lastPhrase = useStore.getState().lastAnalyzedPhrase[memoryKey] || '';
+    const state = useStore.getState();
+    const currentProject = state.currentProject;
+    const authorName = state.authorName;
+    const chapters = state.chapters;
+
+    // FIND CONTEXT (Previous and Next scene snippets)
+    const allScenes = chapters.flatMap(c => c.scenes || []);
+    const currentIndex = allScenes.findIndex(s => s.id === sceneId);
+    const prevScene = currentIndex > 0 ? allScenes[currentIndex - 1] : null;
+    const nextScene = currentIndex < allScenes.length - 1 ? allScenes[currentIndex + 1] : null;
+
+    const prevSnippet = prevScene ? getPlainTextForAI(prevScene.content || '').slice(-400) : 'Inizio del manoscritto.';
+    const nextSnippet = nextScene ? getPlainTextForAI(nextScene.content || '').slice(0, 400) : 'Fine del manoscritto.';
 
     abortControllerRef.current = new AbortController();
     
@@ -44,34 +55,44 @@ export const useAIAnalysis = () => {
       let systemPrompt = '';
       switch (tab) {
         case 'revision':
-          systemPrompt = `Sei un Senior Editor e Copywriter. Il tuo obiettivo è elevare la qualità letteraria del testo. 
-                         Non limitarti alla correzione: agisci sul ritmo, elimina le ridondanze (mostra, non dire), e suggerisci varianti più incisive, evocative e professionali. 
-                         Trasforma passaggi piatti in prosa vibrante. Restituisci suggerimenti in formato JSON:
-                         { "original": "testo esatto", "suggestion": "testo elevato e riscritto", "reason": "spiegazione editoriale del perché questa versione migliora il ritmo o l'impatto", "type": "stile" }`;
+          systemPrompt = `Sei un Senior Editor e Copywriter di fama internazionale. Il tuo obiettivo è elevare la qualità letteraria del testo per un pubblico esigente. 
+                         ANALISI: Valuta ritmo, profondità emotiva e precisione lessicale.
+                         CRITERI: Elimina le ridondanze, applica il 'mostra, non dire', potenzia i verbi, rendi i dialoghi autentici.
+                         FORMATO: Restituisci ESCLUSIVAMENTE una serie di oggetti JSON validi:
+                         { "original": "testo esatto", "suggestion": "testo elevato", "reason": "perché migliora la narrazione", "type": "stile" }`;
           break;
         case 'grammar':
-          systemPrompt = `Sei un correttore bozze. Trova errori grammaticali, refusi o punteggiatura errata e restituisci in formato JSON:
+          systemPrompt = `Sei un correttore bozze pignolo. Trova errori grammaticali, refusi, punteggiatura o errori di battitura.
+                         FORMATO: Restituisci ESCLUSIVAMENTE oggetti JSON:
                          { "original": "testo esatto", "suggestion": "testo corretto", "reason": "spiegazione", "type": "grammatica" }`;
           break;
         case 'synonyms':
-          systemPrompt = `Sei un esperto linguista e filologo. Trova parole ripetitive, banali o pigre. 
-                         Suggerisci sinonimi ricercati, termini tecnici precisi o contrari per creare contrasto dinamico. 
-                         L'obiettivo è la precisione terminologica e la varietà lessicale. Restituisci in formato JSON:
-                         { "original": "parola esatta", "suggestion": "termine ricercato/preciso", "reason": "spiegazione del valore semantico aggiunto", "type": "stile" }`;
+          systemPrompt = `Sei un esperto linguista. Trova parole ripetitive o generiche. Suggerisci termini più precisi, evocativi o ricercati.
+                         FORMATO: Restituisci ESCLUSIVAMENTE oggetti JSON:
+                         { "original": "parola", "suggestion": "sinonimo ricercato", "reason": "valore semantico", "type": "stile" }`;
           break;
         case 'metaphors':
-          systemPrompt = `Sei un autore di narrativa pluripremiato. Identifica descrizioni piatte, letterali o didascaliche. 
-                         Suggerisci metafore potenti, similitudini insolite o immagini sensoriali che colpiscano il lettore. 
-                         Passa dal 'dire' al 'far sentire'. Restituisci in formato JSON:
-                         { "original": "descrizione piatta", "suggestion": "immagine metaforica/sensoriale", "reason": "spiegazione dell'emozione o dell'immagine evocata", "type": "stile" }`;
+          systemPrompt = `Sei un autore di narrativa vincitore del premio Strega. Trasforma descrizioni piatte in immagini sensoriali e metafore potenti.
+                         FORMATO: Restituisci ESCLUSIVAMENTE oggetti JSON:
+                         { "original": "descrizione", "suggestion": "immagine poetica", "reason": "impatto evocativo", "type": "stile" }`;
           break;
       }
 
-      const userPrompt = `Testo da analizzare:
+      const userPrompt = `
+      PROGETTO: ${currentProject?.title || 'Senza Titolo'}
+      AUTORE: ${authorName || 'Anonimo'}
+
+      CONTESTO PRECEDENTE (per continuità):
+      "...${prevSnippet}"
+
+      TESTO DA ANALIZZARE (FOCUS QUI):
       ${plainText}
-      
-      Contesto precedente:
-      ${lastPhrase}`;
+
+      CONTESTO SUCCESSIVO:
+      "${nextSnippet}..."
+
+      ISTRUZIONE: Fornisci suggerimenti mirati per il TESTO DA ANALIZZARE, mantenendo la coerenza con il contesto fornito.
+      `;
 
       await aiService.streamChat(
         aiConfig,
@@ -80,7 +101,6 @@ export const useAIAnalysis = () => {
           { role: 'user', content: userPrompt }
         ],
         (chunk: string) => {
-          // Map all stylistic tasks to 'revision' display tab
           const storeTab = tab === 'grammar' ? 'grammar' : 'revision';
           setSceneAnalysis(sceneId, (prev) => prev + chunk, storeTab);
         },
