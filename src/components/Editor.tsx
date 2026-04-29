@@ -533,6 +533,9 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
              <InlineSuggestionCard 
                suggestion={activeSuggestionForPopup}
                onApply={() => {
+                 if (activeSceneId) {
+                   useStore.getState().addIgnoredSuggestion(activeSceneId, activeSuggestionForPopup.original);
+                 }
                  window.dispatchEvent(new CustomEvent('muse-apply-suggestion', { 
                    detail: { 
                      original: activeSuggestionForPopup.original, 
