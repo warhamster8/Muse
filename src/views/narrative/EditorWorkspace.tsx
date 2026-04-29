@@ -123,7 +123,7 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
             </button>
 
             {showAIMenu && (
-              <div className="absolute top-full right-0 mt-4 w-80 bg-[var(--bg-surface)] backdrop-blur-3xl rounded-[32px] border border-[var(--border-subtle)] shadow-premium p-3 z-[100] animate-in fade-in slide-in-from-top-3 duration-300 ring-1 ring-black/[0.03]">
+              <div className="absolute top-full right-0 mt-4 w-80 max-h-[80vh] overflow-y-auto custom-scrollbar bg-[var(--bg-surface)] backdrop-blur-3xl rounded-[32px] border border-[var(--border-subtle)] shadow-premium p-3 z-[100] animate-in fade-in slide-in-from-top-3 duration-300 ring-1 ring-black/[0.03]">
                 <div className="px-4 py-3 mb-2 border-b border-[var(--border-subtle)]/50">
                   <p className="text-[10px] font-black text-[var(--accent)] uppercase tracking-[0.3em]">Azioni AI Suggerite</p>
                 </div>

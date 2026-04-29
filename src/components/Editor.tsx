@@ -93,6 +93,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   const [popupPosition, setPopupPosition] = React.useState({ top: 0, left: 0 });
   const dropCapRef = React.useRef<HTMLDivElement>(null);
   const editorContainerRef = React.useRef<HTMLDivElement>(null);
+  const contentContainerRef = React.useRef<HTMLDivElement>(null);
 
   const editor = useEditor({
     extensions: [
@@ -138,15 +139,15 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
           (selectedText.length > 5 && selectedText.includes(s.original))
         );
 
-        if (matchingSug && editorContainerRef.current) {
+        if (matchingSug && contentContainerRef.current) {
           const { view } = editor;
           const { from: selFrom } = editor.state.selection;
           const coords = view.coordsAtPos(selFrom);
-          const containerRect = editorContainerRef.current.getBoundingClientRect();
+          const containerRect = contentContainerRef.current.getBoundingClientRect();
           
           setPopupPosition({
-            top: coords.top - containerRect.top - 20, // Offset above
-            left: Math.max(20, Math.min(coords.left - containerRect.left - 200, containerRect.width - 460))
+            top: coords.top - containerRect.top,
+            left: Math.max(160, Math.min(coords.left - containerRect.left, containerRect.width - 160))
           });
           setActiveSuggestionForPopup(matchingSug);
         } else {
@@ -226,12 +227,13 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
       if (highlight) {
         const id = parseInt(highlight.getAttribute('data-suggestion-id') || '-1');
         const suggestions = useStore.getState().parsedSuggestions;
-        if (id >= 0 && suggestions[id]) {
+        if (id >= 0 && suggestions[id] && contentContainerRef.current) {
           const rect = highlight.getBoundingClientRect();
+          const containerRect = contentContainerRef.current.getBoundingClientRect();
           setActiveSuggestionForPopup(suggestions[id]);
           setPopupPosition({ 
-            top: rect.top + window.scrollY, 
-            left: rect.left + rect.width / 2 + window.scrollX 
+            top: rect.top - containerRect.top, 
+            left: Math.max(160, Math.min(rect.left - containerRect.left + rect.width / 2, containerRect.width - 160))
           });
           useStore.getState().setSuggestionIndex(id);
         }
@@ -510,7 +512,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
       </div>
 
       <div className="flex-1 px-8 py-12 bg-[var(--bg-deep)] rounded-b-[inherit]">
-        <div className="w-full relative">
+        <div ref={contentContainerRef} className="w-full relative">
            {activeSuggestionForPopup && (
              <InlineSuggestionCard 
                suggestion={activeSuggestionForPopup}
