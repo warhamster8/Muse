@@ -162,7 +162,9 @@ export const ConfigView: React.FC = React.memo(() => {
   const handleTestGroq = async () => {
     setIsTestingGroq(true);
     try {
-      const result = await groqService.testConnection(aiConfig.groqKey, aiConfig.model);
+      // Forziamo un modello valido per Groq durante il test per evitare conflitti di configurazione
+      const testModel = 'llama-3.3-70b-versatile';
+      const result = await groqService.testConnection(aiConfig.groqKey, testModel);
       setTestGroqResult(result);
       if (result.ok) {
         addToast("Groq Online", 'success');
