@@ -27,6 +27,7 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
   const isZenMode = useStore(s => s.isZenMode);
   const setZenMode = useStore(s => s.setZenMode);
   const currentSceneContent = useStore(s => s.currentSceneContent);
+  const activeSelection = useStore(s => s.activeSelection);
   const parsedSuggestions = useStore(s => s.parsedSuggestions);
   
   const [showAIMenu, setShowAIMenu] = React.useState(false);
@@ -131,7 +132,7 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
                 <div className="space-y-1">
                   <button
                     onClick={() => {
-                      if (activeScene) runAnalysis(activeScene.id, currentSceneContent, 'revision');
+                      if (activeScene) runAnalysis(activeScene.id, activeSelection || currentSceneContent, 'revision');
                       setShowAIMenu(false);
                     }}
                     className="w-full flex items-center gap-4 p-3.5 hover:bg-[var(--accent)] hover:text-[var(--bg-deep)] rounded-[24px] transition-all group text-left"
@@ -147,7 +148,7 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
 
                   <button
                     onClick={() => {
-                      if (activeScene) runAnalysis(activeScene.id, currentSceneContent, 'grammar');
+                      if (activeScene) runAnalysis(activeScene.id, activeSelection || currentSceneContent, 'grammar');
                       setShowAIMenu(false);
                     }}
                     className="w-full flex items-center gap-4 p-3.5 hover:bg-emerald-500 hover:text-white rounded-[24px] transition-all group text-left"
@@ -165,7 +166,7 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
 
                   <button
                     onClick={() => {
-                      if (activeScene) runAnalysis(activeScene.id, currentSceneContent, 'synonyms');
+                      if (activeScene) runAnalysis(activeScene.id, activeSelection || currentSceneContent, 'synonyms');
                       setShowAIMenu(false);
                     }}
                     className="w-full flex items-center gap-4 p-3.5 hover:bg-[var(--accent)] hover:text-[var(--bg-deep)] rounded-[24px] transition-all group text-left"
@@ -181,7 +182,7 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
 
                   <button
                     onClick={() => {
-                      if (activeScene) runAnalysis(activeScene.id, currentSceneContent, 'metaphors');
+                      if (activeScene) runAnalysis(activeScene.id, activeSelection || currentSceneContent, 'metaphors');
                       setShowAIMenu(false);
                     }}
                     className="w-full flex items-center gap-4 p-3.5 hover:bg-[var(--accent)] hover:text-[var(--bg-deep)] rounded-[24px] transition-all group text-left"

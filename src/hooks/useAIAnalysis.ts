@@ -29,8 +29,8 @@ export const useAIAnalysis = () => {
     setSceneAnalysis(sceneId, '', tab === 'grammar' ? 'grammar' : 'revision');
     
     const plainText = getPlainTextForAI(content);
-    if (plainText.length < 5) {
-      addToast("Scena troppo breve per l'analisi", "error");
+    if (plainText.trim().length === 0) {
+      addToast("Seleziona del testo per l'analisi", "error");
       setIsAnalyzing(false);
       return;
     }
