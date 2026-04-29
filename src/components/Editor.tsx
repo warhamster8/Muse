@@ -151,9 +151,12 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
           // For multi-line, width is complex, let's use a safe estimation or just coords
           const selWidth = Math.abs(endCoords.left - startCoords.left);
 
+          const isCompactMode = containerRect.width < 650;
+          const clampMargin = isCompactMode ? 160 : 260;
+
           setPopupPosition({
             top: startCoords.top - containerRect.top,
-            left: Math.max(280, Math.min(startCoords.left - containerRect.left + selWidth / 2, containerRect.width - 280)),
+            left: Math.max(clampMargin, Math.min(startCoords.left - containerRect.left + selWidth / 2, containerRect.width - clampMargin)),
             width: selWidth
           });
           setActiveSuggestionForPopup(matchingSug);
@@ -237,10 +240,13 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
         if (id >= 0 && suggestions[id] && contentContainerRef.current) {
           const rect = highlight.getBoundingClientRect();
           const containerRect = contentContainerRef.current.getBoundingClientRect();
+          const isCompactMode = containerRect.width < 650;
+          const clampMargin = isCompactMode ? 160 : 260;
+          
           setActiveSuggestionForPopup(suggestions[id]);
           setPopupPosition({ 
             top: rect.top - containerRect.top, 
-            left: Math.max(280, Math.min(rect.left - containerRect.left + rect.width / 2, containerRect.width - 280)),
+            left: Math.max(clampMargin, Math.min(rect.left - containerRect.left + rect.width / 2, containerRect.width - clampMargin)),
             width: rect.width
           });
           useStore.getState().setSuggestionIndex(id);
