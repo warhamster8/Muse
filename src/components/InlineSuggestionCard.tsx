@@ -13,23 +13,25 @@ interface Props {
 
 export const InlineSuggestionCard: React.FC<Props> = ({ suggestion, onApply, onIgnore, onClose, position }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [side, setSide] = useState<'right' | 'left'>('right');
+  const [isAtTop, setIsAtTop] = useState(false);
 
   useLayoutEffect(() => {
     if (cardRef.current) {
       const parentRect = cardRef.current.parentElement?.getBoundingClientRect();
-      
       if (parentRect) {
-        // viewportTop is the absolute Y position of the anchor point in the window
-        const viewportTop = parentRect.top + position.top;
-        
-        // If we have less than 450px above the anchor, flip it down
-        // This is a safe margin for the header (80px) + card height (~350px)
-        if (viewportTop < 450) { 
-          setIsFlipped(true);
+        // Horizontal check: if we are too close to the right edge of the container
+        const spaceOnRight = parentRect.width - position.left;
+        if (spaceOnRight < 360) { // Card width (320) + margin
+          setSide('left');
         } else {
-          setIsFlipped(false);
+          setSide('right');
         }
+
+        // Vertical safety: if we are near the very top of the document
+        // we might still need a small offset to not hit the top boundary
+        const viewportTop = parentRect.top + position.top;
+        setIsAtTop(viewportTop < 150);
       }
     }
   }, [position]);
@@ -37,44 +39,53 @@ export const InlineSuggestionCard: React.FC<Props> = ({ suggestion, onApply, onI
   return (
     <div 
       ref={cardRef}
-      className="absolute z-[100] w-80 glass rounded-[32px] border border-[var(--accent)]/30 shadow-premium animate-in fade-in zoom-in-95 duration-500 ring-1 ring-black/5 flex flex-col max-h-[80vh] overflow-hidden"
+      className="absolute z-[100] w-80 glass rounded-[32px] border border-[var(--accent)]/30 shadow-premium animate-in fade-in zoom-in-95 duration-500 ring-1 ring-black/5 flex flex-col max-h-[70vh] overflow-hidden"
       style={{ 
-        top: `${position.top}px`, 
-        left: `${position.left}px`,
-        transform: isFlipped ? 'translate(-50%, 24px)' : 'translate(-50%, calc(-100% - 24px))',
+        top: position.top, 
+        left: position.left,
+        // side-popup transform: 
+        // if right: translateX(40px)
+        // if left: translateX(-100%) translateX(-40px)
+        // vertical: center it on the line (-50%) or nudge if flipped
+        transform: `
+          ${side === 'right' ? 'translateX(40px)' : 'translateX(calc(-100% - 40px))'} 
+          ${isAtTop ? 'translateY(0px)' : 'translateY(-50%)'}
+        `,
         transition: 'transform 0.4s cubic-bezier(0.2, 0, 0, 1), opacity 0.3s ease'
       }}
     >
       <div className="p-6 space-y-5 overflow-y-auto custom-scrollbar flex-1">
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <div className={cn(
               "w-2 h-2 rounded-full shadow-sm",
               suggestion.type === 'grammatica' ? 'bg-emerald-500 shadow-emerald-500/50' :
               suggestion.type === 'taglio' ? 'bg-rose-500 shadow-rose-500/50' :
-              suggestion.type === 'coerenza' ? 'bg-amber-500 shadow-amber-500/50' : 'bg-indigo-500 shadow-indigo-500/50'
+              suggestion.type === 'coerenza' ? 'bg-amber-500 shadow-amber-500/50' : 'bg-[var(--accent)] shadow-[var(--accent)]/50'
             )} />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--accent)] opacity-80">
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent)]">
               {suggestion.category || 'Suggerimento AI'}
             </span>
           </div>
-          <button onClick={onClose} className="p-1 hover:bg-[var(--accent-soft)] rounded-lg transition-colors">
+          <button onClick={onClose} className="p-1.5 hover:bg-[var(--accent-soft)] rounded-xl transition-colors">
             <X className="w-4 h-4 text-[var(--text-muted)]" />
           </button>
         </div>
 
-        <div className="space-y-3">
-          <div className="text-[11px] text-[var(--text-secondary)] line-through decoration-rose-500/40 italic px-1 opacity-60">
-            "{suggestion.original}"
-          </div>
-          <div className="text-[13px] text-[var(--text-bright)] leading-relaxed font-serif bg-[var(--bg-deep)]/20 p-4 rounded-xl border border-[var(--border-subtle)] shadow-inner">
-            {suggestion.suggestion}
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="text-[11px] text-[var(--text-secondary)] line-through decoration-rose-500/40 italic px-1 opacity-60">
+              "{suggestion.original}"
+            </div>
+            <div className="text-[13px] text-[var(--text-bright)] leading-relaxed font-serif bg-[var(--bg-deep)]/20 p-5 rounded-2xl border border-[var(--border-subtle)] shadow-inner">
+              {suggestion.suggestion}
+            </div>
           </div>
         </div>
 
         {suggestion.reason && (
-          <div className="flex gap-2.5 p-3.5 bg-[var(--accent-soft)] rounded-xl border border-[var(--accent)]/10">
-            <Zap className="w-4 h-4 text-[var(--accent)] shrink-0 mt-0.5 opacity-40" />
+          <div className="flex gap-3 p-4 bg-[var(--accent-soft)]/20 rounded-2xl border border-[var(--accent)]/10">
+            <Zap className="w-4 h-4 text-[var(--accent)] shrink-0 mt-0.5 opacity-60" />
             <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed italic font-medium">
               {suggestion.reason}
             </p>
@@ -84,14 +95,14 @@ export const InlineSuggestionCard: React.FC<Props> = ({ suggestion, onApply, onI
         <div className="flex items-center gap-2 pt-2">
           <button 
             onClick={onApply}
-            className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-[var(--accent)] text-[var(--bg-deep)] rounded-[18px] text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-glow-mint active:scale-[0.98]"
+            className="flex-1 flex items-center justify-center gap-2 py-4 bg-[var(--accent)] text-[var(--bg-deep)] rounded-[20px] text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-glow-mint active:scale-[0.98]"
           >
             <Check className="w-4 h-4" />
             Applica
           </button>
           <button 
             onClick={onIgnore}
-            className="p-3.5 text-[var(--text-muted)] hover:text-rose-500 hover:bg-rose-500/10 rounded-[18px] transition-all border border-transparent hover:border-rose-500/20 active:scale-[0.98]"
+            className="p-4 text-[var(--text-muted)] hover:text-rose-500 hover:bg-rose-500/10 rounded-[20px] transition-all border border-[var(--border-subtle)] hover:border-rose-500/20 active:scale-[0.98]"
             title="Ignora"
           >
             <Trash2 className="w-4 h-4" />
@@ -99,12 +110,12 @@ export const InlineSuggestionCard: React.FC<Props> = ({ suggestion, onApply, onI
         </div>
       </div>
 
-      {/* Little arrow pointing down/up */}
+      {/* Side-indicator arrow */}
       <div className={cn(
-        "absolute left-1/2 -translate-x-1/2 w-4 h-4 glass border-[var(--accent)]/30 rotate-45 transition-all duration-300",
-        isFlipped 
-          ? "-top-2 border-l border-t" 
-          : "-bottom-2 border-r border-b"
+        "absolute top-1/2 -translate-y-1/2 w-3 h-3 glass border-[var(--accent)]/30 rotate-45 transition-all duration-300",
+        side === 'right' 
+          ? "-left-1.5 border-l border-b" 
+          : "-right-1.5 border-r border-t"
       )} />
     </div>
   );

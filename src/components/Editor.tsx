@@ -147,7 +147,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
           
           setPopupPosition({
             top: coords.top - containerRect.top,
-            left: Math.max(160, Math.min(coords.left - containerRect.left, containerRect.width - 160))
+            left: coords.left - containerRect.left
           });
           setActiveSuggestionForPopup(matchingSug);
         } else {
@@ -233,7 +233,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
           setActiveSuggestionForPopup(suggestions[id]);
           setPopupPosition({ 
             top: rect.top - containerRect.top, 
-            left: Math.max(160, Math.min(rect.left - containerRect.left + rect.width / 2, containerRect.width - 160))
+            left: rect.left - containerRect.left + rect.width / 2
           });
           useStore.getState().setSuggestionIndex(id);
         }
