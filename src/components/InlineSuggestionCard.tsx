@@ -1,4 +1,5 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Check, X, Trash2, Zap } from 'lucide-react';
 import type { AISuggestion } from '../lib/aiParsing';
 import { cn } from '../lib/utils';
@@ -8,51 +9,63 @@ interface Props {
   onApply: () => void;
   onIgnore: () => void;
   onClose: () => void;
-  position: { top: number; left: number; width?: number };
+  position: { top: number; left: number; width?: number; rect?: DOMRect };
 }
 
 export const InlineSuggestionCard: React.FC<Props> = ({ suggestion, onApply, onIgnore, onClose, position }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isCompact, setIsCompact] = useState(false);
-  const [verticalSide, setVerticalSide] = useState<'bottom' | 'top'>('bottom');
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+  const [isReady, setIsReady] = useState(false);
 
   useLayoutEffect(() => {
-    if (cardRef.current) {
-      const rect = cardRef.current.getBoundingClientRect();
-      const parentRect = cardRef.current.parentElement?.getBoundingClientRect();
+    if (!position.rect) return;
+
+    const updatePosition = () => {
+      const cardWidth = window.innerWidth < 650 ? 280 : 480;
+      const cardHeight = 320; // Estimated max height
       
-      if (parentRect) {
-        setIsCompact(parentRect.width < 650);
+      // Calculate ideal position: to the right of the highlight
+      let left = position.rect!.right + 40;
+      let top = position.rect!.top + position.rect!.height / 2;
 
-        // Check vertical space
-        const spaceBelow = window.innerHeight - (parentRect.top + position.top + 60); // 60 is a safety margin for the line itself
-        if (spaceBelow < rect.height + 40) {
-          setVerticalSide('top');
-        } else {
-          setVerticalSide('bottom');
-        }
+      // Vertical clamping: stay within viewport
+      const margin = 20;
+      const minTop = margin + cardHeight / 2;
+      const maxTop = window.innerHeight - margin - cardHeight / 2;
+      top = Math.max(minTop, Math.min(top, maxTop));
+
+      // Horizontal flip: if it doesn't fit on the right, show on the left or center
+      if (left + cardWidth > window.innerWidth - margin) {
+        left = position.rect!.left - cardWidth - 40;
       }
-    }
-  }, [position]);
 
-  return (
+      // Final clamping for horizontal
+      left = Math.max(margin, Math.min(left, window.innerWidth - cardWidth - margin));
+
+      setCoords({ top, left });
+      setIsReady(true);
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    return () => window.removeEventListener('resize', updatePosition);
+  }, [position.rect]);
+
+  const cardContent = (
     <div 
       ref={cardRef}
       className={cn(
-        "absolute z-[100] glass rounded-[32px] border border-[var(--accent)]/30 shadow-premium animate-in fade-in zoom-in-95 duration-500 ring-1 ring-black/5 flex flex-col overflow-hidden",
-        isCompact ? "w-72" : "w-[500px]"
+        "fixed z-[9999] glass rounded-[32px] border border-[var(--accent)]/30 shadow-premium animate-in fade-in zoom-in-95 duration-500 ring-1 ring-black/5 flex flex-col overflow-hidden transition-all duration-300",
+        window.innerWidth < 650 ? "w-[280px]" : "w-[480px]",
+        !isReady ? "opacity-0 pointer-events-none" : "opacity-100"
       )}
       style={{ 
-        top: position.top, 
-        left: position.left + (position.width || 0) / 2,
-        // Dynamic transform based on vertical flip
-        transform: verticalSide === 'bottom' 
-          ? 'translate(-50%, 24px)' 
-          : 'translate(-50%, calc(-100% - 24px))',
-        transition: 'transform 0.4s cubic-bezier(0.2, 0, 0, 1), opacity 0.3s ease, width 0.3s ease'
+        top: coords.top, 
+        left: coords.left,
+        transform: 'translateY(-50%)',
       }}
     >
-      <div className={cn("overflow-y-auto custom-scrollbar flex-1", isCompact ? "p-5 space-y-4" : "p-6 space-y-5")}>
+      <div className="p-6 space-y-5 overflow-y-auto custom-scrollbar flex-1">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className={cn(
@@ -70,7 +83,7 @@ export const InlineSuggestionCard: React.FC<Props> = ({ suggestion, onApply, onI
           </button>
         </div>
 
-        <div className={cn("grid gap-4", isCompact ? "grid-cols-1" : "grid-cols-2")}>
+        <div className={cn("grid gap-4", window.innerWidth < 650 ? "grid-cols-1" : "grid-cols-2")}>
           <div className="space-y-1.5">
             <span className="text-[8px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50">Originale</span>
             <div className="text-[11px] text-[var(--text-secondary)] line-through decoration-rose-500/40 italic leading-relaxed bg-black/5 p-3 rounded-2xl border border-[var(--border-subtle)]">
@@ -111,14 +124,8 @@ export const InlineSuggestionCard: React.FC<Props> = ({ suggestion, onApply, onI
           </button>
         </div>
       </div>
-
-      {/* Dynamic arrow position based on flip */}
-      <div className={cn(
-        "absolute left-1/2 -translate-x-1/2 w-4 h-4 glass border-[var(--accent)]/30 rotate-45 transition-all duration-300",
-        verticalSide === 'bottom' 
-          ? "-top-2 border-l border-t" 
-          : "-bottom-2 border-r border-b"
-      )} />
     </div>
   );
+
+  return createPortal(cardContent, document.body);
 };

@@ -90,7 +90,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   const [showDropCapMenu, setShowDropCapMenu] = React.useState(false);
   const { addToast } = useToast();
   const [activeSuggestionForPopup, setActiveSuggestionForPopup] = React.useState<AISuggestion | null>(null);
-  const [popupPosition, setPopupPosition] = React.useState({ top: 0, left: 0, width: 0 });
+  const [popupPosition, setPopupPosition] = React.useState<{ top: number; left: number; width: number; rect?: DOMRect }>({ top: 0, left: 0, width: 0 });
   const dropCapRef = React.useRef<HTMLDivElement>(null);
   const editorContainerRef = React.useRef<HTMLDivElement>(null);
   const contentContainerRef = React.useRef<HTMLDivElement>(null);
@@ -157,7 +157,8 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
           setPopupPosition({
             top: startCoords.top - containerRect.top,
             left: Math.max(clampMargin, Math.min(startCoords.left - containerRect.left + selWidth / 2, containerRect.width - clampMargin)),
-            width: selWidth
+            width: selWidth,
+            rect: view.domAtPos(selFrom).node.parentElement?.getBoundingClientRect() // Best effort for selection rect
           });
           setActiveSuggestionForPopup(matchingSug);
         } else {
@@ -247,7 +248,8 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
           setPopupPosition({ 
             top: rect.top - containerRect.top, 
             left: Math.max(clampMargin, Math.min(rect.left - containerRect.left + rect.width / 2, containerRect.width - clampMargin)),
-            width: rect.width
+            width: rect.width,
+            rect: rect
           });
           useStore.getState().setSuggestionIndex(id);
         }
