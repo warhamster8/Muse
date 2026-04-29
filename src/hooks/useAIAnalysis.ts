@@ -55,11 +55,15 @@ export const useAIAnalysis = () => {
       let systemPrompt = '';
       switch (tab) {
         case 'revision':
-          systemPrompt = `Sei un Senior Editor e Copywriter di fama internazionale. Il tuo obiettivo è elevare la qualità letteraria del testo per un pubblico esigente. 
-                         ANALISI: Valuta ritmo, profondità emotiva e precisione lessicale.
-                         CRITERI: Elimina le ridondanze, applica il 'mostra, non dire', potenzia i verbi, rendi i dialoghi autentici.
-                         FORMATO: Restituisci ESCLUSIVAMENTE una serie di oggetti JSON validi:
-                         { "original": "testo esatto", "suggestion": "testo elevato", "reason": "perché migliora la narrazione", "type": "stile" }`;
+          systemPrompt = `Sei un Senior Editor e Ghostwriter di altissimo livello. 
+                         OBIETTIVO: Elevare la qualità letteraria SENZA stravolgere il testo.
+                         REGOLE MANDATORIE:
+                         1. NON cancellare testo utile, dialoghi o descrizioni importanti. 
+                         2. Sii CONSERVATIVO: mantieni il ritmo originale ma rendilo più incisivo. 
+                         3. Intervieni sulla forma, non sulla sostanza. Non riassumere.
+                         4. 'Mostra, non dire' senza tagliare la scena.
+                         FORMATO: Restituisci ESCLUSIVAMENTE oggetti JSON validi:
+                         { "original": "testo esatto", "suggestion": "testo elevato", "reason": "spiegazione editoriale", "type": "stile" }`;
           break;
         case 'grammar':
           systemPrompt = `Sei un correttore bozze pignolo. Trova errori grammaticali, refusi, punteggiatura o errori di battitura.
