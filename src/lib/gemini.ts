@@ -28,8 +28,11 @@ export const geminiService = {
       throw new Error('Configurazione di sicurezza: Chiave Gemini non valida');
     }
 
-    // Usiamo gemini-1.5-flash-latest per puntare sempre alla versione stabile più recente
-    const normalizedModel = _model?.trim() || 'gemini-1.5-flash-latest';
+    let normalizedModel = _model?.trim() || 'gemini-2.0-flash';
+    // Forza la migrazione per i vecchi salvataggi nel DB/State
+    if (normalizedModel.includes('1.5-flash')) {
+      normalizedModel = 'gemini-2.0-flash';
+    }
 
     // Strategia di compatibilità massima: incorporiamo le istruzioni di sistema nel primo messaggio utente
     const systemInstruction = messages.find((m) => m.role === 'system')?.content;
@@ -137,7 +140,7 @@ export const geminiService = {
   /**
    * Verifica la connettività con l'endpoint Google.
    */
-  async testConnection(providedKey: string, _model = 'gemini-1.5-flash-latest') {
+  async testConnection(providedKey: string, _model = 'gemini-2.0-flash') {
     const apiKey = providedKey?.trim();
     if (!apiKey) return { ok: false, status: 0, error: 'Chiave mancante' };
 
@@ -145,7 +148,10 @@ export const geminiService = {
     headers.set('Content-Type', 'application/json');
     headers.delete('Authorization'); // Prevents any phantom Bearer tokens from triggering 401
 
-    const normalizedModel = _model?.trim() || 'gemini-1.5-flash';
+    let normalizedModel = _model?.trim() || 'gemini-2.0-flash';
+    if (normalizedModel.includes('1.5-flash')) {
+      normalizedModel = 'gemini-2.0-flash';
+    }
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${normalizedModel}:generateContent?key=${apiKey}`, {
         method: 'POST',
