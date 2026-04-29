@@ -238,19 +238,23 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
             ))}
           </div>
         ) : (
-          <DragDropContext onDragEnd={onReorder}>
+          <DragDropContext onDragEnd={(result) => {
+            // Disable reordering if searching/filtering to avoid index mismatch
+            if (searchTerm || selectedTag) return;
+            onReorder(result);
+          }}>
             <Droppable droppableId="manuscript-chapters" type="CHAPTER">
               {(provided) => (
                 <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
                   {filteredChapters.map((chapter, index) => (
-                    <Draggable key={chapter.id} draggableId={chapter.id} index={index}>
+                    <Draggable key={chapter.id} draggableId={chapter.id} index={index} isDragDisabled={!!searchTerm || !!selectedTag}>
                       {(provided, snapshot) => (
-                        <div ref={provided.innerRef} {...provided.draggableProps} className={cn("space-y-1 transition-all", snapshot.isDragging && "z-50")}>
+                        <div ref={provided.innerRef} {...provided.draggableProps} className={cn("space-y-1", snapshot.isDragging && "z-50")}>
                           {/* Riga Capitolo */}
                           <div 
                             onClick={() => onToggleChapter(chapter.id)}
                             className={cn(
-                              "flex items-center space-x-3 px-5 py-3.5 rounded-2xl cursor-pointer group transition-all border relative",
+                              "flex items-center space-x-3 px-5 py-3.5 rounded-2xl cursor-pointer group border relative",
                               expandedChapters.has(chapter.id) 
                                 ? "bg-[var(--bg-card)] border-[var(--border-subtle)] shadow-inner" 
                                 : "border-transparent hover:bg-[var(--accent-soft)] hover:border-[var(--border-subtle)]",
@@ -319,14 +323,14 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
                                   <div className="absolute left-[13px] top-0 bottom-0 w-[1px] bg-[var(--border-subtle)]" />
                                   
                                   {chapter.scenes?.map((scene, index) => (
-                                    <Draggable key={scene.id} draggableId={scene.id} index={index}>
+                                    <Draggable key={scene.id} draggableId={scene.id} index={index} isDragDisabled={!!searchTerm || !!selectedTag}>
                                       {(provided, snapshot) => (
                                         <div 
                                           ref={provided.innerRef}
                                           {...provided.draggableProps}
                                           onClick={() => onSelectScene(scene.id)}
                                           className={cn(
-                                            "flex flex-col p-3 rounded-xl cursor-pointer transition-all group/scene border relative",
+                                            "flex flex-col p-3 rounded-xl cursor-pointer group/scene border relative",
                                             activeSceneId === scene.id 
                                               ? "bg-[var(--accent)] text-[var(--bg-deep)] border-transparent shadow-lg" 
                                               : "text-[var(--text-secondary)] hover:bg-[var(--accent-soft)] hover:text-[var(--text-bright)] border-transparent",
