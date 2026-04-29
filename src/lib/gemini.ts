@@ -19,7 +19,7 @@ export const geminiService = {
     providedKey: string,
     messages: any[],
     onChunk: (text: string) => void,
-    _model = 'gemini-2.0-flash-exp:free',
+    _model = 'gemini-1.5-flash',
     temperature = 0.5,
     signal?: AbortSignal
   ) {
@@ -28,8 +28,8 @@ export const geminiService = {
       throw new Error('Configurazione di sicurezza: Chiave Gemini non valida');
     }
 
-    // Usiamo il modello passato come parametro, con fallback
-    const normalizedModel = _model?.trim() || 'gemini-2.0-flash-exp:free';
+    // Usiamo il modello passato come parametro, con fallback su 1.5-flash (il più stabile)
+    const normalizedModel = _model?.trim() || 'gemini-1.5-flash';
 
     // Strategia di compatibilità massima: incorporiamo le istruzioni di sistema nel primo messaggio utente
     const systemInstruction = messages.find((m) => m.role === 'system')?.content;
@@ -137,7 +137,7 @@ export const geminiService = {
   /**
    * Verifica la connettività con l'endpoint Google.
    */
-  async testConnection(providedKey: string, _model = 'gemini-2.0-flash-exp:free') {
+  async testConnection(providedKey: string, _model = 'gemini-1.5-flash') {
     const apiKey = providedKey?.trim();
     if (!apiKey) return { ok: false, status: 0, error: 'Chiave mancante' };
 

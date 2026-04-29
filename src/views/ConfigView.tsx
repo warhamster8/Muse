@@ -73,7 +73,7 @@ export const ConfigView: React.FC = React.memo(() => {
     if (!user) return;
 
     setIsSavingGemini(true);
-    const newModel = 'gemini-2.0-flash-exp:free';
+    const newModel = 'gemini-1.5-flash';
     try {
       const { error } = await supabase
         .from('user_profiles')
@@ -184,7 +184,7 @@ export const ConfigView: React.FC = React.memo(() => {
       return;
     }
 
-    const model = provider === 'groq' ? 'llama-3.3-70b-versatile' : (provider === 'gemini' ? 'gemini-2.0-flash-exp:free' : 'deepseek-chat');
+    const model = provider === 'groq' ? 'llama-3.3-70b-versatile' : (provider === 'gemini' ? 'gemini-1.5-flash' : 'deepseek-chat');
     const updatedConfig = { ...aiConfig, provider, model };
     setAIConfig({ provider, model });
     
@@ -274,8 +274,8 @@ export const ConfigView: React.FC = React.memo(() => {
               <Activity className={cn("w-5 h-5", aiConfig.provider === 'gemini' ? "text-[var(--accent)]" : "text-[var(--text-muted)]")} />
               {aiConfig.provider === 'gemini' && <span className="text-[8px] font-black uppercase bg-[var(--accent)] text-[var(--bg-deep)] px-2 py-0.5 rounded">Active</span>}
             </div>
-            <h3 className="text-lg font-black text-[var(--text-bright)] uppercase tracking-tight">Gemini 2.0 Flash Exp</h3>
-            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-black uppercase tracking-widest leading-relaxed">Context window enorme.</p>
+            <h3 className="text-lg font-black text-[var(--text-bright)] uppercase tracking-tight">Gemini 1.5 Flash</h3>
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2 font-black uppercase tracking-widest leading-relaxed">Context window enorme & Stabilità.</p>
           </button>
         </div>
 
