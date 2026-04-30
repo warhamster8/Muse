@@ -240,14 +240,14 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
         ) : (
           <DragDropContext onDragEnd={(result) => {
             // Disable reordering if searching/filtering to avoid index mismatch
-            if (searchTerm || selectedTag) return;
+            if (searchTerm.trim() || selectedTag) return;
             onReorder(result);
           }}>
             <Droppable droppableId="manuscript-chapters" type="CHAPTER">
               {(provided) => (
                 <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
                   {filteredChapters.map((chapter, index) => (
-                    <Draggable key={chapter.id} draggableId={chapter.id} index={index} isDragDisabled={!!searchTerm || !!selectedTag}>
+                    <Draggable key={chapter.id} draggableId={chapter.id} index={index} isDragDisabled={!!searchTerm.trim() || !!selectedTag}>
                       {(provided, snapshot) => (
                         <div ref={provided.innerRef} {...provided.draggableProps} className={cn("space-y-1", snapshot.isDragging && "z-50")}>
                           {/* Riga Capitolo */}
@@ -261,7 +261,7 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
                               snapshot.isDragging && "bg-[var(--bg-card)] border-[var(--accent)]/50 shadow-2xl scale-[1.02]"
                             )}
                           >
-                            <div {...provided.dragHandleProps} className="p-1 -ml-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[var(--accent-soft)]">
+                            <div {...provided.dragHandleProps} className="p-1 -ml-2 rounded-lg opacity-40 group-hover:opacity-100 transition-opacity hover:bg-[var(--accent-soft)]">
                               <GripVertical className="w-3.5 h-3.5 text-[var(--text-muted)]" />
                             </div>
                             <div className="w-4 h-4 flex items-center justify-center">
@@ -323,7 +323,7 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
                                   <div className="absolute left-[13px] top-0 bottom-0 w-[1px] bg-[var(--border-subtle)]" />
                                   
                                   {chapter.scenes?.map((scene, index) => (
-                                    <Draggable key={scene.id} draggableId={scene.id} index={index} isDragDisabled={!!searchTerm || !!selectedTag}>
+                                    <Draggable key={scene.id} draggableId={scene.id} index={index} isDragDisabled={!!searchTerm.trim() || !!selectedTag}>
                                       {(provided, snapshot) => (
                                         <div 
                                           ref={provided.innerRef}
@@ -419,7 +419,7 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
 
                                           <div className="flex items-center space-x-2">
                                             <div {...provided.dragHandleProps} className={cn(
-                                              "p-1 rounded-lg opacity-0 group-hover/scene:opacity-100 transition-opacity",
+                                              "p-1 rounded-lg opacity-40 group-hover/scene:opacity-100 transition-opacity",
                                               activeSceneId === scene.id ? "hover:bg-black/10" : "hover:bg-[var(--accent-soft)]"
                                             )}>
                                               <GripVertical className={cn("w-3.5 h-3.5", activeSceneId === scene.id ? "text-[var(--bg-deep)]/40" : "text-[var(--text-muted)]")} />
