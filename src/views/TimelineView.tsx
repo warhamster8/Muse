@@ -251,7 +251,7 @@ export const TimelineView: React.FC = () => {
         ) : (
           <div className="h-full flex flex-col">
             {/* Timeline UI */}
-            <div className="flex-1 overflow-x-auto pb-10 scrollbar-hide">
+            <div className="flex-1 overflow-x-auto pb-10 custom-scrollbar">
               <div className="inline-flex min-w-full h-full items-center px-12 relative">
                 {/* Connecting Line */}
                 <div className="absolute left-0 right-0 h-[2px] bg-[var(--border-subtle)] top-1/2 -translate-y-1/2 z-0" />
