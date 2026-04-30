@@ -45,18 +45,24 @@ export const timelineUtils = {
         ? `\n\n[RIFERIMENTO CRONOLOGICO]: Questa scena avviene DOPO il minuto ${contextMinutes} dal 01/01/2000. Usa questo valore come punto di partenza se non ci sono date diverse nel testo.`
         : '';
 
-      // Smart Routing: Timeline extraction requires high analytical reasoning and long context
+      // Smart Routing: Respect user provider if it's high-quality (DeepSeek/Gemini)
       const timelineConfig: AIConfig = { ...aiConfig };
       let modelUsed = aiConfig.model || 'Auto';
 
-      if (aiConfig.geminiKey) {
+      if (aiConfig.provider === 'deepseek') {
+        // DeepSeek is excellent for timeline extraction
+        modelUsed = aiConfig.model?.includes('reasoner') ? 'DeepSeek R1' : 'DeepSeek V3';
+      } else if (aiConfig.geminiKey) {
         timelineConfig.provider = 'gemini';
-        timelineConfig.model = 'gemini-2.0-flash-exp:free'; // Optimized for structured extraction
-        modelUsed = 'Gemini 2.0 Flash Exp';
-      } else {
+        timelineConfig.model = 'gemini-2.0-flash'; // Standardized model name
+        modelUsed = 'Gemini 2.0 Flash';
+      } else if (aiConfig.groqKey) {
         timelineConfig.provider = 'groq';
-        timelineConfig.model = 'llama-3.3-70b-versatile'; // Best fallback for extraction
+        timelineConfig.model = 'llama-3.3-70b-versatile';
         modelUsed = 'Llama 3.3 70B';
+      } else {
+        // Ultimate fallback to whatever is configured in aiConfig
+        modelUsed = aiConfig.model || aiConfig.provider;
       }
 
       await aiService.streamChat(
@@ -70,12 +76,58 @@ export const timelineUtils = {
         }
       );
 
-      const jsonMatch = fullResponse.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) {
-         throw new Error('Nessun JSON valido trovato nella risposta AI');
+      // Robust JSON Extraction
+      let events: any[] = [];
+      try {
+        const jsonMatch = fullResponse.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          events = JSON.parse(jsonMatch[0]);
+        } else {
+          // Fallback: try to find the last [ and everything after it, then try to fix it
+          const lastBracket = fullResponse.lastIndexOf('[');
+          if (lastBracket !== -1) {
+             let partial = fullResponse.substring(lastBracket);
+             // If it doesn't end with ], try to close it
+             if (!partial.trim().endsWith(']')) {
+                partial = partial.trim() + (partial.includes('}') ? ']' : '}]');
+             }
+             try {
+                events = JSON.parse(partial);
+             } catch (e) {
+                throw new Error('Impossibile recuperare JSON dalla risposta parziale');
+             }
+          } else {
+            throw new Error('Nessun JSON valido trovato nella risposta AI');
+          }
+        }
+      } catch (e) {
+        console.warn('[TIMELINE] JSON Parse failed, trying aggressive recovery...');
+        // Aggressive recovery: find all { } blocks and parse them
+        const objects: any[] = [];
+        let depth = 0;
+        let start = -1;
+        for (let i = 0; i < fullResponse.length; i++) {
+          if (fullResponse[i] === '{') {
+            if (depth === 0) start = i;
+            depth++;
+          } else if (fullResponse[i] === '}') {
+            if (depth > 0) {
+              depth--;
+              if (depth === 0 && start !== -1) {
+                try {
+                  const obj = JSON.parse(fullResponse.substring(start, i + 1));
+                  if (obj.title && obj.estimatedStart !== undefined) {
+                    objects.push(obj);
+                  }
+                } catch (err) {}
+                start = -1;
+              }
+            }
+          }
+        }
+        if (objects.length > 0) events = objects;
+        else throw new Error('Nessun evento valido trovato nella risposta AI');
       }
-
-      const events = JSON.parse(jsonMatch[0]);
       
       if (!Array.isArray(events)) {
         throw new Error('La risposta AI non è un array di eventi');
