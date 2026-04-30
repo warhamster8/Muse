@@ -22,19 +22,19 @@ export const ChronologyView: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
            <div className="flex items-center gap-3 mb-2">
-              <Calendar className="w-5 h-5 text-[#5be9b1]" />
-              <h2 className="text-2xl font-black text-white tracking-tighter uppercase">Cronologia Narrativa</h2>
+              <Calendar className="w-5 h-5 text-[var(--accent)]" />
+              <h2 className="text-2xl font-black text-[var(--text-bright)] tracking-tighter uppercase">Cronologia Narrativa</h2>
            </div>
-           <p className="text-xs text-slate-500 font-medium tracking-wide uppercase font-bold opacity-60">
+           <p className="text-xs text-[var(--text-muted)] font-black tracking-widest uppercase opacity-60">
              Visualizzazione Gantt degli eventi per scena
            </p>
         </div>
         
         <div className="flex items-center gap-4">
            {isGenerating && (
-             <div className="flex items-center gap-2 px-4 py-2 bg-[#5be9b1]/10 rounded-xl border border-[#5be9b1]/20 animate-pulse">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#5be9b1]" />
-                <span className="text-[10px] font-black text-[#5be9b1] uppercase tracking-[0.2em]">Sincronizzazione...</span>
+             <div className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)]/10 rounded-xl border border-[var(--accent)]/20 animate-pulse">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-[var(--accent)]" />
+                <span className="text-[10px] font-black text-[var(--accent)] uppercase tracking-[0.2em]">Sincronizzazione...</span>
              </div>
            )}
         </div>
@@ -49,42 +49,42 @@ export const ChronologyView: React.FC = () => {
         <div className="space-y-4">
           {chapters.map(chapter => (
             <div key={chapter.id} className="space-y-6">
-              <div className="px-6 py-2 bg-white/[0.02] border-l-4 border-[#5be9b1] rounded-r-2xl">
-                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">{chapter.title}</span>
-              </div>
-              
-              <div className="pl-6 space-y-2">
-                {chapter.scenes?.map(scene => {
-                  const hasTimeline = scene.timeline_events && scene.timeline_events.length > 0;
-                  
-                  return (
-                    <div key={scene.id} className="relative">
-                      {hasTimeline ? (
-                        <GanttSceneRow 
-                          sceneTitle={scene.title}
-                          events={scene.timeline_events!}
-                          onEventClick={setSelectedEvent}
-                        />
-                      ) : (
-                        <div className="group flex items-center justify-between p-6 bg-white/[0.01] hover:bg-white/[0.03] rounded-[32px] border border-white/5 transition-all mb-4 last:mb-0">
-                           <div className="flex flex-col">
-                             <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest mb-1">Scena: {scene.title}</span>
-                             <span className="text-[11px] text-slate-500 italic">Timeline non ancora generata</span>
-                           </div>
-                           <button 
-                             onClick={() => generateTimeline(scene.id, scene.content)}
-                             disabled={isGenerating || !scene.content}
-                             className="px-6 py-2.5 bg-[#5be9b1]/10 hover:bg-[#5be9b1] text-[#5be9b1] hover:text-[#0b0e11] rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border border-[#5be9b1]/20 hover:border-transparent active:scale-95 disabled:opacity-30"
-                           >
-                             <Zap className="w-3.5 h-3.5" />
-                             Genera Beats
-                           </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+               <div className="px-6 py-2 bg-[var(--bg-surface)] border-l-4 border-[var(--accent)] rounded-r-2xl border border-[var(--border-subtle)]">
+                  <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">{chapter.title}</span>
+               </div>
+               
+               <div className="pl-6 space-y-2">
+                 {chapter.scenes?.map(scene => {
+                   const hasTimeline = scene.timeline_events && scene.timeline_events.length > 0;
+                   
+                   return (
+                     <div key={scene.id} className="relative">
+                       {hasTimeline ? (
+                         <GanttSceneRow 
+                           sceneTitle={scene.title}
+                           events={scene.timeline_events!}
+                           onEventClick={setSelectedEvent}
+                         />
+                       ) : (
+                         <div className="group flex items-center justify-between p-6 bg-[var(--bg-surface)] hover:bg-[var(--accent)]/[0.02] rounded-[32px] border border-[var(--border-subtle)] transition-all mb-4 last:mb-0">
+                            <div className="flex flex-col">
+                              <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Scena: {scene.title}</span>
+                              <span className="text-[11px] text-[var(--text-secondary)] italic">Timeline non ancora generata</span>
+                            </div>
+                            <button 
+                              onClick={() => generateTimeline(scene.id, scene.content)}
+                              disabled={isGenerating || !scene.content}
+                              className="px-6 py-2.5 bg-[var(--accent)]/10 hover:bg-[var(--accent)] text-[var(--accent)] hover:text-[var(--bg-deep)] rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border border-[var(--accent)]/20 hover:border-transparent active:scale-95 disabled:opacity-30"
+                            >
+                              <Zap className="w-3.5 h-3.5" />
+                              Genera Beats
+                            </button>
+                         </div>
+                       )}
+                     </div>
+                   );
+                 })}
+               </div>
             </div>
           ))}
         </div>

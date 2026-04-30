@@ -25,32 +25,22 @@ export function useTimeline() {
     const plainText = getPlainTextForAI(content);
 
     try {
-      const systemPrompt = `Sei un esperto di analisi narrativa e cronologica.
-Il tuo compito è estrarre la linea temporale degli eventi da una scena di un romanzo.
+      const systemPrompt = `Sei un esperto Analista Narrativo specializzato in "Scene Beats" (unità d'azione).
+Il tuo compito è scomporre una scena nei suoi battiti narrativi fondamentali.
 
-REGOLE DI ESTRAZIONE AD ALTA PRECISIONE:
-1. Identifica ogni beat narrativo significativo.
-2. Cerca marcatori temporali espliciti (es. "Due ore dopo", "Al tramonto", "Mentre il caffè bolliva").
-3. Se non ci sono marcatori espliciti, deduci la sequenza logica degli eventi.
-4. Per ogni evento, definisci:
-   - Titolo: Breve nome dell'evento.
-   - Descrizione: Cosa accade sinteticamente.
-   - Timestamp: Momento relativo o assoluto (es. "T+00:15", "Mattina", "Subito dopo l'urlo").
-   - Durata: Stima della durata in minuti (numero intero).
-   - Importanza: low (beat di transizione), medium (azione/dialogo importante), high (climax/svolta).
+REGOLE DI ANALISI:
+1. Identifica ogni spostamento di valore (da positivo a negativo o viceversa).
+2. Distingui tra Azione (ciò che un personaggio fa), Reazione (l'impatto psicologico) e Nuova Situazione.
+3. Estrai i "Beat" che cambiano lo stato della scena.
 
-REQUISITO DI FORMATTO:
-Restituisci SOLO un array JSON valido, senza testo prima o dopo. Ogni oggetto deve seguire l'interfaccia:
-{
-  "id": "string univoca",
-  "title": "string",
-  "description": "string",
-  "timestamp": "string",
-  "duration": number,
-  "importance": "low" | "medium" | "high"
-}
+Ogni oggetto nel JSON deve avere:
+- Titolo: Un nome evocativo del beat (es. "L'esitazione di Erika").
+- Descrizione: Cosa accade e perché è importante per la tensione.
+- Timestamp: Momento relativo (es. "Inizio scena", "+5 min", "Dopo il diverbio").
+- Durata: Stima minuti (intero).
+- Importanza: low (transizione), medium (sviluppo), high (svolta/climax di scena).
 
-LINGUA: Italiano.`;
+FORMATO: Restituisci ESCLUSIVAMENTE un array JSON [].`;
 
       let fullResponse = '';
       await aiService.streamChat(

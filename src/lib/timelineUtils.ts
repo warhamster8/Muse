@@ -1,49 +1,41 @@
 import type { GlobalTimelineEvent } from '../types/timeline';
 import { aiService, type AIConfig } from './aiService';
 
-const SYSTEM_PROMPT = `Sei un esperto Cronologista Letterario e Analista Narrativo. Il tuo compito è mappare la cronologia OGGETTIVA degli eventi nel testo usando una metrica MATEMATICA ASSOLUTA.
+const SYSTEM_PROMPT = `Sei un esperto Cronologista Letterario. Il tuo compito è mappare la cronologia degli eventi nel testo usando una metrica di MINUTI RELATIVI dall'inizio della narrazione.
 
 REGOLE DI IDENTITÀ:
-- NON usare "Narratore". Identifica i personaggi per NOME (es. "Erika", "Marco").
+- NON usare "Narratore". Identifica i personaggi per NOME.
 
-MATEMATICA DEL TEMPO (REGOLA DEL CALENDARIO UNIVERSALE):
-Per garantire che scene diverse si allineino correttamente, usa l'anno 2000 come ANCORA ZERO (0 minuti).
-- 1 Anno = 525.600 minuti.
-- 1 Mese (media) = 43.800 minuti.
-- 1 Giorno = 1.440 minuti.
+MATEMATICA DEL TEMPO:
+- L'inizio della storia (o della prima scena) è il MINUTO 0.
+- Ogni evento successivo deve avere un "estimatedStart" espresso in minuti trascorsi da quel punto zero.
+- SE RICEVI UN "OFFSET DI RIFERIMENTO", usalo come base minima di partenza.
+- SPAZIATURA: Distanzia gli eventi logicamente (es. +15 o +30 minuti tra azioni consecutive).
 
-REGOLE TEMPORALI (MATEMATICA DEL TEMPO):
-- Usa l'anno 2000 come ANCORA ZERO (0 minuti).
-- Calcola "estimatedStart" come minuti trascorsi dal 01/01/2000.
-- SE RICEVI UN "OFFSET DI RIFERIMENTO", usalo come base minima di partenza se nel testo non ci sono date esplicite.
-- NON USARE MAI NUMERI NEGATIVI.
-- COERENZA: Un evento etichettato "1 anno dopo" DEVE avere un valore numerico SUPERIORE a quello dell'evento originale.
-- SPAZIATURA: Se estrai più eventi da una singola scena, distanziali logicamente (es. +15 o +30 minuti tra loro).
+STRUTTURA JSON (OBBLIGATORIA):
+Restituisci SOLO un array JSON [ ] con questa struttura:
+{
+  "id": "string univoca",
+  "title": "Titolo specifico (max 5 parole)",
+  "summary": "Descrizione azione (max 15 parole)",
+  "timeLabel": "Marcatore testuale (es. \"Lunedì mattina\" o \"Due ore dopo\")",
+  "estimatedStart": 0, // Minuti RELATIVI dall'inizio (numero intero)
+  "estimatedEnd": 60, // Fine evento (numero intero)
+  "importance": "high" | "medium" | "low",
+  "location": "Luogo specifico",
+  "characters": ["Nome"],
+  "isFlashback": boolean
+}
 
-REGOLE CRITICHE:
-- Se un evento è un flashback, isFlashback deve essere TRUE e il valore temporale deve essere inferiore al presente della scena.
-
-STRUTTURA JSON:
-1. "title": Titolo specifico (max 5 parole).
-2. "summary": Descrizione azione (max 15 parole).
-3. "timeLabel": Marcatore testuale (es. "10 Novembre 2026").
-4. "estimatedStart": Numero intero (minuti assoluti dal 2000).
-5. "estimatedEnd": estimatedStart + durata (es. +60 per un incontro).
-6. "importance": "high", "medium", "low".
-7. "location": Luogo specifico.
-8. "characters": Array di nomi.
-9. "isFlashback": Boolean.
-
-REGOLE DI OUTPUT:
-Restituisci ESCLUSIVAMENTE l'array JSON [ { ... } ].`;
+Restituisci ESCLUSIVAMENTE l'array JSON, senza preamboli.`;
 
 export const timelineUtils = {
   async extractEvents(text: string, aiConfig: AIConfig, contextMinutes?: number): Promise<{ events: GlobalTimelineEvent[], modelUsed: string }> {
     try {
       let fullResponse = '';
-      const contextPrompt = contextMinutes 
-        ? `\n\n[RIFERIMENTO CRONOLOGICO]: Questa scena avviene DOPO il minuto ${contextMinutes} dal 01/01/2000. Usa questo valore come punto di partenza se non ci sono date diverse nel testo.`
-        : '';
+      const offsetInfo = contextMinutes !== undefined 
+        ? `Questa scena inizia circa al minuto ${contextMinutes} della narrazione globale. Usa questo valore come base per calcolare estimatedStart.` 
+        : 'Questa è la prima scena. Inizia al minuto 0.';
 
       // Smart Routing: Respect user provider if it's high-quality (DeepSeek/Gemini)
       const timelineConfig: AIConfig = { ...aiConfig };
@@ -69,7 +61,7 @@ export const timelineUtils = {
         timelineConfig,
         [
           { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: `Analizza questo testo ed estrai la timeline in formato JSON:${contextPrompt}\n\n${text}` }
+          { role: 'user', content: `${offsetInfo}\n\nAnalizza questa scena:\n\n${text}` }
         ],
         (chunk) => {
           fullResponse += chunk;
