@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Maximize2, Minimize2, LayoutList, ChevronDown, CheckCircle2, AlertCircle, Languages, Image, Cpu, BrainCircuit } from 'lucide-react';
+import { Sparkles, Maximize2, Minimize2, LayoutList, ChevronDown, CheckCircle2, AlertCircle, Languages, Image } from 'lucide-react';
 import { Editor } from '../../components/Editor';
 import type { Scene } from '../../types/narrative';
 import { useStore } from '../../store/useStore';
@@ -33,7 +33,6 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
   const aiConfig = useStore(s => s.aiConfig);
   const setAIConfig = useStore(s => s.setAIConfig);
   const user = useStore(s => s.user);
-  const { addToast } = useStore.getState() as any; // We can use the toast from store or just import it
   
   const [showAIMenu, setShowAIMenu] = React.useState(false);
   const { runAnalysis, stopAnalysis, isAnalyzing } = useAIAnalysis();
