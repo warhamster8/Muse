@@ -98,7 +98,7 @@ export const ConfigView: React.FC = React.memo(() => {
     if (!aiConfig.deepseekKey) return;
     setIsTesting(true);
     try {
-      const result = await deepseekService.testConnection(aiConfig.deepseekKey);
+      const result = await deepseekService.testConnection(aiConfig.deepseekKey, aiConfig.model || 'deepseek-chat');
       setTestResult(result);
       if (result.ok) {
         addToast("DeepSeek Online", 'success');
@@ -186,7 +186,11 @@ export const ConfigView: React.FC = React.memo(() => {
       return;
     }
 
-    const model = provider === 'groq' ? 'llama-3.3-70b-versatile' : (provider === 'gemini' ? 'gemini-2.0-flash' : 'deepseek-chat');
+    let model = '';
+    if (provider === 'groq') model = 'llama-3.3-70b-versatile';
+    else if (provider === 'gemini') model = 'gemini-2.0-flash';
+    else if (provider === 'deepseek') model = aiConfig.model || 'deepseek-chat';
+
     const updatedConfig = { ...aiConfig, provider, model };
     setAIConfig({ provider, model });
     
@@ -351,13 +355,54 @@ export const ConfigView: React.FC = React.memo(() => {
                     </button>
                   </div>
                 ) : (
-                  <div className="p-6 bg-[var(--accent-soft)] border border-[var(--accent)]/10 rounded-3xl group">
-                    <p className="text-[9px] uppercase tracking-widest text-[var(--accent)] font-black mb-2 flex items-center gap-2">
-                       <CheckCircle className="w-3 h-3" /> Chiave Configurata
-                    </p>
-                    <code className="text-xs text-[var(--text-muted)] font-mono block truncate">
-                      sk-...{aiConfig.deepseekKey.slice(-6)}
-                    </code>
+                  <div className="space-y-4">
+                    <div className="p-6 bg-[var(--accent-soft)] border border-[var(--accent)]/10 rounded-3xl group">
+                      <p className="text-[9px] uppercase tracking-widest text-[var(--accent)] font-black mb-2 flex items-center gap-2">
+                         <CheckCircle className="w-3 h-3" /> Chiave Configurata
+                      </p>
+                      <code className="text-xs text-[var(--text-muted)] font-mono block truncate">
+                        sk-...{aiConfig.deepseekKey.slice(-6)}
+                      </code>
+                    </div>
+                    
+                    {/* Model Selector DeepSeek */}
+                    <div className="p-4 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl space-y-3">
+                       <label className="text-[8px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Architettura Modello</label>
+                       <div className="grid grid-cols-2 gap-2">
+                          <button 
+                            onClick={async () => {
+                              const newModel = 'deepseek-chat';
+                              setAIConfig({ model: newModel });
+                              await supabase.from('user_profiles').update({ ai_settings: { ...aiConfig, model: newModel } }).eq('user_id', user?.id);
+                              addToast("Modello: DeepSeek-V3 (Creativo)", "success");
+                            }}
+                            className={cn(
+                              "py-2 rounded-xl text-[9px] font-black uppercase tracking-tighter border transition-all",
+                              aiConfig.model === 'deepseek-chat' || !aiConfig.model
+                                ? "bg-[var(--accent)] text-[var(--bg-deep)] border-transparent"
+                                : "bg-[var(--bg-deep)] text-[var(--text-secondary)] border-[var(--border-subtle)]"
+                            )}
+                          >
+                            V3 (Chat)
+                          </button>
+                          <button 
+                            onClick={async () => {
+                              const newModel = 'deepseek-reasoner';
+                              setAIConfig({ model: newModel });
+                              await supabase.from('user_profiles').update({ ai_settings: { ...aiConfig, model: newModel } }).eq('user_id', user?.id);
+                              addToast("Modello: DeepSeek-R1 (Ragionatore)", "success");
+                            }}
+                            className={cn(
+                              "py-2 rounded-xl text-[9px] font-black uppercase tracking-tighter border transition-all",
+                              aiConfig.model === 'deepseek-reasoner'
+                                ? "bg-[var(--accent)] text-[var(--bg-deep)] border-transparent"
+                                : "bg-[var(--bg-deep)] text-[var(--text-secondary)] border-[var(--border-subtle)]"
+                            )}
+                          >
+                            R1 (Reasoner)
+                          </button>
+                       </div>
+                    </div>
                   </div>
                 )}
                 {testResult && (

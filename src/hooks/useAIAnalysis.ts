@@ -46,37 +46,45 @@ export const useAIAnalysis = () => {
     const prevScene = currentIndex > 0 ? allScenes[currentIndex - 1] : null;
     const nextScene = currentIndex < allScenes.length - 1 ? allScenes[currentIndex + 1] : null;
 
-    const prevSnippet = prevScene ? getPlainTextForAI(prevScene.content || '').slice(-400) : 'Inizio del manoscritto.';
-    const nextSnippet = nextScene ? getPlainTextForAI(nextScene.content || '').slice(0, 400) : 'Fine del manoscritto.';
+    const prevSnippet = prevScene ? getPlainTextForAI(prevScene.content || '').slice(-1200) : 'Inizio del manoscritto.';
+    const nextSnippet = nextScene ? getPlainTextForAI(nextScene.content || '').slice(0, 1200) : 'Fine del manoscritto.';
 
     abortControllerRef.current = new AbortController();
     
     try {
       let systemPrompt = '';
+      const baseInstructions = `Sei un editor e copywriter letterario senior. 
+                                Quando analizzi il testo, focalizzati sullo stile 'Show, Don't Tell'. 
+                                Per sinonimi e metafore, prediligi un linguaggio evocativo e non banale. 
+                                Mantieni un tono coerente con il genere letterario dell'opera.`;
+
       switch (tab) {
         case 'revision':
-          systemPrompt = `Sei un Senior Editor e Ghostwriter di altissimo livello. 
+          systemPrompt = `${baseInstructions}
                          OBIETTIVO: Elevare la qualità letteraria SENZA stravolgere il testo.
                          REGOLE MANDATORIE:
                          1. NON cancellare testo utile, dialoghi o descrizioni importanti. 
                          2. Sii CONSERVATIVO: mantieni il ritmo originale ma rendilo più incisivo. 
                          3. Intervieni sulla forma, non sulla sostanza. Non riassumere.
                          4. 'Mostra, non dire' senza tagliare la scena.
-                         FORMATO DI OUTPUT OBBLIGATORIO: Restituisci SOLO ED ESCLUSIVAMENTE un array di oggetti JSON. Nessun commento o testo aggiuntivo. Schema:
+                         FORMATO DI OUTPUT OBBLIGATORIO: Restituisci SOLO ED ESCLUSIVAMENTE un array di oggetti JSON. Schema:
                          [ { "original": "testo esatto", "suggestion": "testo elevato", "reason": "spiegazione editoriale", "type": "stile" } ]`;
           break;
         case 'grammar':
-          systemPrompt = `Sei un correttore bozze pignolo. Trova errori grammaticali, refusi, punteggiatura o errori di battitura.
+          systemPrompt = `${baseInstructions}
+                         Sei un correttore bozze pignolo. Trova errori grammaticali, refusi, punteggiatura o errori di battitura.
                          FORMATO DI OUTPUT OBBLIGATORIO: Restituisci SOLO ED ESCLUSIVAMENTE un array di oggetti JSON. Schema:
                          [ { "original": "testo esatto", "suggestion": "testo corretto", "reason": "spiegazione", "type": "grammatica" } ]`;
           break;
         case 'synonyms':
-          systemPrompt = `Sei un esperto linguista. Trova parole ripetitive o generiche. Suggerisci termini più precisi, evocativi o ricercati.
+          systemPrompt = `${baseInstructions}
+                         Trova parole ripetitive o generiche. Suggerisci termini più precisi, evocativi o ricercati.
                          FORMATO DI OUTPUT OBBLIGATORIO: Restituisci SOLO ED ESCLUSIVAMENTE un array di oggetti JSON. Schema:
                          [ { "original": "parola", "suggestion": "sinonimo ricercato", "reason": "valore semantico", "type": "stile" } ]`;
           break;
         case 'metaphors':
-          systemPrompt = `Sei un autore di narrativa vincitore del premio Strega. Trasforma descrizioni piatte in immagini sensoriali e metafore potenti.
+          systemPrompt = `${baseInstructions}
+                         Trasforma descrizioni piatte in immagini sensoriali e metafore potenti.
                          FORMATO DI OUTPUT OBBLIGATORIO: Restituisci SOLO ED ESCLUSIVAMENTE un array di oggetti JSON. Schema:
                          [ { "original": "descrizione", "suggestion": "immagine poetica", "reason": "impatto evocativo", "type": "stile" } ]`;
           break;
@@ -86,7 +94,7 @@ export const useAIAnalysis = () => {
       PROGETTO: ${currentProject?.title || 'Senza Titolo'}
       AUTORE: ${authorName || 'Anonimo'}
 
-      CONTESTO PRECEDENTE (per continuità):
+      CONTESTO PRECEDENTE:
       "...${prevSnippet}"
 
       TESTO DA ANALIZZARE (FOCUS QUI):

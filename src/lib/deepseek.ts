@@ -19,6 +19,7 @@ export const deepseekService = {
     providedKey: string,
     messages: any[],
     onChunk: (text: string) => void,
+    model = 'deepseek-chat',
     temperature = 0.7,
     signal?: AbortSignal
   ) {
@@ -37,7 +38,7 @@ export const deepseekService = {
         },
         signal,
         body: JSON.stringify({
-          model: 'deepseek-chat',
+          model,
           messages,
           temperature,
           stream: true,
@@ -108,7 +109,7 @@ export const deepseekService = {
   /**
    * Verifica la validità della chiave API eseguendo una chiamata minima.
    */
-  async testConnection(apiKey: string) {
+  async testConnection(apiKey: string, model = 'deepseek-chat') {
     const key = apiKey.trim();
     if (!key || !key.startsWith('sk-')) {
       return { ok: false, status: 0, error: 'Formato chiave non valido' };
@@ -122,7 +123,7 @@ export const deepseekService = {
           'Authorization': `Bearer ${key}`
         },
         body: JSON.stringify({
-          model: 'deepseek-chat',
+          model,
           messages: [{ role: 'user', content: 'test' }],
           max_tokens: 1
         }),

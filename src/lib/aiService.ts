@@ -47,6 +47,7 @@ export const aiService = {
           config.deepseekKey,
           messages,
           onChunk,
+          config.model || 'deepseek-chat',
           options?.temperature,
           options?.signal
         );
