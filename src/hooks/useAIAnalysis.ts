@@ -35,9 +35,9 @@ export const useAIAnalysis = () => {
       return;
     }
 
-    // Aggiungiamo un avviso se il testo è molto lungo
-    if (plainText.length > 8000) {
-      addToast("Testo molto lungo rilevato. L'analisi potrebbe essere parziale. Si consiglia di analizzare singole scene.", "info");
+    // Aggiungiamo un avviso se il testo è estremamente lungo
+    if (plainText.length > 20000) {
+      addToast("Testo molto lungo rilevato (>20k caratteri). L'analisi potrebbe essere incompleta per limiti di risposta dell'AI. Se noti troncamenti, analizza sezioni più brevi.", "info");
     }
 
     const state = useStore.getState();
