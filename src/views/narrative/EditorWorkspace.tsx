@@ -1,9 +1,10 @@
 import React from 'react';
-import { Sparkles, Maximize2, Minimize2, LayoutList, ChevronDown, CheckCircle2, AlertCircle, Languages, Image } from 'lucide-react';
+import { Sparkles, Maximize2, Minimize2, LayoutList, ChevronDown, CheckCircle2, AlertCircle, Languages, Image, Cpu, BrainCircuit } from 'lucide-react';
 import { Editor } from '../../components/Editor';
 import type { Scene } from '../../types/narrative';
 import { useStore } from '../../store/useStore';
 import { cn } from '../../lib/utils';
+import { supabase } from '../../lib/supabase';
 import { Skeleton } from '../../components/Skeleton';
 import { useAIAnalysis } from '../../hooks/useAIAnalysis';
 
@@ -29,6 +30,10 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
   const currentSceneContent = useStore(s => s.currentSceneContent);
   const activeSelection = useStore(s => s.activeSelection);
   const parsedSuggestions = useStore(s => s.parsedSuggestions);
+  const aiConfig = useStore(s => s.aiConfig);
+  const setAIConfig = useStore(s => s.setAIConfig);
+  const user = useStore(s => s.user);
+  const { addToast } = useStore.getState() as any; // We can use the toast from store or just import it
   
   const [showAIMenu, setShowAIMenu] = React.useState(false);
   const { runAnalysis, stopAnalysis, isAnalyzing } = useAIAnalysis();
@@ -125,8 +130,44 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
 
             {showAIMenu && (
               <div className="absolute top-full right-0 mt-4 w-80 max-h-[80vh] overflow-y-auto custom-scrollbar bg-[var(--bg-surface)] backdrop-blur-3xl rounded-[32px] border border-[var(--border-subtle)] shadow-premium p-3 z-[100] animate-in fade-in slide-in-from-top-3 duration-300 ring-1 ring-black/[0.03]">
-                <div className="px-4 py-3 mb-2 border-b border-[var(--border-subtle)]/50">
+                <div className="px-4 py-3 mb-2 border-b border-[var(--border-subtle)]/50 flex items-center justify-between">
                   <p className="text-[10px] font-black text-[var(--accent)] uppercase tracking-[0.3em]">Azioni AI Suggerite</p>
+                  
+                  {/* DeepSeek Model Toggle */}
+                  {aiConfig.provider === 'deepseek' && (
+                    <div className="flex bg-[var(--bg-deep)] p-1 rounded-xl border border-[var(--border-subtle)]">
+                       <button 
+                         onClick={async (e) => {
+                           e.stopPropagation();
+                           const newModel = 'deepseek-chat';
+                           setAIConfig({ model: newModel });
+                           if (user) await supabase.from('user_profiles').update({ ai_settings: { ...aiConfig, model: newModel } }).eq('user_id', user.id);
+                         }}
+                         className={cn(
+                           "px-3 py-1 rounded-lg text-[8px] font-black uppercase transition-all",
+                           aiConfig.model === 'deepseek-chat' || !aiConfig.model ? "bg-[var(--accent)] text-[var(--bg-deep)]" : "text-[var(--text-muted)] hover:text-[var(--text-bright)]"
+                         )}
+                         title="Modello V3 (Creativo)"
+                       >
+                         V3
+                       </button>
+                       <button 
+                         onClick={async (e) => {
+                           e.stopPropagation();
+                           const newModel = 'deepseek-reasoner';
+                           setAIConfig({ model: newModel });
+                           if (user) await supabase.from('user_profiles').update({ ai_settings: { ...aiConfig, model: newModel } }).eq('user_id', user.id);
+                         }}
+                         className={cn(
+                           "px-3 py-1 rounded-lg text-[8px] font-black uppercase transition-all",
+                           aiConfig.model === 'deepseek-reasoner' ? "bg-[var(--accent)] text-[var(--bg-deep)]" : "text-[var(--text-muted)] hover:text-[var(--text-bright)]"
+                         )}
+                         title="Modello R1 (Ragionatore)"
+                       >
+                         R1
+                       </button>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="space-y-1">
