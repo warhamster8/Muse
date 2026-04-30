@@ -42,6 +42,7 @@ export const deepseekService = {
           messages,
           temperature,
           stream: true,
+          max_tokens: 8192,
         }),
       });
 

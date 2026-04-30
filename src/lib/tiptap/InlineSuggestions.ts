@@ -35,9 +35,11 @@ export const InlineSuggestions = Extension.create({
                     Decoration.widget(match.from, (_view) => {
                       const dot = document.createElement('div');
                       dot.className = `inline-suggestion-gutter-dot ${sug.type}`;
-                      dot.onclick = () => {
-                        useStore.getState().setSuggestionIndex(index);
-                        // Trigger a scroll or popup
+                      dot.onclick = (e) => {
+                        e.stopPropagation();
+                        window.dispatchEvent(new CustomEvent('muse-open-suggestion-popup', { 
+                          detail: { index, type: sug.type } 
+                        }));
                       };
                       return dot;
                     }, { side: -1 })

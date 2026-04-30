@@ -291,6 +291,43 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
     return () => window.removeEventListener('click', handleClick);
   }, [editor]);
 
+  // Handle open suggestion popup from gutter dot
+  React.useEffect(() => {
+    const handleOpenPopup = (e: any) => {
+      const { index } = e.detail;
+      const suggestions = useStore.getState().parsedSuggestions;
+      const sug = suggestions[index];
+      
+      if (sug && editorContainerRef.current && contentContainerRef.current) {
+        // Find the highlight element to get its position
+        const highlight = editorContainerRef.current.querySelector(`.inline-suggestion-highlight[data-suggestion-id="${index}"]`);
+        
+        if (highlight) {
+          const rect = highlight.getBoundingClientRect();
+          const containerRect = contentContainerRef.current.getBoundingClientRect();
+          const isCompactMode = containerRect.width < 650;
+          const clampMargin = isCompactMode ? 160 : 260;
+          
+          setActiveSuggestionForPopup(sug);
+          setPopupPosition({ 
+            top: rect.top - containerRect.top, 
+            left: Math.max(clampMargin, Math.min(rect.left - containerRect.left + rect.width / 2, containerRect.width - clampMargin)),
+            width: rect.width,
+            rect: rect
+          });
+          useStore.getState().setSuggestionIndex(index);
+        } else {
+          // Fallback if highlight not found (e.g. out of view or something)
+          // Just set the suggestion and a default position or ignore
+          console.warn('Highlight element not found for suggestion index:', index);
+        }
+      }
+    };
+
+    window.addEventListener('muse-open-suggestion-popup', handleOpenPopup);
+    return () => window.removeEventListener('muse-open-suggestion-popup', handleOpenPopup);
+  }, [editor]);
+
   // Handle scroll requests (keep from old version)
   React.useEffect(() => {
     if (editor && highlightedText && scrollRequestToken > 0) {

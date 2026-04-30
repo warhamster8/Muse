@@ -35,6 +35,11 @@ export const useAIAnalysis = () => {
       return;
     }
 
+    // Aggiungiamo un avviso se il testo è molto lungo
+    if (plainText.length > 8000) {
+      addToast("Testo molto lungo rilevato. L'analisi potrebbe essere parziale. Si consiglia di analizzare singole scene.", "info");
+    }
+
     const state = useStore.getState();
     const currentProject = state.currentProject;
     const authorName = state.authorName;
@@ -97,13 +102,14 @@ export const useAIAnalysis = () => {
       CONTESTO PRECEDENTE:
       "...${prevSnippet}"
 
-      TESTO DA ANALIZZARE (FOCUS QUI):
+      TESTO DA ANALIZZARE (ANALIZZA TUTTO QUESTO BLOCCO):
       ${plainText}
 
       CONTESTO SUCCESSIVO:
       "${nextSnippet}..."
 
-      ISTRUZIONE: Fornisci suggerimenti mirati per il TESTO DA ANALIZZARE, mantenendo la coerenza con il contesto fornito.
+      ISTRUZIONE CRITICA: Analizza l'INTERO blocco di testo fornito. Non fermarti a metà. 
+      Fornisci suggerimenti mirati mantenendo la coerenza con il contesto.
       `;
 
       await aiService.streamChat(
