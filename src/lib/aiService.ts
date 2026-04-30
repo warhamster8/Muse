@@ -43,6 +43,10 @@ export const aiService = {
           throw new Error('Identità DeepSeek non verificata: chiave mancante nel profilo.');
         }
         
+        // DEBUG TEMPORANEO: Conferma modello e prompt
+        console.log(`[DEBUG AI] Provider: DeepSeek | Modello: ${config.model || 'deepseek-chat'}`);
+        console.log(`[DEBUG AI] System Prompt:`, messages.find(m => m.role === 'system')?.content);
+
         return await deepseekService.streamChatCompletion(
           config.deepseekKey,
           messages,
