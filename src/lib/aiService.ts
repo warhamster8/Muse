@@ -44,8 +44,10 @@ export const aiService = {
         }
         
         // DEBUG TEMPORANEO: Conferma modello e prompt
-        console.log(`[DEBUG AI] Provider: DeepSeek | Modello: ${config.model || 'deepseek-chat'}`);
-        console.log(`[DEBUG AI] System Prompt:`, messages.find(m => m.role === 'system')?.content);
+        console.group("🚀 MUSE AI DEBUG");
+        console.log("MODELLO ATTIVO:", config.model || 'deepseek-chat');
+        console.log("SYSTEM PROMPT:", messages.find(m => m.role === 'system')?.content);
+        console.groupEnd();
 
         return await deepseekService.streamChatCompletion(
           config.deepseekKey,
