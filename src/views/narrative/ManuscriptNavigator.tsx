@@ -43,7 +43,7 @@ interface ManuscriptNavigatorProps {
 }
 
 const STATUS_CONFIG = {
-  draft: { label: 'Draft', color: '#6b7280', bg: 'bg-slate-500/10' },
+  draft: { label: 'Draft', color: '#ef4444', bg: 'bg-red-500/10' },
   revised: { label: 'Revised', color: '#f59e0b', bg: 'bg-amber-500/10' },
   complete: { label: 'Complete', color: '#10b981', bg: 'bg-emerald-500/10' }
 };
@@ -239,10 +239,14 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
           </div>
         ) : (
           <DragDropContext onDragEnd={(result) => {
-            // Disable reordering if searching/filtering to avoid index mismatch
             if (searchTerm.trim() || selectedTag) return;
             onReorder(result);
           }}>
+            {(searchTerm || selectedTag) && (
+              <div className="mx-6 mb-4 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[9px] text-amber-500 font-bold uppercase tracking-wider text-center">
+                Riordinamento disabilitato durante la ricerca
+              </div>
+            )}
             <Droppable droppableId="manuscript-chapters" type="CHAPTER">
               {(provided) => (
                 <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
@@ -254,15 +258,15 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
                           <div 
                             onClick={() => onToggleChapter(chapter.id)}
                             className={cn(
-                              "flex items-center space-x-3 px-5 py-3.5 rounded-2xl cursor-pointer group border relative",
+                              "flex items-center space-x-3 px-5 py-3.5 rounded-2xl cursor-pointer group border relative transition-all duration-300",
                               expandedChapters.has(chapter.id) 
                                 ? "bg-[var(--bg-card)] border-[var(--border-subtle)] shadow-inner" 
                                 : "border-transparent hover:bg-[var(--accent-soft)] hover:border-[var(--border-subtle)]",
                               snapshot.isDragging && "bg-[var(--bg-card)] border-[var(--accent)]/50 shadow-2xl scale-[1.02]"
                             )}
                           >
-                            <div {...provided.dragHandleProps} className="p-1 -ml-2 rounded-lg opacity-40 group-hover:opacity-100 transition-opacity hover:bg-[var(--accent-soft)]">
-                              <GripVertical className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+                            <div {...provided.dragHandleProps} className="p-2 -ml-3 rounded-lg opacity-40 group-hover:opacity-100 transition-all hover:bg-[var(--accent-soft)]">
+                              <GripVertical className="w-4 h-4 text-[var(--text-muted)]" />
                             </div>
                             <div className="w-4 h-4 flex items-center justify-center">
                               {expandedChapters.has(chapter.id) ? 
@@ -315,212 +319,220 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
                           </div>
 
                           {/* Lista Scene (Droppable) */}
-                          {expandedChapters.has(chapter.id) && (
-                            <Droppable droppableId={chapter.id} type="SCENE">
-                              {(provided) => (
-                                <div {...provided.droppableProps} ref={provided.innerRef} className="pl-6 space-y-1.5 min-h-[12px] py-1 relative">
-                                  {/* Vertical line indicator */}
+                          <Droppable droppableId={chapter.id} type="SCENE">
+                            {(provided) => (
+                              <div 
+                                {...provided.droppableProps} 
+                                ref={provided.innerRef} 
+                                className={cn(
+                                  "pl-6 space-y-1.5 py-1 relative min-h-[4px] transition-all duration-300",
+                                  !expandedChapters.has(chapter.id) && "h-0 overflow-hidden py-0 opacity-0"
+                                )}
+                              >
+                                {expandedChapters.has(chapter.id) && (
                                   <div className="absolute left-[13px] top-0 bottom-0 w-[1px] bg-[var(--border-subtle)]" />
-                                  
-                                  {chapter.scenes?.map((scene, index) => (
-                                    <Draggable key={scene.id} draggableId={scene.id} index={index} isDragDisabled={!!searchTerm.trim() || !!selectedTag}>
-                                      {(provided, snapshot) => (
-                                        <div 
-                                          ref={provided.innerRef}
-                                          {...provided.draggableProps}
-                                          onClick={() => onSelectScene(scene.id)}
-                                          className={cn(
-                                            "flex flex-col p-3 rounded-xl cursor-pointer group/scene border relative",
-                                            activeSceneId === scene.id 
-                                              ? "bg-[var(--accent)] text-[var(--bg-deep)] border-transparent shadow-lg" 
-                                              : "text-[var(--text-secondary)] hover:bg-[var(--accent-soft)] hover:text-[var(--text-bright)] border-transparent",
-                                            snapshot.isDragging && "bg-[var(--bg-card)] shadow-2xl border-[var(--accent)]/50 z-50 scale-105"
-                                          )}
-                                        >
-                                          {/* Tags sopra */}
-                                          <div className="flex flex-wrap gap-1 mb-2">
-                                            {scene.tags?.map(tag => (
-                                              <span 
-                                                key={tag} 
+                                )}
+                                
+                                {expandedChapters.has(chapter.id) && chapter.scenes?.map((scene, index) => (
+                                  <Draggable key={scene.id} draggableId={scene.id} index={index} isDragDisabled={!!searchTerm || !!selectedTag}>
+                                    {(provided, snapshot) => (
+                                      <div 
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        onClick={() => onSelectScene(scene.id)}
+                                        className={cn(
+                                          "flex flex-col p-3 rounded-xl cursor-pointer group/scene border relative transition-all",
+                                          activeSceneId === scene.id 
+                                            ? "bg-[var(--accent)] text-[var(--bg-deep)] border-transparent shadow-lg" 
+                                            : "text-[var(--text-secondary)] hover:bg-[var(--accent-soft)] hover:text-[var(--text-bright)] border-transparent",
+                                          snapshot.isDragging && "bg-[var(--bg-card)] shadow-2xl border-[var(--accent)]/50 z-50 scale-105"
+                                        )}
+                                      >
+                                        {/* Tags sopra */}
+                                        <div className="flex flex-wrap gap-1 mb-2">
+                                          {scene.tags?.map(tag => (
+                                            <span 
+                                              key={tag} 
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedTag(tag);
+                                              }}
+                                              className={cn(
+                                                "px-1.5 py-0.5 rounded-md text-[7px] font-bold uppercase tracking-wider transition-all",
+                                                activeSceneId === scene.id 
+                                                  ? "bg-white/20 text-white" 
+                                                  : "bg-[var(--accent-soft)] text-[var(--accent)]"
+                                              )}
+                                            >
+                                              #{tag}
+                                              <button 
                                                 onClick={(e) => {
                                                   e.stopPropagation();
-                                                  setSelectedTag(tag);
+                                                  onUpdateSceneTags(scene.id, scene.tags!.filter(t => t !== tag));
                                                 }}
+                                                className="ml-1 hover:text-red-400"
+                                              >
+                                                ×
+                                              </button>
+                                            </span>
+                                          ))}
+                                          <button 
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setTagInputId(tagInputId === scene.id ? null : scene.id);
+                                            }}
+                                            className={cn(
+                                              "p-0.5 rounded-md transition-all opacity-40 hover:opacity-100",
+                                              activeSceneId === scene.id ? "text-white" : "text-[var(--text-muted)]"
+                                            )}
+                                          >
+                                            <Plus className="w-2.5 h-2.5" />
+                                          </button>
+                                        </div>
+
+                                        {tagInputId === scene.id && (
+                                          <div className="mb-2 p-2 glass rounded-xl border border-[var(--accent)]/30 animate-in slide-in-from-top-2 duration-300" onClick={e => e.stopPropagation()}>
+                                            <input 
+                                              autoFocus
+                                              type="text"
+                                              placeholder="Nuovo tag..."
+                                              className="w-full bg-transparent text-[9px] font-black uppercase tracking-widest outline-none text-[var(--text-bright)] mb-2"
+                                              value={newTag}
+                                              onChange={e => setNewTag(e.target.value)}
+                                              onKeyDown={e => {
+                                                if (e.key === 'Enter' && newTag.trim()) {
+                                                  const tags = scene.tags || [];
+                                                  if (!tags.includes(newTag.trim())) {
+                                                    onUpdateSceneTags(scene.id, [...tags, newTag.trim()]);
+                                                  }
+                                                  setNewTag('');
+                                                  setTagInputId(null);
+                                                }
+                                                if (e.key === 'Escape') setTagInputId(null);
+                                              }}
+                                            />
+                                            <div className="flex flex-wrap gap-1">
+                                              {DEFAULT_TAGS.filter(t => !scene.tags?.includes(t)).map(t => (
+                                                <button 
+                                                  key={t}
+                                                  onClick={() => {
+                                                    onUpdateSceneTags(scene.id, [...(scene.tags || []), t]);
+                                                    setTagInputId(null);
+                                                  }}
+                                                  className="px-1.5 py-0.5 rounded-md bg-[var(--bg-deep)] text-[7px] font-black uppercase text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent-soft)] transition-all"
+                                                >
+                                                  {t}
+                                                </button>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        <div className="flex items-center space-x-2">
+                                          <div {...provided.dragHandleProps} className={cn(
+                                            "p-2 -ml-2 rounded-lg transition-all",
+                                            activeSceneId === scene.id 
+                                              ? "hover:bg-black/10 opacity-60" 
+                                              : "hover:bg-[var(--accent-soft)] opacity-30 group-hover/scene:opacity-100"
+                                          )}>
+                                            <GripVertical className={cn("w-4 h-4", activeSceneId === scene.id ? "text-[var(--bg-deep)]" : "text-[var(--text-muted)]")} />
+                                          </div>
+                                          <FileText className={cn("w-4 h-4 transition-colors duration-500", activeSceneId === scene.id ? "text-[var(--bg-deep)]/70" : "text-[var(--text-muted)] group-hover/scene:text-[var(--accent)]/50")} />
+                                          {editingId === scene.id ? (
+                                            <input
+                                              autoFocus
+                                              className={cn(
+                                                "bg-[var(--bg-deep)] text-[11px] font-black uppercase tracking-tight flex-1 border border-[var(--accent)]/30 rounded-lg px-2 py-1 outline-none",
+                                                activeSceneId === scene.id ? "text-[var(--accent)]" : "text-[var(--text-primary)]"
+                                              )}
+                                              value={editTitle}
+                                              onChange={(e) => setEditTitle(e.target.value)}
+                                              onBlur={() => handleFinishRename(scene.id, 'SCENE')}
+                                              onKeyDown={(e) => {
+                                                if (e.key === 'Enter') handleFinishRename(scene.id, 'SCENE');
+                                                if (e.key === 'Escape') setEditingId(null);
+                                              }}
+                                              onClick={(e) => e.stopPropagation()}
+                                            />
+                                          ) : (
+                                            <div className="flex-1 min-w-0 flex items-center gap-2">
+                                              <span 
+                                                onDoubleClick={(e) => handleStartRename(e, scene.id, scene.title)}
                                                 className={cn(
-                                                  "px-1.5 py-0.5 rounded-md text-[7px] font-bold uppercase tracking-wider transition-all",
-                                                  activeSceneId === scene.id 
-                                                    ? "bg-white/20 text-white" 
-                                                    : "bg-[var(--accent-soft)] text-[var(--accent)]"
+                                                  "text-[11px] truncate font-black uppercase tracking-tight transition-all duration-500",
+                                                  activeSceneId === scene.id ? "text-[var(--bg-deep)]" : "text-[var(--text-secondary)]",
+                                                  scene.exclude_from_timeline && "opacity-60 italic"
                                                 )}
                                               >
-                                                #{tag}
-                                                <button 
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onUpdateSceneTags(scene.id, scene.tags!.filter(t => t !== tag));
-                                                  }}
-                                                  className="ml-1 hover:text-red-400"
-                                                >
-                                                  ×
-                                                </button>
+                                                {scene.title}
                                               </span>
-                                            ))}
-                                            <button 
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                setTagInputId(tagInputId === scene.id ? null : scene.id);
-                                              }}
-                                              className={cn(
-                                                "p-0.5 rounded-md transition-all opacity-40 hover:opacity-100",
-                                                activeSceneId === scene.id ? "text-white" : "text-[var(--text-muted)]"
-                                              )}
-                                            >
-                                              <Plus className="w-2.5 h-2.5" />
-                                            </button>
-                                          </div>
-
-                                          {tagInputId === scene.id && (
-                                            <div className="mb-2 p-2 glass rounded-xl border border-[var(--accent)]/30 animate-in slide-in-from-top-2 duration-300" onClick={e => e.stopPropagation()}>
-                                              <input 
-                                                autoFocus
-                                                type="text"
-                                                placeholder="Nuovo tag..."
-                                                className="w-full bg-transparent text-[9px] font-black uppercase tracking-widest outline-none text-[var(--text-bright)] mb-2"
-                                                value={newTag}
-                                                onChange={e => setNewTag(e.target.value)}
-                                                onKeyDown={e => {
-                                                  if (e.key === 'Enter' && newTag.trim()) {
-                                                    const tags = scene.tags || [];
-                                                    if (!tags.includes(newTag.trim())) {
-                                                      onUpdateSceneTags(scene.id, [...tags, newTag.trim()]);
-                                                    }
-                                                    setNewTag('');
-                                                    setTagInputId(null);
-                                                  }
-                                                  if (e.key === 'Escape') setTagInputId(null);
+                                              
+                                              {/* Status Badge */}
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  const current = scene.status || 'draft';
+                                                  const next = STATUSES[(STATUSES.indexOf(current) + 1) % STATUSES.length];
+                                                  onUpdateSceneStatus(scene.id, next);
                                                 }}
-                                              />
-                                              <div className="flex flex-wrap gap-1">
-                                                {DEFAULT_TAGS.filter(t => !scene.tags?.includes(t)).map(t => (
-                                                  <button 
-                                                    key={t}
-                                                    onClick={() => {
-                                                      onUpdateSceneTags(scene.id, [...(scene.tags || []), t]);
-                                                      setTagInputId(null);
-                                                    }}
-                                                    className="px-1.5 py-0.5 rounded-md bg-[var(--bg-deep)] text-[7px] font-black uppercase text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent-soft)] transition-all"
-                                                  >
-                                                    {t}
-                                                  </button>
-                                                ))}
-                                              </div>
+                                                className={cn(
+                                                  "px-1.5 py-0.5 rounded-full text-[7px] font-bold uppercase tracking-widest border transition-all shrink-0",
+                                                  activeSceneId === scene.id 
+                                                    ? "bg-white/20 border-white/20 text-white" 
+                                                    : cn(STATUS_CONFIG[scene.status || 'draft'].bg, "border-current")
+                                                )}
+                                                style={{ 
+                                                  color: activeSceneId === scene.id ? undefined : STATUS_CONFIG[scene.status || 'draft'].color,
+                                                  borderColor: activeSceneId === scene.id ? undefined : `${STATUS_CONFIG[scene.status || 'draft'].color}30`
+                                                }}
+                                              >
+                                                {STATUS_CONFIG[scene.status || 'draft'].label}
+                                              </button>
                                             </div>
                                           )}
 
-                                          <div className="flex items-center space-x-2">
-                                            <div {...provided.dragHandleProps} className={cn(
-                                              "p-1 rounded-lg opacity-40 group-hover/scene:opacity-100 transition-opacity",
-                                              activeSceneId === scene.id ? "hover:bg-black/10" : "hover:bg-[var(--accent-soft)]"
-                                            )}>
-                                              <GripVertical className={cn("w-3.5 h-3.5", activeSceneId === scene.id ? "text-[var(--bg-deep)]/40" : "text-[var(--text-muted)]")} />
-                                            </div>
-                                            <FileText className={cn("w-4 h-4 transition-colors duration-500", activeSceneId === scene.id ? "text-[var(--bg-deep)]/70" : "text-[var(--text-muted)] group-hover/scene:text-[var(--accent)]/50")} />
-                                            {editingId === scene.id ? (
-                                              <input
-                                                autoFocus
-                                                className={cn(
-                                                  "bg-[var(--bg-deep)] text-[11px] font-black uppercase tracking-tight flex-1 border border-[var(--accent)]/30 rounded-lg px-2 py-1 outline-none",
-                                                  activeSceneId === scene.id ? "text-[var(--accent)]" : "text-[var(--text-primary)]"
-                                                )}
-                                                value={editTitle}
-                                                onChange={(e) => setEditTitle(e.target.value)}
-                                                onBlur={() => handleFinishRename(scene.id, 'SCENE')}
-                                                onKeyDown={(e) => {
-                                                  if (e.key === 'Enter') handleFinishRename(scene.id, 'SCENE');
-                                                  if (e.key === 'Escape') setEditingId(null);
-                                                }}
-                                                onClick={(e) => e.stopPropagation()}
-                                              />
-                                            ) : (
-                                              <div className="flex-1 min-w-0 flex items-center gap-2">
-                                                <span 
-                                                  onDoubleClick={(e) => handleStartRename(e, scene.id, scene.title)}
-                                                  className={cn(
-                                                    "text-[11px] truncate font-black uppercase tracking-tight transition-all duration-500",
-                                                    activeSceneId === scene.id ? "text-[var(--bg-deep)]" : "text-[var(--text-secondary)]",
-                                                    scene.exclude_from_timeline && "opacity-60 italic"
-                                                  )}
-                                                >
-                                                  {scene.title}
-                                                </span>
-                                                
-                                                {/* Status Badge */}
-                                                <button
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    const current = scene.status || 'draft';
-                                                    const next = STATUSES[(STATUSES.indexOf(current) + 1) % STATUSES.length];
-                                                    onUpdateSceneStatus(scene.id, next);
-                                                  }}
-                                                  className={cn(
-                                                    "px-1.5 py-0.5 rounded-full text-[7px] font-bold uppercase tracking-widest border transition-all shrink-0",
-                                                    activeSceneId === scene.id 
-                                                      ? "bg-white/20 border-white/20 text-white" 
-                                                      : cn(STATUS_CONFIG[scene.status || 'draft'].bg, "border-current")
-                                                  )}
-                                                  style={{ 
-                                                    color: activeSceneId === scene.id ? undefined : STATUS_CONFIG[scene.status || 'draft'].color,
-                                                    borderColor: activeSceneId === scene.id ? undefined : `${STATUS_CONFIG[scene.status || 'draft'].color}30`
-                                                  }}
-                                                >
-                                                  {STATUS_CONFIG[scene.status || 'draft'].label}
-                                                </button>
-                                              </div>
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              onDeleteScene(scene.id);
+                                            }}
+                                            className={cn(
+                                              "flex items-center justify-center p-1.5 rounded-lg transition-all border border-transparent opacity-0 group-hover/scene:opacity-100 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-400/10",
+                                              activeSceneId === scene.id && "text-[var(--bg-deep)]/40 hover:text-[var(--bg-deep)]"
                                             )}
-                                            
-                                            <button
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                onDeleteScene(scene.id);
-                                              }}
-                                              className={cn(
-                                                "flex items-center justify-center p-1.5 rounded-lg transition-all border border-transparent opacity-0 group-hover/scene:opacity-100 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-400/10",
-                                                activeSceneId === scene.id && "text-[var(--bg-deep)]/40 hover:text-[var(--bg-deep)]"
-                                              )}
-                                              title="Elimina Scena"
-                                            >
-                                              <Trash2 className="w-3.5 h-3.5" />
-                                            </button>
-                                            <button
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                onToggleSceneExclusion(scene.id, !scene.exclude_from_timeline);
-                                              }}
-                                              className={cn(
-                                                "flex items-center justify-center p-1.5 rounded-lg transition-all border border-transparent opacity-0 group-hover/scene:opacity-100",
-                                                scene.exclude_from_timeline 
-                                                  ? "text-red-400 hover:bg-red-400/10 hover:border-red-400/20" 
-                                                  : "text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent-soft)]",
-                                                activeSceneId === scene.id && "text-[var(--bg-deep)]/40 hover:text-[var(--bg-deep)] hover:bg-black/10"
-                                              )}
-                                              title={scene.exclude_from_timeline ? "Includi nella timeline" : "Escludi dalla timeline (Bozza)"}
-                                            >
-                                              {scene.exclude_from_timeline ? (
-                                                <EyeOff className="w-3.5 h-3.5" />
-                                              ) : (
-                                                <Eye className="w-3.5 h-3.5" />
-                                              )}
-                                            </button>
-                                          </div>
+                                            title="Elimina Scena"
+                                          >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                          </button>
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              onToggleSceneExclusion(scene.id, !scene.exclude_from_timeline);
+                                            }}
+                                            className={cn(
+                                              "flex items-center justify-center p-1.5 rounded-lg transition-all border border-transparent opacity-0 group-hover/scene:opacity-100",
+                                              scene.exclude_from_timeline 
+                                                ? "text-red-400 hover:bg-red-400/10 hover:border-red-400/20" 
+                                                : "text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent-soft)]",
+                                              activeSceneId === scene.id && "text-[var(--bg-deep)]/40 hover:text-[var(--bg-deep)] hover:bg-black/10"
+                                            )}
+                                            title={scene.exclude_from_timeline ? "Includi nella timeline" : "Escludi dalla timeline (Bozza)"}
+                                          >
+                                            {scene.exclude_from_timeline ? (
+                                              <EyeOff className="w-3.5 h-3.5" />
+                                            ) : (
+                                              <Eye className="w-3.5 h-3.5" />
+                                            )}
+                                          </button>
                                         </div>
-                                      )}
-                                    </Draggable>
-                                  ))}
-                                  {provided.placeholder}
-                                </div>
-                              )}
-                            </Droppable>
-                          )}
+                                      </div>
+                                    )}
+                                  </Draggable>
+                                ))}
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
                         </div>
                       )}
                     </Draggable>
