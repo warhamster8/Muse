@@ -142,7 +142,13 @@ export function useNarrative() {
         c.scenes?.map((s, idx) => ({
           id: s.id,
           chapter_id: c.id,
-          order_index: idx
+          order_index: idx,
+          title: s.title,
+          content: s.content,
+          status: s.status || 'draft',
+          tags: s.tags || [],
+          timeline_events: s.timeline_events || [],
+          exclude_from_timeline: s.exclude_from_timeline || false
         })) || []
       );
       
