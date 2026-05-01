@@ -142,21 +142,30 @@ export function useNarrative() {
         c.scenes?.map((s, idx) => ({
           id: s.id,
           chapter_id: c.id,
-          order_index: idx,
-          title: s.title,
-          content: s.content,
-          status: s.status || 'draft',
-          tags: s.tags || [],
-          timeline_events: s.timeline_events || [],
-          exclude_from_timeline: s.exclude_from_timeline || false
+          order_index: idx
         })) || []
       );
       
       if (scenesToUpdate.length > 0) {
-        const { error } = await supabase.from('scenes').upsert(scenesToUpdate);
-        if (error) {
-          console.error('Error reordering scenes:', error);
-          fetchNarrative(); // Revert on error
+        // Usa Promise.all con update singoli per evitare problemi con NOT NULL e limiti di payload dell'upsert
+        const updatePromises = scenesToUpdate.map(scene => 
+          supabase.from('scenes').update({ 
+            chapter_id: scene.chapter_id, 
+            order_index: scene.order_index 
+          }).eq('id', scene.id)
+        );
+        
+        try {
+          const results = await Promise.all(updatePromises);
+          const error = results.find(r => r.error)?.error;
+          
+          if (error) {
+            console.error('Error reordering scenes:', error);
+            fetchNarrative(); // Revert on error
+          }
+        } catch (err) {
+          console.error('Exception reordering scenes:', err);
+          fetchNarrative();
         }
       }
     }
@@ -192,10 +201,23 @@ export function useNarrative() {
       }));
       
       if (chaptersToUpdate.length > 0) {
-        const { error } = await supabase.from('chapters').upsert(chaptersToUpdate);
-        if (error) {
-          console.error('Error reordering chapters:', error);
-          fetchNarrative(); // Revert on error
+        const updatePromises = chaptersToUpdate.map(chapter => 
+          supabase.from('chapters').update({ 
+            order_index: chapter.order_index 
+          }).eq('id', chapter.id)
+        );
+
+        try {
+          const results = await Promise.all(updatePromises);
+          const error = results.find(r => r.error)?.error;
+
+          if (error) {
+            console.error('Error reordering chapters:', error);
+            fetchNarrative(); // Revert on error
+          }
+        } catch (err) {
+          console.error('Exception reordering chapters:', err);
+          fetchNarrative();
         }
       }
     }
