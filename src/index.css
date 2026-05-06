@@ -256,11 +256,32 @@
   background-color: rgba(245, 158, 11, 0.1);
 }
 
-.inline-suggestion-highlight:hover,
-.inline-suggestion-highlight.active {
-  background-color: rgba(129, 140, 248, 0.25);
+.inline-suggestion-highlight.stile:hover,
+.inline-suggestion-highlight.stile.active {
+  background-color: rgba(99, 102, 241, 0.25);
   border-bottom-width: 4px;
   box-shadow: 0 4px 20px -4px rgba(99, 102, 241, 0.3);
+}
+
+.inline-suggestion-highlight.grammatica:hover,
+.inline-suggestion-highlight.grammatica.active {
+  background-color: rgba(16, 185, 129, 0.25);
+  border-bottom-width: 4px;
+  box-shadow: 0 4px 20px -4px rgba(16, 185, 129, 0.3);
+}
+
+.inline-suggestion-highlight.taglio:hover,
+.inline-suggestion-highlight.taglio.active {
+  background-color: rgba(244, 63, 94, 0.25);
+  border-bottom-width: 4px;
+  box-shadow: 0 4px 20px -4px rgba(244, 63, 94, 0.3);
+}
+
+.inline-suggestion-highlight.coerenza:hover,
+.inline-suggestion-highlight.coerenza.active {
+  background-color: rgba(245, 158, 11, 0.25);
+  border-bottom-width: 4px;
+  box-shadow: 0 4px 20px -4px rgba(245, 158, 11, 0.3);
 }
 
 .inline-suggestion-gutter-dot {

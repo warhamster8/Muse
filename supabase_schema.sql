@@ -164,6 +164,8 @@ create policy "Users can access notes of their projects" on public.notes
 create table public.user_profiles (
   user_id uuid references auth.users(id) on delete cascade primary key,
   gemini_api_key text,
+  deepseek_api_key text,
+  groq_api_key text,
   ai_settings jsonb default '{"provider": "groq", "model": "llama-3.3-70b-versatile"}'::jsonb,
   updated_at timestamp with time zone default now()
 );
