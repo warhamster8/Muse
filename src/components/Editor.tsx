@@ -39,6 +39,7 @@ import type { AISuggestion } from '../lib/aiParsing';
 const CustomParagraph = Paragraph.extend({
   addAttributes() {
     return {
+      ...(this.parent ? this.parent() : {}),
       dropCap: {
         default: 'none',
         keepOnSplit: false,
@@ -99,7 +100,9 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        paragraph: false,
+      }),
       CustomParagraph,
       Underline,
       TextAlign.configure({
@@ -239,16 +242,8 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
 
       const matches = findMatchesInDoc(editor.state.doc, original);
       if (matches.length > 0) {
-        const match = matches[0];
+        const { from, to } = matches[0];
         
-        // Ensure we don't accidentally replace a trailing newline that might merge paragraphs
-        // We trim the match range if the original text doesn't end with a newline but the match does
-        let { from, to } = match;
-        const textToReplace = editor.state.doc.textBetween(from, to, '\n');
-        if ((textToReplace.endsWith('\n') || textToReplace.endsWith(' ')) && !original.endsWith('\n') && !original.endsWith(' ')) {
-          to -= 1;
-        }
-
         editor.chain()
           .focus()
           .insertContentAt({ from, to }, suggestion)

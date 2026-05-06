@@ -80,8 +80,20 @@ export const findMatchesInDoc = (doc: ProsemirrorNode, suggestion: string): Matc
   const matches = findMatchInText(fullText, suggestion);
   
   return matches.map(match => {
-    const startPM = posMap[match.start];
-    const endPM = posMap[match.end - 1] + 1;
+    let startPM = posMap[match.start];
+    let endPM = posMap[match.end - 1] + 1;
+
+    // Critical fix: If the match ends with a block separator (\n) that wasn't in the query,
+    // we must shrink the range to avoid merging paragraphs.
+    if (fullText[match.end - 1] === '\n' && !suggestion.endsWith('\n')) {
+      endPM = posMap[match.end - 1]; // Move back to before the block boundary
+    }
+    
+    // Similarly for the start
+    if (fullText[match.start] === '\n' && !suggestion.startsWith('\n')) {
+      startPM = posMap[match.start] + 1;
+    }
+
     return { from: startPM, to: endPM };
   }).filter(m => m.from !== undefined && m.to !== undefined);
 };
@@ -94,13 +106,24 @@ export const findManyMatchesInDoc = (doc: ProsemirrorNode, suggestions: string[]
 
   const { fullText, posMap } = getDocTextAndMap(doc);
   
-  return suggestions.map(sug => {
-    if (!sug || sug.trim().length < 1) return [];
-    const matches = findMatchInText(fullText, sug);
-    return matches.map(match => {
-      const startPM = posMap[match.start];
-      const endPM = posMap[match.end - 1] + 1;
-      return { from: startPM, to: endPM };
-    }).filter(m => m.from !== undefined && m.to !== undefined);
-  });
+    return suggestions.map(sug => {
+      if (!sug || sug.trim().length < 1) return [];
+      const matches = findMatchInText(fullText, sug);
+      return matches.map(match => {
+        if (match.start < 0 || match.end > fullText.length) return null;
+        
+        let startPM = posMap[match.start];
+        let endPM = (posMap[match.end - 1] ?? startPM) + 1;
+
+        // Critical fix: prevent paragraph merging
+        if (fullText[match.end - 1] === '\n' && !sug.endsWith('\n')) {
+          endPM = posMap[match.end - 1];
+        }
+        if (fullText[match.start] === '\n' && !sug.startsWith('\n')) {
+          startPM = posMap[match.start] + 1;
+        }
+
+        return { from: startPM, to: endPM };
+      }).filter((m): m is MatchResult => m !== null && m.from !== undefined && m.to !== undefined);
+    });
 };
