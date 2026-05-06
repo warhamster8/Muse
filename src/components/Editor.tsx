@@ -41,6 +41,7 @@ const CustomParagraph = Paragraph.extend({
     return {
       dropCap: {
         default: 'none',
+        keepOnSplit: false,
         parseHTML: element => element.getAttribute('data-drop-cap') || 'none',
         renderHTML: attributes => {
           if (attributes.dropCap === 'none') return {};
@@ -73,7 +74,6 @@ const CustomShortcuts = Extension.create({
         }
         return false;
       },
-      'Enter': () => this.editor.commands.splitBlock(),
     }
   },
 });
@@ -99,9 +99,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        paragraph: false,
-      }),
+      StarterKit,
       CustomParagraph,
       Underline,
       TextAlign.configure({
