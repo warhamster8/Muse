@@ -2,7 +2,7 @@ import { Extension } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { useStore } from '../../store/useStore';
-import { findMatchesInDoc } from './matchUtils';
+import { findManyMatchesInDoc } from './matchUtils';
 
 export const InlineSuggestions = Extension.create({
   name: 'inlineSuggestions',
@@ -18,8 +18,11 @@ export const InlineSuggestions = Extension.create({
 
             const decorations: Decoration[] = [];
             
+            const originalTexts = parsedSuggestions.map(s => s.original);
+            const allMatches = findManyMatchesInDoc(state.doc, originalTexts);
+
             parsedSuggestions.forEach((sug, index) => {
-              const matches = findMatchesInDoc(state.doc, sug.original);
+              const matches = allMatches[index] || [];
               matches.forEach(match => {
                 // Main highlight decoration
                 decorations.push(

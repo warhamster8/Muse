@@ -85,3 +85,22 @@ export const findMatchesInDoc = (doc: ProsemirrorNode, suggestion: string): Matc
     return { from: startPM, to: endPM };
   }).filter(m => m.from !== undefined && m.to !== undefined);
 };
+
+/**
+ * Optimized version: Finds matches for multiple suggestions in a single pass
+ */
+export const findManyMatchesInDoc = (doc: ProsemirrorNode, suggestions: string[]): MatchResult[][] => {
+  if (!suggestions || suggestions.length === 0) return suggestions.map(() => []);
+
+  const { fullText, posMap } = getDocTextAndMap(doc);
+  
+  return suggestions.map(sug => {
+    if (!sug || sug.trim().length < 1) return [];
+    const matches = findMatchInText(fullText, sug);
+    return matches.map(match => {
+      const startPM = posMap[match.start];
+      const endPM = posMap[match.end - 1] + 1;
+      return { from: startPM, to: endPM };
+    }).filter(m => m.from !== undefined && m.to !== undefined);
+  });
+};

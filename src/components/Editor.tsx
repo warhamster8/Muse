@@ -72,7 +72,8 @@ const CustomShortcuts = Extension.create({
           return true;
         }
         return false;
-      }
+      },
+      'Enter': () => this.editor.commands.splitBlock(),
     }
   },
 });
@@ -99,7 +100,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        paragraph: false, // Disable default paragraph to use our custom one
+        paragraph: false,
       }),
       CustomParagraph,
       Underline,
@@ -242,10 +243,17 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
       if (matches.length > 0) {
         const match = matches[0];
         
-        // Use a transaction to replace the text across paragraph boundaries
+        // Ensure we don't accidentally replace a trailing newline that might merge paragraphs
+        // We trim the match range if the original text doesn't end with a newline but the match does
+        let { from, to } = match;
+        const textToReplace = editor.state.doc.textBetween(from, to, '\n');
+        if ((textToReplace.endsWith('\n') || textToReplace.endsWith(' ')) && !original.endsWith('\n') && !original.endsWith(' ')) {
+          to -= 1;
+        }
+
         editor.chain()
           .focus()
-          .insertContentAt({ from: match.from, to: match.to }, suggestion)
+          .insertContentAt({ from, to }, suggestion)
           .run();
       } else {
         addToast("Impossibile applicare: testo originale non trovato.", "error");
@@ -368,7 +376,8 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
     // Only update if content is genuinely different AND we are not focused
     // or if the content is completely different (different scene load)
     if (normalizedInitial !== normalizedCurrent) {
-      if (!editor.isFocused || Math.abs(normalizedInitial.length - normalizedCurrent.length) > 50) {
+      // Aggressive check: only update if NOT focused, or if the content is massively different (load new scene)
+      if (!editor.isFocused || Math.abs(normalizedInitial.length - normalizedCurrent.length) > 500) {
         isExternallyUpdating.current = true;
         editor.commands.setContent(initialContent, { emitUpdate: false });
         
