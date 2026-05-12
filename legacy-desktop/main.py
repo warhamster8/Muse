@@ -33,6 +33,22 @@ class NovaMuseApp(ctk.CTk):
         self.ai_panel = AIPanel(self, width=300)
         self.ai_panel.grid(row=0, column=2, sticky="nsew", padx=0, pady=0)
 
+        # Status Bar inferiore (Phase 5 Refinement)
+        self.status_bar = ctk.CTkFrame(self, height=30, fg_color="#121416", corner_radius=0)
+        self.status_bar.grid(row=1, column=0, columnspan=3, sticky="ew")
+        
+        self.st_active = ctk.CTkLabel(self.status_bar, text="● Project Active", text_color="#2eb0a3", font=ctk.CTkFont(size=10))
+        self.st_active.pack(side="left", padx=20)
+        
+        self.st_ai = ctk.CTkLabel(self.status_bar, text="● AI Ready", text_color="#2eb0a3", font=ctk.CTkFont(size=10))
+        self.st_ai.pack(side="left", padx=20)
+        
+        self.st_wc = ctk.CTkLabel(self.status_bar, text="Word Count: 34,701", text_color="#888888", font=ctk.CTkFont(size=10))
+        self.st_wc.pack(side="right", padx=20)
+
+        # Configurazione riga status bar
+        self.grid_rowconfigure(1, weight=0)
+
         # Avvio del thread di Autosave (Phase 5)
         self.autosave_enabled = True
         self.start_autosave_thread()

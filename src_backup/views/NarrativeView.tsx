@@ -5,7 +5,6 @@ import { CreationModal } from '../components/CreationModal';
 import { useToast, ToastContainer } from '../components/Toast';
 import { ManuscriptNavigator } from './narrative/ManuscriptNavigator';
 import { EditorWorkspace } from './narrative/EditorWorkspace';
-import { AIPanel } from '../components/AIPanel';
 import type { DropResult } from '@hello-pangea/dnd';
 import { AnimatePresence, motion } from 'framer-motion';
 import { exportToDocx } from '../lib/exportUtils';
@@ -42,11 +41,6 @@ export const NarrativeView: React.FC = React.memo(() => {
   const currentProject = useStore(s => s.currentProject);
   const authorName = useStore(s => s.authorName);
   const { addToast } = useToast();
-
-  const onUpdateContent = (id: string, html: string) => {
-    updateSceneContent(id, html);
-    setCurrentSceneContent(html);
-  };
   
   // Stati locali per UI e Modali
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
@@ -220,32 +214,14 @@ export const NarrativeView: React.FC = React.memo(() => {
         )}
       </AnimatePresence>
 
-      {/* Mattoncino: Workspace di Scrittura (Colonna Centrale) */}
-      <div className="flex-1 min-w-0 h-full flex flex-col">
-        <EditorWorkspace 
-          activeScene={activeScene}
-          onUpdateContent={onUpdateContent}
-        />
-      </div>
-
-      {/* Mattoncino: AI Companion (Colonna Destra) */}
-      <AnimatePresence mode="wait">
-        {!isZenMode && (
-          <motion.div
-            key="aipanel"
-            initial={{ width: 0, opacity: 0, x: 20 }}
-            animate={{ width: 'auto', opacity: 1, x: 0 }}
-            exit={{ width: 0, opacity: 0, x: 20 }}
-            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-            className="h-full flex-shrink-0 origin-right hidden xl:block"
-          >
-            <AIPanel 
-              activeScene={activeScene} 
-              onUpdateContent={onUpdateContent} 
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Mattoncino: Workspace di Scrittura */}
+      <EditorWorkspace 
+        activeScene={activeScene}
+        onUpdateContent={(id, html) => {
+          updateSceneContent(id, html);
+          useStore.getState().setCurrentSceneContent(html);
+        }}
+      />
       
       {/* Modali di Creazione (Supporto) */}
       <CreationModal 

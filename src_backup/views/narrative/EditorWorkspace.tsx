@@ -263,9 +263,9 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 flex flex-col relative">
+      <div className="flex-1 min-h-0 relative">
         {!activeScene ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-[var(--text-secondary)] space-y-6 bg-[var(--bg-deep)]/10 animate-in fade-in duration-500">
+          <div className="h-full flex flex-col items-center justify-center text-[var(--text-secondary)] space-y-6 bg-[var(--bg-deep)]/10 animate-in fade-in duration-500">
             <div 
               onClick={() => setNavigatorOpen(true)}
               className="w-24 h-24 rounded-full border border-[var(--border-subtle)] flex items-center justify-center opacity-20 bg-[var(--bg-surface)] transition-all hover:scale-110 hover:opacity-40 cursor-pointer group mb-10"
@@ -288,45 +288,22 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
             </div>
           </div>
         ) : (
-          <>
-            <div className="flex-1 overflow-y-auto custom-scrollbar bg-[var(--bg-deep)] transition-colors duration-500">
-              <div className="mx-auto w-full max-w-[1200px] p-4 lg:p-8 2xl:p-12">
-                <Editor 
-                  initialContent={activeScene.content || ''} 
-                  onChange={(newContent) => onUpdateContent(activeScene.id, newContent)} 
-                />
-                
-                <div className="mt-16 pt-10 border-t border-[var(--border-subtle)] flex items-center justify-between opacity-30">
-                  <div className="flex items-center gap-4 text-[10px] uppercase font-black tracking-[0.3em] text-[var(--text-muted)]">
-                    <span>Scene ID: {activeScene.id.slice(0, 8)}</span>
-                    <span className="w-1 h-1 bg-[var(--text-muted)] rounded-full" />
-                    <span>Last Edit: Just now</span>
-                  </div>
+          <div className="h-full overflow-y-auto custom-scrollbar bg-[var(--bg-deep)] transition-colors duration-500">
+            <div className="mx-auto w-full max-w-[1200px] p-4 lg:p-8 2xl:p-12">
+              <Editor 
+                initialContent={activeScene.content || ''} 
+                onChange={(newContent) => onUpdateContent(activeScene.id, newContent)} 
+              />
+              
+              <div className="mt-16 pt-10 border-t border-[var(--border-subtle)] flex items-center justify-between opacity-30">
+                <div className="flex items-center gap-4 text-[10px] uppercase font-black tracking-[0.3em] text-[var(--text-muted)]">
+                  <span>Scene ID: {activeScene.id.slice(0, 8)}</span>
+                  <span className="w-1 h-1 bg-[var(--text-muted)] rounded-full" />
+                  <span>Last Edit: Just now</span>
                 </div>
               </div>
             </div>
-            
-            {/* Bottom Toolbar */}
-            <div className="h-12 bg-[var(--bg-card)]/90 backdrop-blur-md border-t border-[var(--border-subtle)] flex items-center justify-between px-6 z-30 shrink-0">
-              <div className="flex items-center gap-4">
-                <span className="text-[11px] font-bold text-[var(--text-muted)]">
-                  {activeScene.content ? activeScene.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length : 0} words
-                </span>
-                <div className="h-4 w-[1px] bg-[var(--border-subtle)]" />
-                <div className="flex items-center gap-1">
-                  <button className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-bright)] hover:bg-[var(--accent-soft)] rounded-md transition-colors"><span className="font-serif font-bold italic">I</span></button>
-                  <button className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-bright)] hover:bg-[var(--accent-soft)] rounded-md transition-colors"><span className="font-serif font-bold">B</span></button>
-                  <button className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-bright)] hover:bg-[var(--accent-soft)] rounded-md transition-colors"><span className="font-serif font-bold underline">U</span></button>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-[11px] font-bold text-[var(--text-muted)]">Autosave</span>
-                <div className="w-8 h-4 bg-[var(--accent)] rounded-full relative cursor-pointer">
-                  <div className="w-3 h-3 bg-white rounded-full absolute right-0.5 top-0.5 shadow-sm" />
-                </div>
-              </div>
-            </div>
-          </>
+          </div>
         )}
       </div>
     </div>

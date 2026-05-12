@@ -117,7 +117,7 @@ export const Editor: React.FC<{ initialContent: string; onChange: (content: stri
     content: initialContent,
     editorProps: {
       attributes: {
-        spellcheck: 'false',
+        spellcheck: 'true',
         class: cn('focus:outline-none prose max-w-none', theme === 'dark' ? 'prose-invert' : ''),
       },
     },

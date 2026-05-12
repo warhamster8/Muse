@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Plus, 
   ChevronDown, 
@@ -14,9 +14,6 @@ import {
   Trash2, 
   Search 
 } from 'lucide-react';
-import { useCharacters } from '../../hooks/useCharacters';
-import { useWorld } from '../../hooks/useWorld';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useStore } from '../../store/useStore';
 import { Skeleton } from '../../components/Skeleton';
 
@@ -53,7 +50,7 @@ const STATUS_CONFIG = {
 
 const STATUSES: SceneStatus[] = ['draft', 'revised', 'complete'];
 
-export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = React.memo(({
+export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = ({
   chapters,
   activeSceneId,
   expandedChapters,
@@ -73,21 +70,7 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = React.mem
   isExporting,
   loading
 }) => {
-  const { characters } = useCharacters();
-  const { settings: locations } = useWorld();
-  
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['characters', 'locations', 'notes']));
-  
-  const toggleSection = (id: string) => {
-    setExpandedSections(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = React.useState<string | null>(null);
   const [editTitle, setEditTitle] = React.useState('');
   const [searchTerm, setSearchTerm] = React.useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = React.useState('');
@@ -291,7 +274,7 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = React.mem
                                 <ChevronRight className="w-3.5 h-3.5 text-[var(--text-muted)]" />
                               }
                             </div>
-                            <Folder className={cn("w-4 h-4 fill-current", expandedChapters.has(chapter.id) ? "text-yellow-500" : "text-yellow-600/80")} />
+                            <Folder className={cn("w-4 h-4 transition-colors duration-500", expandedChapters.has(chapter.id) ? "text-[var(--accent)]" : "text-[var(--text-secondary)]")} />
                             {editingId === chapter.id ? (
                               <input
                                 autoFocus
@@ -560,122 +543,7 @@ export const ManuscriptNavigator: React.FC<ManuscriptNavigatorProps> = React.mem
             </Droppable>
           </DragDropContext>
         )}
-
-        {/* --- CHARACTERS SECTION --- */}
-        <div className="mt-8 space-y-2">
-          <div 
-            onClick={() => toggleSection('characters')}
-            className="flex items-center space-x-3 px-5 py-2 cursor-pointer group"
-          >
-            <div className="w-4 h-4 flex items-center justify-center">
-              <ChevronDown className={cn("w-3.5 h-3.5 text-[var(--accent)] transition-transform duration-300", !expandedSections.has('characters') && "-rotate-90")} />
-            </div>
-            <span className="text-[10px] font-black flex-1 uppercase tracking-[0.3em] text-[var(--accent)]">Characters</span>
-          </div>
-          
-          <AnimatePresence>
-            {expandedSections.has('characters') && (
-              <motion.div 
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="pl-12 space-y-1.5 border-l border-[var(--border-subtle)] ml-7 overflow-hidden"
-              >
-                {characters.length === 0 ? (
-                  <div className="text-[10px] text-[var(--text-muted)] py-1">No characters yet</div>
-                ) : (
-                  characters.slice(0, 5).map((char: any) => (
-                    <div key={char.id} className="flex items-center gap-2 text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-bright)] cursor-pointer py-1 truncate">
-                      <span className="w-1 h-1 rounded-full bg-emerald-500 flex-shrink-0" /> {char.name}
-                    </div>
-                  ))
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* --- LOCATIONS SECTION --- */}
-        <div className="mt-4 space-y-2">
-          <div 
-            onClick={() => toggleSection('locations')}
-            className="flex items-center space-x-3 px-5 py-2 cursor-pointer group"
-          >
-            <div className="w-4 h-4 flex items-center justify-center">
-              <ChevronDown className={cn("w-3.5 h-3.5 text-[var(--accent)] transition-transform duration-300", !expandedSections.has('locations') && "-rotate-90")} />
-            </div>
-            <span className="text-[10px] font-black flex-1 uppercase tracking-[0.3em] text-[var(--accent)]">Locations</span>
-          </div>
-          
-          <AnimatePresence>
-            {expandedSections.has('locations') && (
-              <motion.div 
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="pl-12 space-y-1.5 border-l border-[var(--border-subtle)] ml-7 overflow-hidden"
-              >
-                {locations.length === 0 ? (
-                  <div className="text-[10px] text-[var(--text-muted)] py-1">No locations yet</div>
-                ) : (
-                  locations.slice(0, 5).map((loc: any) => (
-                    <div key={loc.id} className="flex items-center gap-2 text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-bright)] cursor-pointer py-1 truncate">
-                       {loc.name}
-                    </div>
-                  ))
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* --- NOTES SECTION --- */}
-        <div className="mt-4 space-y-2 mb-8">
-          <div 
-            onClick={() => toggleSection('notes')}
-            className="flex items-center space-x-3 px-5 py-2 cursor-pointer group"
-          >
-            <div className="w-4 h-4 flex items-center justify-center">
-              <ChevronDown className={cn("w-3.5 h-3.5 text-[var(--accent)] transition-transform duration-300", !expandedSections.has('notes') && "-rotate-90")} />
-            </div>
-            <span className="text-[10px] font-black flex-1 uppercase tracking-[0.3em] text-[var(--accent)]">Notes</span>
-          </div>
-          
-          <AnimatePresence>
-            {expandedSections.has('notes') && (
-              <motion.div 
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="pl-12 space-y-3 border-l border-[var(--border-subtle)] ml-7 py-2 overflow-hidden"
-              >
-                <div>
-                  <div className="flex justify-between text-[9px] text-[var(--text-secondary)] font-bold mb-1">
-                    <span>Plot Density</span>
-                    <span>20%</span>
-                  </div>
-                  <div className="h-1 bg-[var(--bg-deep)] rounded-full overflow-hidden w-24">
-                    <div className="h-full bg-[var(--accent)] w-[20%]" />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-[9px] text-[var(--text-secondary)] font-bold mb-1">
-                    <span>Timeline</span>
-                    <span>10%</span>
-                  </div>
-                  <div className="h-1 bg-[var(--bg-deep)] rounded-full overflow-hidden w-24">
-                    <div className="h-full bg-emerald-500 w-[10%]" />
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
       </div>
     </div>
   );
-});
+};
