@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Muse - AI Writing Platform (Desktop)",
   "main": "main.js",
+  "homepage": "https://musewriteassistant.pages.dev",
   "scripts": {
     "start": "electron .",
     "dev": "set NODE_ENV=development && electron .",
@@ -20,17 +21,22 @@
         "AppImage",
         "deb"
       ],
-      "category": "Office"
+      "category": "Office",
+      "maintainer": "Andrea <andrea@example.com>"
     },
     "files": [
       "main.js",
       "preload.js",
       "package.json",
+      "icon.png",
       "../WebApp/dist/**/*"
     ]
   },
   "keywords": [],
-  "author": "Antigravity",
+  "author": {
+    "name": "Andrea",
+    "email": "andrea@example.com"
+  },
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {

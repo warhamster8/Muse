@@ -12,7 +12,8 @@ function createWindow() {
       contextIsolation: true,
     },
     title: "Muse - Desktop",
-    backgroundColor: '#ffffff'
+    backgroundColor: '#ffffff',
+    icon: path.join(__dirname, 'icon.png')
   });
 
   if (isDev) {
