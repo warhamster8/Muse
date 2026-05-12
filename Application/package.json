@@ -29,7 +29,7 @@
       "preload.js",
       "package.json",
       "icon.png",
-      "../WebApp/dist/**/*"
+      "web-dist/**/*"
     ]
   },
   "keywords": [],

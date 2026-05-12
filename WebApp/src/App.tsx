@@ -194,7 +194,7 @@ function App() {
           <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-[var(--accent)]/10 blur-[140px] rounded-full" />
           
           <div className="w-48 h-48 md:w-64 md:h-64 mx-auto rounded-[48px] flex items-center justify-center mb-6 logo-glow transition-all duration-700">
-            <img src="/logo.png" alt="Project Muse Logo" className="w-full h-full object-contain rounded-[24px] md:rounded-[32px] logo-blend" />
+            <img src="./logo.png" alt="Project Muse Logo" className="w-full h-full object-contain rounded-[24px] md:rounded-[32px] logo-blend" />
           </div>
           <div>
             <h1 className="text-4xl md:text-5xl font-black font-display text-[var(--text-bright)] tracking-tighter leading-tight uppercase">Project Muse</h1>

@@ -1,0 +1,1 @@
+import"./rolldown-runtime-COnpUsM8.js";import{Ft as e}from"./icons-DawpHT4l.js";import{t}from"./react-vendor-CKzBtg6m.js";import{t as n}from"./utils-Dr6y6fxZ.js";e();var r=t(),i=({className:e})=>(0,r.jsx)(`div`,{className:n(`animate-pulse bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl`,e)});export{i as t};

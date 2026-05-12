@@ -10,6 +10,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
+      webSecurity: false
     },
     title: "Muse - Desktop",
     backgroundColor: '#ffffff',
@@ -17,18 +18,20 @@ function createWindow() {
   });
 
   if (isDev) {
-    // During development, connect to the Vite dev server
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
-    // In production, load the built index.html from WebApp/dist
-    mainWindow.loadFile(path.join(__dirname, '..', 'WebApp', 'dist', 'index.html'));
+    // Load from the local web-dist folder which is now bundled with the app
+    const indexPath = path.join(__dirname, 'web-dist', 'index.html');
+    mainWindow.loadFile(indexPath).catch(err => {
+      console.error("Failed to load index.html at:", indexPath);
+      console.error("Error details:", err);
+    });
   }
 }
 
 app.whenReady().then(() => {
   createWindow();
-
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
