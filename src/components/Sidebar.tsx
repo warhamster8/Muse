@@ -32,10 +32,8 @@ const navItems: NavItem[] = [
 ];
 
 export const Sidebar: React.FC = React.memo(() => {
-  const currentProject = useStore(s => s.currentProject);
   const activeTab = useStore(s => s.activeTab);
   const setActiveTab = useStore(s => s.setActiveTab);
-  const setCurrentProject = useStore(s => s.setCurrentProject);
   const logout = useStore(s => s.logout);
   const theme = useStore(s => s.theme);
   const setTheme = useStore(s => s.setTheme);
