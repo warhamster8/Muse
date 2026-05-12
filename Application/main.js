@@ -7,7 +7,7 @@ function createWindow() {
     width: 1200,
     height: 800,
     webPreferences: {
-      preload: path.join(__current_dir, 'preload.js'),
+      preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
     },
@@ -21,7 +21,7 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   } else {
     // In production, load the built index.html from WebApp/dist
-    mainWindow.loadFile(path.join(__current_dir, '..', 'WebApp', 'dist', 'index.html'));
+    mainWindow.loadFile(path.join(__dirname, '..', 'WebApp', 'dist', 'index.html'));
   }
 }
 
