@@ -1,8 +1,9 @@
 import React, { useRef } from 'react';
 import { Plus, User, Users, FileText, Brain, TrendingUp, MessageSquare, Camera, Trash2, Crown, Sword, Star } from 'lucide-react';
 import { useCharacters } from '../hooks/useCharacters';
+import { useStore } from '../store/useStore';
+import { aiService } from '../lib/aiService';
 import { cn } from '../lib/utils';
-import { groqService } from '../lib/groq';
 import { CreationModal } from '../components/CreationModal';
 import { useToast } from '../components/Toast';
 import { Skeleton } from '../components/Skeleton';
@@ -112,29 +113,77 @@ export const CharactersView: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  const { aiConfig } = useStore();
+
   const handleInterview = async () => {
     if (!selectedChar) return;
     setIsInterviewing(true);
+    addToast(`Avvio intervista con ${selectedChar.name}...`, 'info');
+    
     try {
       const messages = [
         { 
           role: 'system', 
-          content: `You are the character ${selectedChar.name}. 
+          content: `Sei il personaggio ${selectedChar.name}. 
           BIO: ${selectedChar.bio}. 
-          PSYCHOLOGY: ${selectedChar.psychology}. 
-          An interviewer is talking to you. Reply as the character with their voice and personality.` 
+          PSICOLOGIA: ${selectedChar.psychology}. 
+          Un intervistatore ti sta parlando. Rispondi SEMPRE in prima persona, mantenendo la voce e la personalità del personaggio. Sii evocativo e coerente.` 
         },
-        { role: 'user', content: 'Tell me something about your deepest secret or motivation.' }
+        { role: 'user', content: 'Parlami del tuo segreto più profondo o della tua motivazione principale in questa storia.' }
       ];
-      const res = await groqService.getChatCompletion(messages);
-      const answer = res.choices[0]?.message?.content || '';
+      
+      let answer = '';
+      await aiService.streamChat(
+        aiConfig,
+        messages,
+        (chunk) => {
+          answer += chunk;
+        }
+      );
+
+      if (!answer) throw new Error("L'IA non ha risposto.");
+
       await addInterview(selectedChar.id, 'Parlami di te...', answer);
-      addToast(`Intervista completata con ${selectedChar.name}`, 'info');
-      alert(`${selectedChar.name} dice: ${answer}`);
-    } catch (err) {
+      addToast(`Intervista completata con ${selectedChar.name}`, 'success');
+      
+      // Per ora mostriamo un'interfaccia semplice, ma potremmo aggiungere una sezione Interviste
+      alert(`${selectedChar.name} dice:\n\n"${answer}"`);
+    } catch (err: any) {
       console.error(err);
+      addToast(`Errore Intervista: ${err.message}`, 'error');
     } finally {
       setIsInterviewing(false);
+    }
+  };
+
+  const handleAnalytics = async () => {
+    if (!selectedChar) return;
+    addToast(`Generazione analisi per ${selectedChar.name}...`, 'info');
+    
+    try {
+      const messages = [
+        { 
+          role: 'system', 
+          content: `Sei un analista letterario senior. Analizza il personaggio fornito e fornisci un profilo psicologico breve e incisivo.` 
+        },
+        { role: 'user', content: `Personaggio: ${selectedChar.name}\nBio: ${selectedChar.bio}\nPsicologia: ${selectedChar.psychology}` }
+      ];
+      
+      let analysis = '';
+      await aiService.streamChat(
+        aiConfig,
+        messages,
+        (chunk) => {
+          analysis += chunk;
+        }
+      );
+
+      if (!analysis) throw new Error("Analisi fallita.");
+
+      addToast("Analisi completata!", "success");
+      alert(`Analisi Editoriale per ${selectedChar.name}:\n\n${analysis}`);
+    } catch (err: any) {
+      addToast(`Errore Analisi: ${err.message}`, 'error');
     }
   };
 
@@ -395,7 +444,7 @@ export const CharactersView: React.FC = () => {
                       </button>
                       
                       <button 
-                        onClick={() => addToast('Analisi tratti in arrivo...', 'info')}
+                        onClick={handleAnalytics}
                         className="flex items-center gap-5 px-12 py-5 glass hover:bg-[var(--bg-surface)]/10 text-[var(--text-secondary)] rounded-[28px] text-[11px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 border border-[var(--border-subtle)] group"
                       >
                         <TrendingUp className="w-5 h-5 group-hover:scale-125 transition-transform" />
