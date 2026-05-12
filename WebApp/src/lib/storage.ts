@@ -16,14 +16,24 @@ export const storage = {
   
   insert: (table: string, item: any) => {
     const list = storage.getCollection(table);
-    const newItem = { ...item, id: Math.random().toString(36).substr(2, 9), created_at: new Date().toISOString() };
+    const newItem = { 
+      ...item, 
+      id: item.id || Math.random().toString(36).substr(2, 9), 
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      needs_sync: item.needs_sync || false
+    };
     storage.setCollection(table, [...list, newItem]);
     return newItem;
   },
   
   update: (table: string, id: string, updates: any) => {
     const list = storage.getCollection(table);
-    const newList = list.map((item: any) => item.id === id ? { ...item, ...updates } : item);
+    const newList = list.map((item: any) => 
+      item.id === id 
+        ? { ...item, ...updates, updated_at: new Date().toISOString() } 
+        : item
+    );
     storage.setCollection(table, newList);
   },
   
