@@ -142,7 +142,7 @@ export const NotesView: React.FC = () => {
             onClose={() => setEditingNote(null)} 
             onSave={(updates) => {
               updateNote(editingNote.id, updates);
-              setEditingNote(null);
+              setEditingNote(prev => prev ? { ...prev, ...updates } : null);
             }}
           />
         )}
@@ -345,18 +345,37 @@ const NoteModal: React.FC<{ note: Note; theme: string; onClose: () => void; onSa
 
   if (!editor) return null;
 
+  // Helper to compare content (Tiptap normalizes empty to <p></p>)
+  const isContentEmpty = (html: string) => html === '<p></p>' || html === '' || html === '<p></p>\n';
+  
+  const hasChanged = () => {
+    const currentContent = editor.getHTML();
+    const titleChanged = title !== note.title;
+    const contentChanged = !isContentEmpty(currentContent) || !isContentEmpty(note.content) 
+      ? currentContent !== note.content 
+      : false;
+    return titleChanged || contentChanged;
+  };
+
   // Debounced auto-save
   React.useEffect(() => {
     const timer = setTimeout(async () => {
-      const currentContent = editor.getHTML();
-      if (title !== note.title || currentContent !== note.content) {
+      if (hasChanged()) {
         setIsSaving(true);
-        await onSave({ title, content: currentContent });
+        await onSave({ title, content: editor.getHTML() });
         setIsSaving(false);
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [title, editor.getHTML()]);
+  }, [title, editor.getHTML(), note.title, note.content]);
+
+  // Final save on close
+  const handleClose = async () => {
+    if (hasChanged()) {
+      await onSave({ title, content: editor.getHTML() });
+    }
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-8">
@@ -364,7 +383,7 @@ const NoteModal: React.FC<{ note: Note; theme: string; onClose: () => void; onSa
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={onClose}
+        onClick={handleClose}
         className="absolute inset-0 bg-[var(--bg-overlay)] backdrop-blur-md"
       />
       <motion.div 
@@ -394,7 +413,7 @@ const NoteModal: React.FC<{ note: Note; theme: string; onClose: () => void; onSa
             )}
           </div>
           <button 
-            onClick={onClose}
+            onClick={handleClose}
             className="group p-5 bg-[var(--bg-surface)]/10 hover:bg-[var(--accent-soft)] text-[var(--text-muted)] hover:text-[var(--text-bright)] rounded-[24px] transition-all active:scale-90 border border-[var(--border-subtle)]"
           >
             <Plus className="w-6 h-6 rotate-45 group-hover:rotate-0 transition-transform" />
