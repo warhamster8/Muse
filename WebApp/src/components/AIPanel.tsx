@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, MessageSquare, Lightbulb, Users, ListVideo, Loader2 } from 'lucide-react';
+import { Sparkles, MessageSquare, Lightbulb, Users, ListVideo, Loader2, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useCharacters } from '../hooks/useCharacters';
 import { useStore } from '../store/useStore';
@@ -124,7 +124,15 @@ export const AIPanel: React.FC<AIPanelProps> = ({ activeScene, onUpdateContent }
           </div>
           <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em]">AI Companion</span>
         </div>
+        <button 
+          onClick={() => useStore.getState().setSidekickOpen(false)}
+          className="p-2 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20"
+          title="Nascondi AI Companion"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
+
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar">
         

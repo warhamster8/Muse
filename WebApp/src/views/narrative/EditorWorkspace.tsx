@@ -27,6 +27,8 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
   const setNavigatorOpen = useStore(s => s.setNavigatorOpen);
   const isZenMode = useStore(s => s.isZenMode);
   const setZenMode = useStore(s => s.setZenMode);
+  const isSidekickOpen = useStore(s => s.isSidekickOpen);
+  const setSidekickOpen = useStore(s => s.setSidekickOpen);
   const currentSceneContent = useStore(s => s.currentSceneContent);
   const activeSelection = useStore(s => s.activeSelection);
   const parsedSuggestions = useStore(s => s.parsedSuggestions);
@@ -98,6 +100,7 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
               setZenMode(newZen);
               if (newZen) {
                 setNavigatorOpen(false);
+                setSidekickOpen(false);
               }
             }}
             className={cn(
@@ -109,6 +112,21 @@ export const EditorWorkspace: React.FC<EditorWorkspaceProps> = React.memo(({
             title={isZenMode ? "Esci da Modalità Zen" : "Modalità Zen"}
           >
             {isZenMode ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+          </button>
+
+          <button 
+            onClick={() => {
+              setSidekickOpen(!isSidekickOpen);
+            }}
+            className={cn(
+              "p-3 rounded-2xl transition-all border active:scale-95 group hidden xl:flex",
+              isSidekickOpen
+                ? "bg-[var(--accent-soft)] border-[var(--accent)]/30 text-[var(--accent)] shadow-glow-mint"
+                : "bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-bright)]"
+            )}
+            title={isSidekickOpen ? "Nascondi AI Companion" : "Mostra AI Companion"}
+          >
+            <Sparkles className="w-5 h-5 flex-shrink-0" />
           </button>
           
           <div className="relative" ref={aiMenuRef}>

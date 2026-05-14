@@ -64,13 +64,15 @@ export const geminiService = {
       ]
     };
 
-    // Includiamo le istruzioni di sistema nel formato corretto per Gemini
+    // Includiamo le istruzioni di sistema nel formato corretto per Gemini (REST predilige snake_case)
     if (systemInstruction) {
-      body.systemInstruction = { parts: [{ text: systemInstruction }] };
+      body.system_instruction = { parts: [{ text: systemInstruction }] };
     }
 
     const headers = new Headers();
     headers.set('Content-Type', 'application/json');
+    // Prevenzione: Google fallisce se riceve SIA la key nell'URL che un header Authorization
+    headers.delete('Authorization');
 
     // Usiamo v1 per massima stabilità con i modelli 1.5 e 2.0
     const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:streamGenerateContent?key=${apiKey}`, {
@@ -128,10 +130,14 @@ export const geminiService = {
     const apiKey = (providedKey || envKey || '').trim();
     if (!apiKey) return { ok: false, status: 0, error: 'Chiave mancante' };
 
+    const headers = new Headers();
+    headers.set('Content-Type', 'application/json');
+    headers.delete('Authorization');
+
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${_model}:generateContent?key=${apiKey}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: headers,
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: 'Ping' }] }],
           generationConfig: { maxOutputTokens: 1 }
