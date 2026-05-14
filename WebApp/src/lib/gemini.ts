@@ -35,10 +35,10 @@ export const geminiService = {
       return await this._executeStream(apiKey, primaryModel, messages, onChunk, temperature, signal);
     } catch (err: any) {
       // FALLBACK: Se 2.0 fallisce (es. non ancora disponibile per quella chiave o quota esaurita), 
-      // proviamo il super-stabile 1.5-flash-latest
-      if (primaryModel !== 'gemini-1.5-flash-latest') {
-        console.warn(`[SECURITY LOG] Gemini ${primaryModel} fallito, provo fallback su 1.5-flash-latest...`);
-        return await this._executeStream(apiKey, 'gemini-1.5-flash-latest', messages, onChunk, temperature, signal);
+      // proviamo il super-stabile 1.5-flash
+      if (primaryModel !== 'gemini-1.5-flash') {
+        console.warn(`[SECURITY LOG] Gemini ${primaryModel} fallito, provo fallback su 1.5-flash...`);
+        return await this._executeStream(apiKey, 'gemini-1.5-flash', messages, onChunk, temperature, signal);
       }
       throw err;
     }
@@ -72,12 +72,14 @@ export const geminiService = {
     const headers = new Headers();
     headers.set('Content-Type', 'application/json');
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}`, {
+    // Usiamo v1 per massima stabilità con i modelli 1.5 e 2.0
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:streamGenerateContent?key=${apiKey}`, {
       method: 'POST',
       headers,
       body: JSON.stringify(body),
       signal
     });
+
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -122,12 +124,12 @@ export const geminiService = {
   /**
    * Verifica la connettività con l'endpoint Google.
    */
-  async testConnection(providedKey: string, _model = 'gemini-1.5-flash-latest') {
+  async testConnection(providedKey: string, _model = 'gemini-1.5-flash') {
     const apiKey = (providedKey || envKey || '').trim();
     if (!apiKey) return { ok: false, status: 0, error: 'Chiave mancante' };
 
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${_model}:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${_model}:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
