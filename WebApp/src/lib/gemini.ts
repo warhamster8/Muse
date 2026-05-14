@@ -1,7 +1,6 @@
 /**
  * Servizio per l'interazione con l'API di Google Gemini.
- * Gestisce lo streaming e la diagnostica di connessione in modo robusto tramite REST nativo,
- * risolvendo problemi noti di auth con l'SDK ufficiale e environment non standard.
+ * Gestisce lo streaming e la diagnostica di connessione tramite REST nativo.
  */
 const envKey = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -12,7 +11,7 @@ export const geminiService = {
    * @param apiKey - Chiave API Google AI Studio
    * @param messages - Cronologia messaggi {role, content}
    * @param onChunk - Callback per il testo ricevuto
-   * @param temperature - Creatività della risposta (0.0 - 1.0)
+   * @param temperature - Creatività della risposta
    * @param signal - AbortSignal per annullare la richiesta
    */
   async streamChatCompletion(
@@ -24,37 +23,39 @@ export const geminiService = {
     signal?: AbortSignal
   ) {
     const apiKey = (providedKey || envKey || '').trim();
-    if (!apiKey) {
-      throw new Error('Configurazione di sicurezza: Chiave Gemini non valida');
+    if (!apiKey) throw new Error('Configurazione di sicurezza: Chiave Gemini non valida');
+
+    // Proviamo prima con il modello richiesto (o il nuovo standard 2.0)
+    let primaryModel = _model?.trim() || 'gemini-2.0-flash';
+    if (primaryModel.includes('1.5-flash') && !primaryModel.includes('latest')) {
+       primaryModel = 'gemini-2.0-flash';
     }
 
-    let normalizedModel = _model?.trim() || 'gemini-2.0-flash';
-    // Forza la migrazione per i vecchi salvataggi nel DB/State
-    if (normalizedModel.includes('1.5-flash')) {
-      normalizedModel = 'gemini-2.0-flash';
+    try {
+      return await this._executeStream(apiKey, primaryModel, messages, onChunk, temperature, signal);
+    } catch (err: any) {
+      // FALLBACK: Se 2.0 fallisce (es. non ancora disponibile per quella chiave o quota esaurita), 
+      // proviamo il super-stabile 1.5-flash-latest
+      if (primaryModel !== 'gemini-1.5-flash-latest') {
+        console.warn(`[SECURITY LOG] Gemini ${primaryModel} fallito, provo fallback su 1.5-flash-latest...`);
+        return await this._executeStream(apiKey, 'gemini-1.5-flash-latest', messages, onChunk, temperature, signal);
+      }
+      throw err;
     }
+  },
 
-    // Strategia di compatibilità massima: incorporiamo le istruzioni di sistema nel primo messaggio utente
+  async _executeStream(apiKey: string, model: string, messages: any[], onChunk: (text: string) => void, temperature: number, signal?: AbortSignal) {
     const systemInstruction = messages.find((m) => m.role === 'system')?.content;
     const history = messages
       .filter((m) => m.role !== 'system')
-      .map((m, idx) => {
-        let text = m.content;
-        if (idx === 0 && systemInstruction) {
-          text = `ISTRUZIONI DI SISTEMA:\n${systemInstruction}\n\nRICHIESTA UTENTE:\n${m.content}`;
-        }
-        return {
-          role: m.role === 'user' ? 'user' : 'model',
-          parts: [{ text }],
-        };
-      });
+      .map((m) => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.content }],
+      }));
 
     const body: any = {
       contents: history,
-      generationConfig: {
-        temperature,
-        maxOutputTokens: 8192,
-      },
+      generationConfig: { temperature, maxOutputTokens: 8192 },
       safetySettings: [
         { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
         { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
@@ -63,99 +64,72 @@ export const geminiService = {
       ]
     };
 
+    // Includiamo le istruzioni di sistema nel formato corretto per Gemini
+    if (systemInstruction) {
+      body.systemInstruction = { parts: [{ text: systemInstruction }] };
+    }
+
     const headers = new Headers();
     headers.set('Content-Type', 'application/json');
-    // Prevenzione assoluta contro interceptor (es. estensioni browser o vecchie cache SDK) 
-    // che potrebbero iniettare Authorization: Bearer
-    headers.delete('Authorization');
 
-    try {
-      // Usiamo v1beta per massima compatibilità con i modelli 1.5 e 2.0
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${normalizedModel}:streamGenerateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(body),
-        signal
-      });
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData?.error?.message || 'Errore di comunicazione con Gemini';
-        throw new Error(`Gemini Error (${response.status}): ${errorMessage}`);
-      }
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData?.error?.message || `Errore Gemini ${response.status}`);
+    }
 
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('Interfaccia streaming non disponibile');
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error('Streaming Gemini non disponibile');
 
-      const decoder = new TextDecoder();
-      let buffer = '';
+    const decoder = new TextDecoder();
+    let buffer = '';
 
-      while (true) {
-        if (signal?.aborted) {
-          reader.cancel();
-          break;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      let startIdx = buffer.indexOf('{');
+      while (startIdx !== -1) {
+        let depth = 0;
+        let endIdx = -1;
+        for (let i = startIdx; i < buffer.length; i++) {
+          if (buffer[i] === '{') depth++;
+          else if (buffer[i] === '}') depth--;
+          if (depth === 0) { endIdx = i; break; }
         }
-        const { done, value } = await reader.read();
-        if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
-        
-        // Gemini stream può restituire array di JSON o frammenti.
-        // Puliamo il buffer per trovare oggetti JSON validi
-        let startIdx = buffer.indexOf('{');
-        while (startIdx !== -1) {
-          let depth = 0;
-          let endIdx = -1;
-          for (let i = startIdx; i < buffer.length; i++) {
-            if (buffer[i] === '{') depth++;
-            else if (buffer[i] === '}') depth--;
-            
-            if (depth === 0) {
-              endIdx = i;
-              break;
-            }
-          }
-
-          if (endIdx !== -1) {
-            const jsonStr = buffer.substring(startIdx, endIdx + 1);
-            try {
-              const json = JSON.parse(jsonStr);
-              const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (text) onChunk(text);
-            } catch (e) {}
-            buffer = buffer.substring(endIdx + 1);
-            startIdx = buffer.indexOf('{');
-          } else {
-            break;
-          }
-        }
+        if (endIdx !== -1) {
+          const jsonStr = buffer.substring(startIdx, endIdx + 1);
+          try {
+            const json = JSON.parse(jsonStr);
+            const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) onChunk(text);
+          } catch (e) {}
+          buffer = buffer.substring(endIdx + 1);
+          startIdx = buffer.indexOf('{');
+        } else break;
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
-      console.error('[SECURITY LOG] Gemini Stream Exception:', err.message);
-      throw err;
     }
   },
 
   /**
    * Verifica la connettività con l'endpoint Google.
    */
-  async testConnection(providedKey: string, _model = 'gemini-2.0-flash') {
-    const apiKey = providedKey?.trim();
+  async testConnection(providedKey: string, _model = 'gemini-1.5-flash-latest') {
+    const apiKey = (providedKey || envKey || '').trim();
     if (!apiKey) return { ok: false, status: 0, error: 'Chiave mancante' };
 
-    const headers = new Headers();
-    headers.set('Content-Type', 'application/json');
-    headers.delete('Authorization'); // Prevents any phantom Bearer tokens from triggering 401
-
-    let normalizedModel = _model?.trim() || 'gemini-2.0-flash';
-    if (normalizedModel.includes('1.5-flash')) {
-      normalizedModel = 'gemini-2.0-flash';
-    }
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${normalizedModel}:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${_model}:generateContent?key=${apiKey}`, {
         method: 'POST',
-        headers: headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: 'Ping' }] }],
           generationConfig: { maxOutputTokens: 1 }
@@ -170,12 +144,8 @@ export const geminiService = {
         data: response.ok ? { status: 'online' } : data
       };
     } catch (err: any) {
-      console.error('[SECURITY LOG] Gemini Connection Test Failed:', err.message);
-      return {
-        status: 0,
-        ok: false,
-        error: 'Connessione al Nucleo Gemini fallita'
-      };
+      return { status: 0, ok: false, error: 'Connessione fallita' };
     }
   }
 };
+

@@ -1,50 +1,20 @@
-import Groq from 'groq-sdk';
-
-const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-
 /**
- * Servizio per l'interazione con l'SDK di Groq.
- * Gestisce chiamate sincrone e streaming con convalida della configurazione.
+ * Servizio per l'interazione con l'API di Groq via REST.
+ * Sostituisce l'SDK ufficiale per garantire massima compatibilità in ambienti Browser ed Electron
+ * senza problemi di inizializzazione o CORS (gestito via fetch).
  */
+const envKey = import.meta.env.VITE_GROQ_API_KEY;
+
 export const groqService = {
   /**
-   * Ottiene un'istanza di Groq con la chiave fornita o quella d'ambiente.
-   */
-  getInstance(providedKey?: string) {
-    const key = providedKey?.trim() || apiKey?.trim();
-    if (!key) return null;
-    return new Groq({ apiKey: key, dangerouslyAllowBrowser: true });
-  },
-
-  /**
-   * Ottiene una chat completion completa (non stream).
+   * Avvia una chat completion in streaming via fetch.
    * 
-   * @throws Error se la chiave API non è configurata o la chiamata fallisce.
-   */
-  async getChatCompletion(messages: any[], model = 'llama-3.3-70b-versatile', temperature = 0.5, apiKey?: string) {
-    const instance = this.getInstance(apiKey);
-    if (!instance) {
-      console.error('[SECURITY LOG] Groq instance not initialized. Check VITE_GROQ_API_KEY.');
-      throw new Error('Servizio Groq momentaneamente non disponibile.');
-    }
-    
-    try {
-      return await instance.chat.completions.create({
-        messages,
-        model,
-        temperature,
-      });
-    } catch (err: any) {
-      console.error('[SECURITY LOG] Groq API Exception:', err.message);
-      throw new Error('Errore durante l\'elaborazione della richiesta Groq.');
-    }
-  },
-
-  /**
-   * Avvia una chat completion in streaming.
-   * 
-   * @param onChunk - Callback per gestire i frammenti di testo ricevuti.
-   * @param signal - AbortSignal per terminare preventivamente la richiesta.
+   * @param messages - Array di messaggi {role, content}
+   * @param model - Modello Groq (default: llama-3.3-70b-versatile)
+   * @param onChunk - Callback per gestire i frammenti di testo ricevuti
+   * @param temperature - Creatività della risposta
+   * @param signal - AbortSignal per terminare la richiesta
+   * @param providedKey - Chiave API passata dall'utente
    */
   async streamChatCompletion(
     messages: any[],
@@ -52,32 +22,79 @@ export const groqService = {
     onChunk: (text: string) => void,
     temperature = 0.55,
     signal?: AbortSignal,
-    apiKey?: string
+    providedKey?: string
   ) {
-    const instance = this.getInstance(apiKey);
-    if (!instance) {
-      console.error('[SECURITY LOG] Groq stream requested but instance missing.');
-      throw new Error('Servizio Groq non configurato.');
+    const apiKey = (providedKey || envKey || '').trim();
+    if (!apiKey) {
+      console.error('[SECURITY LOG] Groq API Key missing.');
+      throw new Error('Servizio Groq non configurato: chiave API mancante.');
     }
 
     try {
-      const stream = await instance.chat.completions.create({
-        messages,
-        model,
-        stream: true,
-        temperature,
-        max_tokens: 8192, // Ottimizzato per output lunghi
-      }, { signal });
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        signal,
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature,
+          stream: true,
+          max_tokens: 8192,
+        }),
+      });
 
-      for await (const chunk of stream) {
-        if (signal?.aborted) break;
-        const content = chunk.choices[0]?.delta?.content || '';
-        if (content) onChunk(content);
+      if (!response.ok) {
+        let errorMessage = `Errore Groq (Status: ${response.status})`;
+        try {
+          const errorData = await response.json();
+          if (errorData.error?.message) {
+            errorMessage = `Groq Error: ${errorData.error.message}`;
+          }
+        } catch (e) {}
+        
+        console.error('[SECURITY LOG] Groq API Error:', errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('Interfaccia streaming Groq fallita');
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        if (signal?.aborted) {
+          reader.cancel();
+          break;
+        }
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (!trimmedLine || trimmedLine === 'data: [DONE]') continue;
+
+          if (trimmedLine.startsWith('data: ')) {
+            try {
+              const json = JSON.parse(trimmedLine.substring(6));
+              const content = json.choices?.[0]?.delta?.content;
+              if (content) onChunk(content);
+            } catch (e) {}
+          }
+        }
       }
     } catch (err: any) {
       if (err.name === 'AbortError') return;
       console.error('[SECURITY LOG] Groq Stream Exception:', err.message);
-      throw new Error('Errore nello streaming dei dati dal motore Groq.');
+      throw err;
     }
   },
   
@@ -85,27 +102,38 @@ export const groqService = {
    * Verifica la connettività con l'endpoint Groq.
    */
   async testConnection(apiKey?: string, model = 'llama-3.3-70b-versatile') {
-    const instance = this.getInstance(apiKey);
-    if (!instance) return { ok: false, status: 0, error: 'Groq non inizializzato' };
+    const key = (apiKey || envKey || '').trim();
+    if (!key) return { ok: false, status: 0, error: 'Chiave Groq mancante' };
     
     try {
-      const result = await instance.chat.completions.create({
-        messages: [{ role: 'user', content: 'Ping' }],
-        model,
-        max_tokens: 1
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${key}`
+        },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: 'Ping' }],
+          model,
+          max_tokens: 1
+        })
       });
+
+      const data = await response.json().catch(() => ({}));
       return {
-        ok: true,
-        status: 200,
-        data: { status: 'online', model: result.model }
+        ok: response.ok,
+        status: response.status,
+        error: response.ok ? null : (data.error?.message || `Status: ${response.status}`),
+        data: response.ok ? { status: 'online', model: data.model } : data
       };
     } catch (err: any) {
       console.error('[SECURITY LOG] Groq Connection Test Failed:', err.message);
       return {
         ok: false,
         status: 0,
-        error: err.message || 'Errore di connessione Groq'
+        error: 'Connessione ai server Groq fallita'
       };
     }
   }
 };
+
